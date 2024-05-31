@@ -16,7 +16,7 @@ hi_class can be used freely, provided that you cite the CLASS paper and
     
     "hi_class: Background Evolution, Initial Conditions and Approximation Schemes" 
     E. Bellini, I. Sawicki, M. Zumalacarregui,
-    http://arxiv.org/abs/arXiv:1909.xxxxx
+    http://arxiv.org/abs/arXiv:1909.01828
 
 For further information please visit
 http://hiclass-code.net and http://class-code.net

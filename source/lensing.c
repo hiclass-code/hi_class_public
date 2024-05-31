@@ -10,13 +10,14 @@
  *
  * The following functions can be called from other modules:
  *
- * -# lensing_init() at the beginning (but after spectra_init())
+ * -# lensing_init() at the beginning (but after harmonic_init())
  * -# lensing_cl_at_l() at any time for computing Cl_lensed at any l
  * -# lensing_free() at the end
  */
 
 #include "lensing.h"
 #include <time.h>
+#include "parallel.h"
 
 /**
  * Anisotropy power spectra \f$ C_l\f$'s for all types, modes and initial conditions.
@@ -75,17 +76,17 @@ int lensing_cl_at_l(
  *
  * @param ppr Input: pointer to precision structure
  * @param ppt Input: pointer to perturbation structure (just in case, not used in current version...)
- * @param psp Input: pointer to spectra structure
- * @param pnl Input: pointer to nonlinear structure
+ * @param phr Input: pointer to harmonic structure
+ * @param pfo Input: pointer to fourier structure
  * @param ple Output: pointer to initialized lensing structure
  * @return the error status
  */
 
 int lensing_init(
                  struct precision * ppr,
-                 struct perturbs * ppt,
-                 struct spectra * psp,
-                 struct nonlinear * pnl,
+                 struct perturbations * ppt,
+                 struct harmonic * phr,
+                 struct fourier * pfo,
                  struct lensing * ple
                  ) {
 
@@ -120,28 +121,15 @@ int lensing_init(
   double * ksip = NULL;  /* ksip[index_mu] */
   double * ksim = NULL;  /* ksim[index_mu] */
 
-  double fac,fac1;
-  double X_000;
-  double X_p000;
-  double X_220;
-  double X_022;
-  double X_p022;
-  double X_121;
-  double X_132;
-  double X_242;
-
   int num_mu,index_mu,icount;
   int l;
   double ll;
   double * cl_unlensed;  /* cl_unlensed[index_ct] */
-  double * cl_tt; /* unlensed  cl, to be filled to avoid repeated calls to spectra_cl_at_l */
-  double * cl_te = NULL; /* unlensed  cl, to be filled to avoid repeated calls to spectra_cl_at_l */
-  double * cl_ee = NULL; /* unlensed  cl, to be filled to avoid repeated calls to spectra_cl_at_l */
-  double * cl_bb = NULL; /* unlensed  cl, to be filled to avoid repeated calls to spectra_cl_at_l */
-  double * cl_pp; /* potential cl, to be filled to avoid repeated calls to spectra_cl_at_l */
-
-  double res,resX,lens;
-  double resp, resm, lensp, lensm;
+  double * cl_tt; /* unlensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+  double * cl_te = NULL; /* unlensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+  double * cl_ee = NULL; /* unlensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+  double * cl_bb = NULL; /* unlensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+  double * cl_pp; /* potential cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
 
   double * sqrt1;
   double * sqrt2;
@@ -150,7 +138,7 @@ int lensing_init(
   double * sqrt5;
 
   double ** cl_md_ic; /* array with argument
-                         cl_md_ic[index_md][index_ic1_ic2*psp->ct_size+index_ct] */
+                         cl_md_ic[index_md][index_ic1_ic2*phr->ct_size+index_ct] */
 
   double ** cl_md;    /* array with argument
                          cl_md[index_md][index_ct] */
@@ -181,7 +169,7 @@ int lensing_init(
   /** - initialize indices and allocate some of the arrays in the
       lensing structure */
 
-  class_call(lensing_indices(ppr,psp,ple),
+  class_call(lensing_indices(ppr,phr,ple),
              ple->error_message,
              ple->error_message);
 
@@ -252,7 +240,7 @@ int lensing_init(
               ple->error_message);
   icount += 4*num_mu*(ple->l_unlensed_max+1);
 
-  if(ple->has_te==_TRUE_) {
+  if (ple->has_te==_TRUE_) {
 
     class_alloc(d20,
                 num_mu*sizeof(double*),
@@ -416,7 +404,7 @@ int lensing_init(
               ple->error_message);
 
   class_alloc(cl_unlensed,
-              psp->ct_size*sizeof(double),
+              phr->ct_size*sizeof(double),
               ple->error_message);
 
 
@@ -443,31 +431,31 @@ int lensing_init(
               ple->error_message);
 
   class_alloc(cl_md_ic,
-              psp->md_size*sizeof(double *),
+              phr->md_size*sizeof(double *),
               ple->error_message);
 
   class_alloc(cl_md,
-              psp->md_size*sizeof(double *),
+              phr->md_size*sizeof(double *),
               ple->error_message);
 
-  for (index_md = 0; index_md < psp->md_size; index_md++) {
+  for (index_md = 0; index_md < phr->md_size; index_md++) {
 
-    if (psp->md_size > 1)
+    if (phr->md_size > 1)
 
       class_alloc(cl_md[index_md],
-                  psp->ct_size*sizeof(double),
+                  phr->ct_size*sizeof(double),
                   ple->error_message);
 
-    if (psp->ic_size[index_md] > 1)
+    if (phr->ic_size[index_md] > 1)
 
       class_alloc(cl_md_ic[index_md],
-                  psp->ic_ic_size[index_md]*psp->ct_size*sizeof(double),
+                  phr->ic_ic_size[index_md]*phr->ct_size*sizeof(double),
                   ple->error_message);
   }
 
   for (l=2; l<=ple->l_unlensed_max; l++) {
-    class_call(spectra_cl_at_l(psp,l,cl_unlensed,cl_md,cl_md_ic),
-               psp->error_message,
+    class_call(harmonic_cl_at_l(phr,l,cl_unlensed,cl_md,cl_md_ic),
+               phr->error_message,
                ple->error_message);
     cl_tt[l] = cl_unlensed[ple->index_lt_tt];
     cl_pp[l] = cl_unlensed[ple->index_lt_pp];
@@ -480,12 +468,12 @@ int lensing_init(
     }
   }
 
-  for (index_md = 0; index_md < psp->md_size; index_md++) {
+  for (index_md = 0; index_md < phr->md_size; index_md++) {
 
-    if (psp->md_size > 1)
+    if (phr->md_size > 1)
       free(cl_md[index_md]);
 
-    if (psp->ic_size[index_md] > 1)
+    if (phr->ic_size[index_md] > 1)
       free(cl_md_ic[index_md]);
 
   }
@@ -495,29 +483,36 @@ int lensing_init(
 
   /** - Compute sigma2\f$(\mu)\f$ and Cgl2(\f$\mu\f$) **/
 
-  //debut = omp_get_wtime();
-#pragma omp parallel for                        \
-  private (index_mu,l)                          \
-  schedule (static)
+  class_setup_parallel();
+
   for (index_mu=0; index_mu<num_mu; index_mu++) {
 
-    Cgl[index_mu]=0;
-    Cgl2[index_mu]=0;
+    int l_unlensed_max;
+    l_unlensed_max = ple->l_unlensed_max;
+    class_run_parallel(with_arguments(index_mu,l_unlensed_max,Cgl,Cgl2,cl_pp,d11,d1m1),
+      int l;
 
-    for (l=2; l<=ple->l_unlensed_max; l++) {
+      Cgl[index_mu]=0;
+      Cgl2[index_mu]=0;
 
-      Cgl[index_mu] += (2.*l+1.)*l*(l+1.)*
-        cl_pp[l]*d11[index_mu][l];
+      for (l=2; l<=l_unlensed_max; l++) {
 
-      Cgl2[index_mu] += (2.*l+1.)*l*(l+1.)*
-        cl_pp[l]*d1m1[index_mu][l];
+        Cgl[index_mu] += (2.*l+1.)*l*(l+1.)*
+          cl_pp[l]*d11[index_mu][l];
 
-    }
+        Cgl2[index_mu] += (2.*l+1.)*l*(l+1.)*
+          cl_pp[l]*d1m1[index_mu][l];
 
-    Cgl[index_mu] /= 4.*_PI_;
-    Cgl2[index_mu] /= 4.*_PI_;
+      }
+
+      Cgl[index_mu] /= 4.*_PI_;
+      Cgl2[index_mu] /= 4.*_PI_;
+      return _SUCCESS_;
+    );
 
   }
+
+  class_finish_parallel();
 
   for (index_mu=0; index_mu<num_mu-1; index_mu++) {
     /* Cgl(1.0) - Cgl(mu) */
@@ -572,15 +567,14 @@ int lensing_init(
     sqrt5[l]=sqrt(ll*(ll+1));
   }
 
-
-  //debut = omp_get_wtime();
-#pragma omp parallel for                                                \
-  private (index_mu,l,ll,res,resX,resp,resm,lens,lensp,lensm,           \
-           fac,fac1,X_000,X_p000,X_220,X_022,X_p022,X_121,X_132,X_242)	\
-  schedule (static)
-
   for (index_mu=0;index_mu<num_mu-1;index_mu++) {
 
+    // = means that all dependencies are captured.
+    class_run_parallel(=,
+
+    int l;
+    double declare_list_of_variables_inside_parallel_region(ll,fac, fac1, X_000, X_p000, X_220,X_022,X_p022,X_121,X_132,X_242);
+    double declare_list_of_variables_inside_parallel_region(res,resX,resp,resm,lens,lensp,lensm);
     for (l=2;l<=ple->l_unlensed_max;l++) {
 
       ll = (double)l;
@@ -605,8 +599,12 @@ int lensing_init(
       if (ple->has_te==_TRUE_ || ple->has_ee==_TRUE_ || ple->has_bb==_TRUE_) {
         /* X_022 = exp(-(fac-1.)*sigma2[index_mu]); */
         X_022 = X_000 * (1+sigma2[index_mu]*(1+0.5*sigma2[index_mu])); /* Order 2 */
-        X_p022 = (fac-1.)*X_022;
-        /* X_242 = 0.25*sqrt4[l]  * exp(-(fac-5./2.)*sigma2[index_mu]); */
+        X_p022 = -(fac-1.)*X_022; /* Old versions were missing the
+                                     minus sign in this line, which introduced a very small error
+                                     on the high-l C_l^TE lensed spectrum [credits for bug fix:
+                                     Selim Hotinli] */
+
+        /* X_242 = 0.25*sqrt4[l] * exp(-(fac-5./2.)*sigma2[index_mu]); */
         X_242 = 0.25*sqrt4[l] * X_000; /* Order 0 */
         if (ple->has_ee==_TRUE_ || ple->has_bb==_TRUE_) {
 
@@ -683,7 +681,12 @@ int lensing_init(
         ksim[index_mu] += resm;
       }
     }
+    return _SUCCESS_;
+
+    );
   }
+
+  class_finish_parallel();
   //fin = omp_get_wtime();
   //cpu_time = (fin-debut);
   //printf("time in ksi=%4.3f s\n",cpu_time);
@@ -821,21 +824,21 @@ int lensing_free(
  * This routine defines indices and allocates tables in the lensing structure
  *
  * @param ppr  Input: pointer to precision structure
- * @param psp  Input: pointer to spectra structure
+ * @param phr  Input: pointer to harmonic structure
  * @param ple  Input/output: pointer to lensing structure
  * @return the error status
  */
 
 int lensing_indices(
                     struct precision * ppr,
-                    struct spectra * psp,
+                    struct harmonic * phr,
                     struct lensing * ple
                     ){
 
   int index_l;
 
   double ** cl_md_ic; /* array with argument
-                         cl_md_ic[index_md][index_ic1_ic2*psp->ct_size+index_ct] */
+                         cl_md_ic[index_md][index_ic1_ic2*phr->ct_size+index_ct] */
 
   double ** cl_md;    /* array with argument
                          cl_md[index_md][index_ct] */
@@ -845,97 +848,97 @@ int lensing_indices(
 
   /* indices of all Cl types (lensed and unlensed) */
 
-  if (psp->has_tt == _TRUE_) {
+  if (phr->has_tt == _TRUE_) {
     ple->has_tt = _TRUE_;
-    ple->index_lt_tt=psp->index_ct_tt;
+    ple->index_lt_tt=phr->index_ct_tt;
   }
   else {
     ple->has_tt = _FALSE_;
   }
 
-  if (psp->has_ee == _TRUE_) {
+  if (phr->has_ee == _TRUE_) {
     ple->has_ee = _TRUE_;
-    ple->index_lt_ee=psp->index_ct_ee;
+    ple->index_lt_ee=phr->index_ct_ee;
   }
   else {
     ple->has_ee = _FALSE_;
   }
 
-  if (psp->has_te == _TRUE_) {
+  if (phr->has_te == _TRUE_) {
     ple->has_te = _TRUE_;
-    ple->index_lt_te=psp->index_ct_te;
+    ple->index_lt_te=phr->index_ct_te;
   }
   else {
     ple->has_te = _FALSE_;
   }
 
-  if (psp->has_bb == _TRUE_) {
+  if (phr->has_bb == _TRUE_) {
     ple->has_bb = _TRUE_;
-    ple->index_lt_bb=psp->index_ct_bb;
+    ple->index_lt_bb=phr->index_ct_bb;
   }
   else {
     ple->has_bb = _FALSE_;
   }
 
-  if (psp->has_pp == _TRUE_) {
+  if (phr->has_pp == _TRUE_) {
     ple->has_pp = _TRUE_;
-    ple->index_lt_pp=psp->index_ct_pp;
+    ple->index_lt_pp=phr->index_ct_pp;
   }
   else {
     ple->has_pp = _FALSE_;
   }
 
-  if (psp->has_tp == _TRUE_) {
+  if (phr->has_tp == _TRUE_) {
     ple->has_tp = _TRUE_;
-    ple->index_lt_tp=psp->index_ct_tp;
+    ple->index_lt_tp=phr->index_ct_tp;
   }
   else {
     ple->has_tp = _FALSE_;
   }
 
-  if (psp->has_dd == _TRUE_) {
+  if (phr->has_dd == _TRUE_) {
     ple->has_dd = _TRUE_;
-    ple->index_lt_dd=psp->index_ct_dd;
+    ple->index_lt_dd=phr->index_ct_dd;
   }
   else {
     ple->has_dd = _FALSE_;
   }
 
-  if (psp->has_td == _TRUE_) {
+  if (phr->has_td == _TRUE_) {
     ple->has_td = _TRUE_;
-    ple->index_lt_td=psp->index_ct_td;
+    ple->index_lt_td=phr->index_ct_td;
   }
   else {
     ple->has_td = _FALSE_;
   }
 
-  if (psp->has_ll == _TRUE_) {
+  if (phr->has_ll == _TRUE_) {
     ple->has_ll = _TRUE_;
-    ple->index_lt_ll=psp->index_ct_ll;
+    ple->index_lt_ll=phr->index_ct_ll;
   }
   else {
     ple->has_ll = _FALSE_;
   }
 
-  if (psp->has_tl == _TRUE_) {
+  if (phr->has_tl == _TRUE_) {
     ple->has_tl = _TRUE_;
-    ple->index_lt_tl=psp->index_ct_tl;
+    ple->index_lt_tl=phr->index_ct_tl;
   }
   else {
     ple->has_tl = _FALSE_;
   }
 
-  ple->lt_size = psp->ct_size;
+  ple->lt_size = phr->ct_size;
 
   /* number of multipoles */
 
-  ple->l_unlensed_max = psp->l_max_tot;
+  ple->l_unlensed_max = phr->l_max_tot;
 
   ple->l_lensed_max = ple->l_unlensed_max - ppr->delta_l_max;
 
-  for (index_l=0; (index_l < psp->l_size_max) && (psp->l[index_l] <= ple->l_lensed_max); index_l++);
+  for (index_l=0; (index_l < phr->l_size_max) && (phr->l[index_l] <= ple->l_lensed_max); index_l++);
 
-  if (index_l < psp->l_size_max) index_l++; /* one more point in order to be able to interpolate till ple->l_lensed_max */
+  if (index_l < phr->l_size_max) index_l++; /* one more point in order to be able to interpolate till ple->l_lensed_max */
 
   ple->l_size = index_l+1;
 
@@ -943,7 +946,7 @@ int lensing_indices(
 
   for (index_l=0; index_l < ple->l_size; index_l++) {
 
-    ple->l[index_l] = psp->l[index_l];
+    ple->l[index_l] = phr->l[index_l];
 
   }
 
@@ -960,42 +963,42 @@ int lensing_indices(
   /* fill with unlensed cls */
 
   class_alloc(cl_md_ic,
-              psp->md_size*sizeof(double *),
+              phr->md_size*sizeof(double *),
               ple->error_message);
 
   class_alloc(cl_md,
-              psp->md_size*sizeof(double *),
+              phr->md_size*sizeof(double *),
               ple->error_message);
 
-  for (index_md = 0; index_md < psp->md_size; index_md++) {
+  for (index_md = 0; index_md < phr->md_size; index_md++) {
 
-    if (psp->md_size > 1)
+    if (phr->md_size > 1)
 
       class_alloc(cl_md[index_md],
-                  psp->ct_size*sizeof(double),
+                  phr->ct_size*sizeof(double),
                   ple->error_message);
 
-    if (psp->ic_size[index_md] > 1)
+    if (phr->ic_size[index_md] > 1)
 
       class_alloc(cl_md_ic[index_md],
-                  psp->ic_ic_size[index_md]*psp->ct_size*sizeof(double),
+                  phr->ic_ic_size[index_md]*phr->ct_size*sizeof(double),
                   ple->error_message);
   }
 
   for (index_l=0; index_l<ple->l_size; index_l++) {
 
-    class_call(spectra_cl_at_l(psp,ple->l[index_l],&(ple->cl_lens[index_l*ple->lt_size]),cl_md,cl_md_ic),
-               psp->error_message,
+    class_call(harmonic_cl_at_l(phr,ple->l[index_l],&(ple->cl_lens[index_l*ple->lt_size]),cl_md,cl_md_ic),
+               phr->error_message,
                ple->error_message);
 
   }
 
-  for (index_md = 0; index_md < psp->md_size; index_md++) {
+  for (index_md = 0; index_md < phr->md_size; index_md++) {
 
-    if (psp->md_size > 1)
+    if (phr->md_size > 1)
       free(cl_md[index_md]);
 
-    if (psp->ic_size[index_md] > 1)
+    if (phr->ic_size[index_md] > 1)
       free(cl_md_ic[index_md]);
 
   }
@@ -1013,11 +1016,11 @@ int lensing_indices(
   class_alloc(ple->l_max_lt,ple->lt_size*sizeof(double),ple->error_message);
   for (index_lt = 0; index_lt < ple->lt_size; index_lt++) {
     ple->l_max_lt[index_lt]=0.;
-    for (index_md = 0; index_md < psp->md_size; index_md++) {
-      ple->l_max_lt[index_lt]=MAX(ple->l_max_lt[index_lt],psp->l_max_ct[index_md][index_lt]);
+    for (index_md = 0; index_md < phr->md_size; index_md++) {
+      ple->l_max_lt[index_lt]=MAX(ple->l_max_lt[index_lt],phr->l_max_ct[index_md][index_lt]);
 
       if ((ple->has_bb == _TRUE_) && (ple->has_ee == _TRUE_) && (index_lt == ple->index_lt_bb)) {
-        ple->l_max_lt[index_lt]=MAX(ple->l_max_lt[index_lt],psp->l_max_ct[index_md][ple->index_lt_ee]);
+        ple->l_max_lt[index_lt]=MAX(ple->l_max_lt[index_lt],phr->l_max_ct[index_md][ple->index_lt_ee]);
       }
 
     }
@@ -1047,22 +1050,25 @@ int lensing_lensed_cl_tt(
                          struct lensing * ple
                          ) {
 
-  double cle;
-  int imu;
   int index_l;
 
   /** Integration by Gauss-Legendre quadrature. **/
-#pragma omp parallel for                        \
-  private (imu,index_l,cle)                     \
-  schedule (static)
+  class_setup_parallel();
 
-  for(index_l=0; index_l<ple->l_size; index_l++){
-    cle=0;
-    for (imu=0;imu<nmu;imu++) {
-      cle += ksi[imu]*d00[imu][(int)ple->l[index_l]]*w8[imu]; /* loop could be optimized */
-    }
-    ple->cl_lens[index_l*ple->lt_size+ple->index_lt_tt]=cle*2.0*_PI_;
+  for (index_l=0; index_l<ple->l_size; index_l++){
+    class_run_parallel(=,
+      double cle;
+      int imu;
+      cle=0;
+      for (imu=0;imu<nmu;imu++) {
+        cle += ksi[imu]*d00[imu][(int)ple->l[index_l]]*w8[imu]; /* loop could be optimized */
+      }
+      ple->cl_lens[index_l*ple->lt_size+ple->index_lt_tt]=cle*2.0*_PI_;
+      return _SUCCESS_;
+    );
   }
+
+  class_finish_parallel();
 
   return _SUCCESS_;
 }
@@ -1110,23 +1116,25 @@ int lensing_lensed_cl_te(
                          struct lensing * ple
                          ) {
 
-  double clte;
-  int imu;
   int index_l;
 
   /** Integration by Gauss-Legendre quadrature. **/
-#pragma omp parallel for                        \
-  private (imu,index_l,clte)                    \
-  schedule (static)
+  class_setup_parallel();
 
-  for(index_l=0; index_l < ple->l_size; index_l++){
-    clte=0;
-    for (imu=0;imu<nmu;imu++) {
-      clte += ksiX[imu]*d20[imu][(int)ple->l[index_l]]*w8[imu]; /* loop could be optimized */
-    }
-    ple->cl_lens[index_l*ple->lt_size+ple->index_lt_te]=clte*2.0*_PI_;
+  for (index_l=0; index_l < ple->l_size; index_l++){
+    class_run_parallel(=,
+      double clte;
+      int imu;
+      clte=0;
+      for (imu=0;imu<nmu;imu++) {
+        clte += ksiX[imu]*d20[imu][(int)ple->l[index_l]]*w8[imu]; /* loop could be optimized */
+      }
+      ple->cl_lens[index_l*ple->lt_size+ple->index_lt_te]=clte*2.0*_PI_;
+      return _SUCCESS_;
+    );
   }
 
+  class_finish_parallel();
   return _SUCCESS_;
 }
 
@@ -1177,24 +1185,26 @@ int lensing_lensed_cl_ee_bb(
                             struct lensing * ple
                             ) {
 
-  double clp, clm;
-  int imu;
   int index_l;
 
+  class_setup_parallel();
   /** Integration by Gauss-Legendre quadrature. **/
-#pragma omp parallel for                        \
-  private (imu,index_l,clp,clm)                 \
-  schedule (static)
-
-  for(index_l=0; index_l < ple->l_size; index_l++){
-    clp=0; clm=0;
-    for (imu=0;imu<nmu;imu++) {
-      clp += ksip[imu]*d22[imu][(int)ple->l[index_l]]*w8[imu]; /* loop could be optimized */
-      clm += ksim[imu]*d2m2[imu][(int)ple->l[index_l]]*w8[imu]; /* loop could be optimized */
-    }
-    ple->cl_lens[index_l*ple->lt_size+ple->index_lt_ee]=(clp+clm)*_PI_;
-    ple->cl_lens[index_l*ple->lt_size+ple->index_lt_bb]=(clp-clm)*_PI_;
+  for (index_l=0; index_l < ple->l_size; index_l++){
+    class_run_parallel(=,
+      double clp;
+      double clm;
+      int imu;
+      clp=0; clm=0;
+      for (imu=0;imu<nmu;imu++) {
+        clp += ksip[imu]*d22[imu][(int)ple->l[index_l]]*w8[imu]; /* loop could be optimized */
+        clm += ksim[imu]*d2m2[imu][(int)ple->l[index_l]]*w8[imu]; /* loop could be optimized */
+      }
+      ple->cl_lens[index_l*ple->lt_size+ple->index_lt_ee]=(clp+clm)*_PI_;
+      ple->cl_lens[index_l*ple->lt_size+ple->index_lt_bb]=(clp-clm)*_PI_;
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
 
   return _SUCCESS_;
 }
@@ -1245,7 +1255,7 @@ int lensing_d00(
                 int lmax,
                 double ** d00
                 ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3;
   ErrorMsg erreur;
@@ -1260,24 +1270,26 @@ int lensing_d00(
     fac3[l] = sqrt(2./(2*ll+3));
   }
 
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
-
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    dlm1=1.0/sqrt(2.); /* l=0 */
-    d00[index_mu][0]=dlm1*sqrt(2.);
-    dl=mu[index_mu] * sqrt(3./2.); /*l=1*/
-    d00[index_mu][1]=dl*sqrt(2./3.);
-    for(l=1;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d00 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*mu[index_mu]*dl - fac2[l]*dlm1;
-      d00[index_mu][l+1] = dlp1 * fac3[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      int l;
+      dlm1=1.0/sqrt(2.); /* l=0 */
+      d00[index_mu][0]=dlm1*sqrt(2.);
+      dl=mu[index_mu] * sqrt(3./2.); /*l=1*/
+      d00[index_mu][1]=dl*sqrt(2./3.);
+      for (l=1;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d00 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*mu[index_mu]*dl - fac2[l]*dlm1;
+        d00[index_mu][l+1] = dlp1 * fac3[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3);
   return _SUCCESS_;
 }
@@ -1302,7 +1314,7 @@ int lensing_d11(
                 int lmax,
                 double ** d11
                 ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1317,25 +1329,28 @@ int lensing_d11(
     fac3[l] = sqrt((2*ll+3)/(2*ll-1))*(ll-1)*(ll+1)/(ll*(ll+2))*(ll+1)/ll;
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d11[index_mu][0]=0;
-    dlm1=(1.0+mu[index_mu])/2. * sqrt(3./2.); /*l=1*/
-    d11[index_mu][1]=dlm1 * sqrt(2./3.);
-    dl=(1.0+mu[index_mu])/2.*(2.0*mu[index_mu]-1.0) * sqrt(5./2.); /*l=2*/
-    d11[index_mu][2] = dl * sqrt(2./5.);
-    for(l=2;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d11 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*(mu[index_mu]-fac2[l])*dl - fac3[l]*dlm1;
-      d11[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d11[index_mu][0]=0;
+      dlm1=(1.0+mu[index_mu])/2. * sqrt(3./2.); /*l=1*/
+      d11[index_mu][1]=dlm1 * sqrt(2./3.);
+      dl=(1.0+mu[index_mu])/2.*(2.0*mu[index_mu]-1.0) * sqrt(5./2.); /*l=2*/
+      d11[index_mu][2] = dl * sqrt(2./5.);
+      for (l=2;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d11 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*(mu[index_mu]-fac2[l])*dl - fac3[l]*dlm1;
+        d11[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1359,7 +1374,7 @@ int lensing_d1m1(
                  int lmax,
                  double ** d1m1
                  ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1374,25 +1389,27 @@ int lensing_d1m1(
     fac3[l] = sqrt((2*ll+3)/(2*ll-1))*(ll-1)*(ll+1)/(ll*(ll+2))*(ll+1)/ll;
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
-
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d1m1[index_mu][0]=0;
-    dlm1=(1.0-mu[index_mu])/2. * sqrt(3./2.); /*l=1*/
-    d1m1[index_mu][1]=dlm1 * sqrt(2./3.);
-    dl=(1.0-mu[index_mu])/2.*(2.0*mu[index_mu]+1.0) * sqrt(5./2.); /*l=2*/
-    d1m1[index_mu][2] = dl * sqrt(2./5.);
-    for(l=2;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d1m1 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
-      d1m1[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d1m1[index_mu][0]=0;
+      dlm1=(1.0-mu[index_mu])/2. * sqrt(3./2.); /*l=1*/
+      d1m1[index_mu][1]=dlm1 * sqrt(2./3.);
+      dl=(1.0-mu[index_mu])/2.*(2.0*mu[index_mu]+1.0) * sqrt(5./2.); /*l=2*/
+      d1m1[index_mu][2] = dl * sqrt(2./5.);
+      for (l=2;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d1m1 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
+        d1m1[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1416,7 +1433,7 @@ int lensing_d2m2(
                  int lmax,
                  double ** d2m2
                  ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1431,25 +1448,28 @@ int lensing_d2m2(
     fac3[l] = sqrt((2*ll+3)/(2*ll-1))*(ll-2)*(ll+2)/((ll-1)*(ll+3))*(ll+1)/ll;
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d2m2[index_mu][0]=0;
-    dlm1=0.; /*l=1*/
-    d2m2[index_mu][1]=0;
-    dl=(1.0-mu[index_mu])*(1.0-mu[index_mu])/4. * sqrt(5./2.); /*l=2*/
-    d2m2[index_mu][2] = dl * sqrt(2./5.);
-    for(l=2;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d2m2 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
-      d2m2[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d2m2[index_mu][0]=0;
+      dlm1=0.; /*l=1*/
+      d2m2[index_mu][1]=0;
+      dl=(1.0-mu[index_mu])*(1.0-mu[index_mu])/4. * sqrt(5./2.); /*l=2*/
+      d2m2[index_mu][2] = dl * sqrt(2./5.);
+      for (l=2;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d2m2 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
+        d2m2[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1473,7 +1493,7 @@ int lensing_d22(
                 int lmax,
                 double ** d22
                 ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1488,25 +1508,28 @@ int lensing_d22(
     fac3[l] = sqrt((2*ll+3)/(2*ll-1))*(ll-2)*(ll+2)/((ll-1)*(ll+3))*(ll+1)/ll;
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d22[index_mu][0]=0;
-    dlm1=0.; /*l=1*/
-    d22[index_mu][1]=0;
-    dl=(1.0+mu[index_mu])*(1.0+mu[index_mu])/4. * sqrt(5./2.); /*l=2*/
-    d22[index_mu][2] = dl * sqrt(2./5.);
-    for(l=2;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*(mu[index_mu]-fac2[l])*dl - fac3[l]*dlm1;
-      d22[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d22[index_mu][0]=0;
+      dlm1=0.; /*l=1*/
+      d22[index_mu][1]=0;
+      dl=(1.0+mu[index_mu])*(1.0+mu[index_mu])/4. * sqrt(5./2.); /*l=2*/
+      d22[index_mu][2] = dl * sqrt(2./5.);
+      for (l=2;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*(mu[index_mu]-fac2[l])*dl - fac3[l]*dlm1;
+        d22[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1530,7 +1553,7 @@ int lensing_d20(
                 int lmax,
                 double ** d20
                 ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1543,25 +1566,28 @@ int lensing_d20(
     fac3[l] = sqrt((2*ll+3)*(ll-2)*(ll+2)/((2*ll-1)*(ll-1)*(ll+3)));
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d20[index_mu][0]=0;
-    dlm1=0.; /*l=1*/
-    d20[index_mu][1]=0;
-    dl=sqrt(15.)/4.*(1-mu[index_mu]*mu[index_mu]); /*l=2*/
-    d20[index_mu][2] = dl * sqrt(2./5.);
-    for(l=2;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*mu[index_mu]*dl - fac3[l]*dlm1;
-      d20[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d20[index_mu][0]=0;
+      dlm1=0.; /*l=1*/
+      d20[index_mu][1]=0;
+      dl=sqrt(15.)/4.*(1-mu[index_mu]*mu[index_mu]); /*l=2*/
+      d20[index_mu][2] = dl * sqrt(2./5.);
+      for (l=2;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*mu[index_mu]*dl - fac3[l]*dlm1;
+        d20[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1585,7 +1611,7 @@ int lensing_d31(
                 int lmax,
                 double ** d31
                 ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1600,26 +1626,29 @@ int lensing_d31(
     fac3[l] = sqrt((2*ll+3)/(2*ll-1)*(ll-3)*(ll+3)*(ll-1)*(ll+1)/((ll-2)*(ll+4)*ll*(ll+2)))*(ll+1)/ll;
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d31[index_mu][0]=0;
-    d31[index_mu][1]=0;
-    dlm1=0.; /*l=2*/
-    d31[index_mu][2]=0;
-    dl=sqrt(105./2.)*(1+mu[index_mu])*(1+mu[index_mu])*(1-mu[index_mu])/8.; /*l=3*/
-    d31[index_mu][3] = dl * sqrt(2./7.);
-    for(l=3;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*(mu[index_mu]-fac2[l])*dl - fac3[l]*dlm1;
-      d31[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d31[index_mu][0]=0;
+      d31[index_mu][1]=0;
+      dlm1=0.; /*l=2*/
+      d31[index_mu][2]=0;
+      dl=sqrt(105./2.)*(1+mu[index_mu])*(1+mu[index_mu])*(1-mu[index_mu])/8.; /*l=3*/
+      d31[index_mu][3] = dl * sqrt(2./7.);
+      for (l=3;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*(mu[index_mu]-fac2[l])*dl - fac3[l]*dlm1;
+        d31[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1643,7 +1672,7 @@ int lensing_d3m1(
                  int lmax,
                  double ** d3m1
                  ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1658,26 +1687,29 @@ int lensing_d3m1(
     fac3[l] = sqrt((2*ll+3)/(2*ll-1)*(ll-3)*(ll+3)*(ll-1)*(ll+1)/((ll-2)*(ll+4)*ll*(ll+2)))*(ll+1)/ll;
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d3m1[index_mu][0]=0;
-    d3m1[index_mu][1]=0;
-    dlm1=0.; /*l=2*/
-    d3m1[index_mu][2]=0;
-    dl=sqrt(105./2.)*(1+mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/8.; /*l=3*/
-    d3m1[index_mu][3] = dl * sqrt(2./7.);
-    for(l=3;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
-      d3m1[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d3m1[index_mu][0]=0;
+      d3m1[index_mu][1]=0;
+      dlm1=0.; /*l=2*/
+      d3m1[index_mu][2]=0;
+      dl=sqrt(105./2.)*(1+mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/8.; /*l=3*/
+      d3m1[index_mu][3] = dl * sqrt(2./7.);
+      for (l=3;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
+        d3m1[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1701,7 +1733,7 @@ int lensing_d3m3(
                  int lmax,
                  double ** d3m3
                  ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1716,26 +1748,29 @@ int lensing_d3m3(
     fac3[l] = sqrt((2*ll+3)/(2*ll-1))*(ll-3)*(ll+3)*(l+1)/((ll-2)*(ll+4)*ll);
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d3m3[index_mu][0]=0;
-    d3m3[index_mu][1]=0;
-    dlm1=0.; /*l=2*/
-    d3m3[index_mu][2]=0;
-    dl=sqrt(7./2.)*(1-mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/8.; /*l=3*/
-    d3m3[index_mu][3] = dl * sqrt(2./7.);
-    for(l=3;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
-      d3m3[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d3m3[index_mu][0]=0;
+      d3m3[index_mu][1]=0;
+      dlm1=0.; /*l=2*/
+      d3m3[index_mu][2]=0;
+      dl=sqrt(7./2.)*(1-mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/8.; /*l=3*/
+      d3m3[index_mu][3] = dl * sqrt(2./7.);
+      for (l=3;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
+        d3m3[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1759,7 +1794,7 @@ int lensing_d40(
                 int lmax,
                 double ** d40
                 ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1772,27 +1807,30 @@ int lensing_d40(
     fac3[l] = sqrt((2*ll+3)*(ll-4)*(ll+4)/((2*ll-1)*(ll-3)*(ll+5)));
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d40[index_mu][0]=0;
-    d40[index_mu][1]=0;
-    d40[index_mu][2]=0;
-    dlm1=0.; /*l=3*/
-    d40[index_mu][3]=0;
-    dl=sqrt(315.)*(1+mu[index_mu])*(1+mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/16.; /*l=4*/
-    d40[index_mu][4] = dl * sqrt(2./9.);
-    for(l=4;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*mu[index_mu]*dl - fac3[l]*dlm1;
-      d40[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d40[index_mu][0]=0;
+      d40[index_mu][1]=0;
+      d40[index_mu][2]=0;
+      dlm1=0.; /*l=3*/
+      d40[index_mu][3]=0;
+      dl=sqrt(315.)*(1+mu[index_mu])*(1+mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/16.; /*l=4*/
+      d40[index_mu][4] = dl * sqrt(2./9.);
+      for (l=4;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*mu[index_mu]*dl - fac3[l]*dlm1;
+        d40[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1816,7 +1854,7 @@ int lensing_d4m2(
                  int lmax,
                  double ** d4m2
                  ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1831,27 +1869,30 @@ int lensing_d4m2(
     fac3[l] = sqrt((2*ll+3)*(ll-4)*(ll+4)*(ll-2)*(ll+2)/((2*ll-1)*(ll-3)*(ll+5)*(ll-1)*(ll+3)))*(ll+1)/ll;
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d4m2[index_mu][0]=0;
-    d4m2[index_mu][1]=0;
-    d4m2[index_mu][2]=0;
-    dlm1=0.; /*l=3*/
-    d4m2[index_mu][3]=0;
-    dl=sqrt(126.)*(1+mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/16.; /*l=4*/
-    d4m2[index_mu][4] = dl * sqrt(2./9.);
-    for(l=4;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
-      d4m2[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d4m2[index_mu][0]=0;
+      d4m2[index_mu][1]=0;
+      d4m2[index_mu][2]=0;
+      dlm1=0.; /*l=3*/
+      d4m2[index_mu][3]=0;
+      dl=sqrt(126.)*(1+mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/16.; /*l=4*/
+      d4m2[index_mu][4] = dl * sqrt(2./9.);
+      for (l=4;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
+        d4m2[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3); free(fac4);
   return _SUCCESS_;
 }
@@ -1875,7 +1916,7 @@ int lensing_d4m4(
                  int lmax,
                  double ** d4m4
                  ) {
-  double ll, dlm1, dl, dlp1;
+  double ll;
   int index_mu, l;
   double *fac1, *fac2, *fac3, *fac4;
   ErrorMsg erreur;
@@ -1890,27 +1931,30 @@ int lensing_d4m4(
     fac3[l] = sqrt((2*ll+3)/(2*ll-1))*(ll-4)*(ll+4)*(ll+1)/((ll-3)*(ll+5)*ll);
     fac4[l] = sqrt(2./(2*ll+3));
   }
-#pragma omp parallel for                        \
-  private (index_mu,dlm1,dl,dlp1,l,ll)          \
-  schedule (static)
 
+  class_setup_parallel();
   for (index_mu=0;index_mu<num_mu;index_mu++) {
-    d4m4[index_mu][0]=0;
-    d4m4[index_mu][1]=0;
-    d4m4[index_mu][2]=0;
-    dlm1=0.; /*l=3*/
-    d4m4[index_mu][3]=0;
-    dl=sqrt(9./2.)*(1-mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/16.; /*l=4*/
-    d4m4[index_mu][4] = dl * sqrt(2./9.);
-    for(l=4;l<lmax;l++){
-      ll=(double) l;
-      /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
-      dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
-      d4m4[index_mu][l+1] = dlp1 * fac4[l];
-      dlm1 = dl;
-      dl = dlp1;
-    }
+    class_run_parallel(=,
+      int l;
+      double declare_list_of_variables_inside_parallel_region(dlm1, dl, dlp1);
+      d4m4[index_mu][0]=0;
+      d4m4[index_mu][1]=0;
+      d4m4[index_mu][2]=0;
+      dlm1=0.; /*l=3*/
+      d4m4[index_mu][3]=0;
+      dl=sqrt(9./2.)*(1-mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])*(1-mu[index_mu])/16.; /*l=4*/
+      d4m4[index_mu][4] = dl * sqrt(2./9.);
+      for (l=4;l<lmax;l++){
+        /* sqrt((2l+1)/2)*d22 recurrence, supposed to be more stable */
+        dlp1 = fac1[l]*(mu[index_mu]+fac2[l])*dl - fac3[l]*dlm1;
+        d4m4[index_mu][l+1] = dlp1 * fac4[l];
+        dlm1 = dl;
+        dl = dlp1;
+      }
+      return _SUCCESS_;
+    );
   }
+  class_finish_parallel();
   free(fac1); free(fac2); free(fac3); free(fac4);
   return _SUCCESS_;
 }

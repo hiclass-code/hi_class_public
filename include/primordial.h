@@ -8,65 +8,65 @@
 /** enum defining how the primordial spectrum should be computed */
 
 enum primordial_spectrum_type {
-  analytic_Pk,
-  two_scales,
-  inflation_V,
-  inflation_H,
-  inflation_V_end,
-  external_Pk
+                               analytic_Pk,
+                               two_scales,
+                               inflation_V,
+                               inflation_H,
+                               inflation_V_end,
+                               external_Pk
 };
 
 /** enum defining whether the spectrum routine works with linear or logarithmic input/output */
 
 enum linear_or_logarithmic {
-  linear,
-  logarithmic
+                            linear,
+                            logarithmic
 };
 
 /** enum defining the type of inflation potential function V(phi) */
 
 enum potential_shape {
-  polynomial,
-  natural,
-  higgs_inflation
+                      polynomial,
+                      natural,
+                      higgs_inflation
 };
 
 /** enum defining which quantity plays the role of a target for evolving inflationary equations */
 
 enum target_quantity {
-  _aH_,
-  _phi_,
-  _end_inflation_,
-  _a_
+                      _aH_,
+                      _phi_,
+                      _end_inflation_,
+                      _a_
 };
 
 /** enum specifying if we want to integrate equations forward or backward in time */
 
 enum integration_direction {
-  backward,
-  forward
+                            backward,
+                            forward
 };
 
 /** enum specifying if we want to evolve quantities with conformal or proper time */
 
 enum time_definition {
-  conformal,
-  proper
+                      conformal,
+                      proper
 };
 
 /** enum specifying how, in the inflation_V_end case, the value of phi_pivot should calculated */
 
 enum phi_pivot_methods {
-  N_star,
-  ln_aH_ratio,
-  ln_aH_ratio_auto
+                        N_star,
+                        ln_aH_ratio,
+                        ln_aH_ratio_auto
 };
 
 /** enum specifying how the inflation module computes the primordial spectrum (default: numerical) */
 
 enum inflation_module_behavior {
-  numerical,
-  analytical
+                                numerical,
+                                analytical
 };
 
 /**
@@ -85,6 +85,8 @@ struct primordial {
   //@{
 
   double k_pivot; /**< pivot scale in \f$ Mpc^{-1} \f$ */
+  int has_k_max_for_primordial_pk;
+  double k_max_for_primordial_pk; /**< maximum value of k in 1/Mpc in P(k) */
 
   enum primordial_spectrum_type primordial_spec_type; /**< type of primordial spectrum (simple analytic from, integration of inflationary perturbations, etc.) */
 
@@ -346,7 +348,7 @@ extern "C" {
 
   int primordial_init(
                       struct precision  * ppr,
-                      struct perturbs   * ppt,
+                      struct perturbations   * ppt,
                       struct primordial * ppm
                       );
 
@@ -355,7 +357,7 @@ extern "C" {
                       );
 
   int primordial_indices(
-                         struct perturbs   * ppt,
+                         struct perturbations   * ppt,
                          struct primordial * ppm
                          );
 
@@ -367,7 +369,7 @@ extern "C" {
                               );
 
   int primordial_analytic_spectrum_init(
-                                        struct perturbs   * ppt,
+                                        struct perturbations   * ppt,
                                         struct primordial * ppm
                                         );
 
@@ -388,40 +390,40 @@ extern "C" {
                                      );
 
   int primordial_inflation_hubble(
-                                   struct primordial * ppm,
-                                   double phi,
-                                   double * H,
-                                   double * dH,
-                                   double * ddH,
-                                   double * dddH
-                                   );
+                                  struct primordial * ppm,
+                                  double phi,
+                                  double * H,
+                                  double * dH,
+                                  double * ddH,
+                                  double * dddH
+                                  );
 
   int primordial_inflation_indices(
                                    struct primordial * ppm
                                    );
 
   int primordial_inflation_solve_inflation(
-                                           struct perturbs * ppt,
+                                           struct perturbations * ppt,
                                            struct primordial * ppm,
                                            struct precision * ppr
                                            );
 
   int primordial_inflation_analytic_spectra(
-                                            struct perturbs * ppt,
+                                            struct perturbations * ppt,
                                             struct primordial * ppm,
                                             struct precision * ppr,
                                             double * y_ini
                                             );
 
   int primordial_inflation_spectra(
-                                   struct perturbs * ppt,
+                                   struct perturbations * ppt,
                                    struct primordial * ppm,
                                    struct precision * ppr,
                                    double * y_ini
                                    );
 
   int primordial_inflation_one_wavenumber(
-                                          struct perturbs * ppt,
+                                          struct perturbations * ppt,
                                           struct primordial * ppm,
                                           struct precision * ppr,
                                           double * y_ini,
@@ -500,16 +502,16 @@ extern "C" {
                                   );
 
   int primordial_external_spectrum_init(
-                                        struct perturbs * ppt,
+                                        struct perturbations * ppt,
                                         struct primordial * ppm
                                         );
 
-  int primordial_output_titles(struct perturbs * ppt,
+  int primordial_output_titles(struct perturbations * ppt,
                                struct primordial * ppm,
                                char titles[_MAXTITLESTRINGLENGTH_]
                                );
 
-  int primordial_output_data(struct perturbs * ppt,
+  int primordial_output_data(struct perturbations * ppt,
                              struct primordial * ppm,
                              int number_of_titles,
                              double *data);

@@ -9,12 +9,13 @@
  *
  * The following functions can be called from other modules:
  *
- * -# primordial_init() at the beginning (anytime after perturb_init() and before spectra_init())
+ * -# primordial_init() at the beginning (anytime after perturbations_init() and before harmonic_init())
  * -# primordial_spectrum_at_k() at any time for computing P(k) at any k
  * -# primordial_free() at the end
  */
 
 #include "primordial.h"
+#include "parallel.h"
 
 /**
  * Primordial spectra for arbitrary argument and for all initial conditions.
@@ -185,7 +186,7 @@ int primordial_spectrum_at_k(
 
 int primordial_init(
                     struct precision  * ppr,
-                    struct perturbs   * ppt,
+                    struct perturbations   * ppt,
                     struct primordial * ppm
                     ) {
 
@@ -217,7 +218,12 @@ int primordial_init(
   /** - get kmin and kmax from perturbation structure. Test that they make sense. */
 
   k_min = ppt->k_min; /* first value, inferred from perturbations structure */
-  k_max = ppt->k_max; /* last value, inferred from perturbations structure */
+  if (ppm->has_k_max_for_primordial_pk == _TRUE_){
+    k_max = ppm->k_max_for_primordial_pk; /* last value, user-defined (i.e. if specified in .ini file) */
+  }
+  else{
+    k_max = ppt->k_max; /* last value, inferred from perturbations structure */
+  }
 
   class_test(k_min <= 0.,
              ppm->error_message,
@@ -458,11 +464,11 @@ int primordial_init(
 
       /** - expression for alpha_s comes from:
 
-              `ns_2 = (lnpk_plus-lnpk_pivot)/(dlnk)+1`
+          `ns_2 = (lnpk_plus-lnpk_pivot)/(dlnk)+1`
 
-              `ns_1 = (lnpk_pivot-lnpk_minus)/(dlnk)+1`
+          `ns_1 = (lnpk_pivot-lnpk_minus)/(dlnk)+1`
 
-              `alpha_s = dns/dlnk = (ns_2-ns_1)/dlnk = (lnpk_plus-lnpk_pivot-lnpk_pivot+lnpk_minus)/(dlnk)/(dlnk)`
+          `alpha_s = dns/dlnk = (ns_2-ns_1)/dlnk = (lnpk_plus-lnpk_pivot-lnpk_pivot+lnpk_minus)/(dlnk)/(dlnk)`
 
       **/
 
@@ -485,8 +491,8 @@ int primordial_init(
 
       /** - expression for beta_s:
 
-              `ppm->beta_s = (alpha_plus-alpha_minus)/dlnk = (lnpk_plusplus-2.*lnpk_plus+lnpk_pivot -
-              (lnpk_pivot-2.*lnpk_minus+lnpk_minusminus)/pow(dlnk,3)`
+          `ppm->beta_s = (alpha_plus-alpha_minus)/dlnk = (lnpk_plusplus-2.*lnpk_plus+lnpk_pivot -
+          (lnpk_pivot-2.*lnpk_minus+lnpk_minusminus)/pow(dlnk,3)`
       **/
 
       /* Simplification of the beta_s expression: */
@@ -598,7 +604,7 @@ int primordial_free(
  */
 
 int primordial_indices(
-                       struct perturbs   * ppt,
+                       struct perturbations   * ppt,
                        struct primordial * ppm
                        ) {
 
@@ -688,7 +694,7 @@ int primordial_get_lnk_list(
  */
 
 int primordial_analytic_spectrum_init(
-                                      struct perturbs   * ppt,
+                                      struct perturbations   * ppt,
                                       struct primordial * ppm
                                       ) {
 
@@ -1127,7 +1133,7 @@ int primordial_inflation_indices(
  */
 
 int primordial_inflation_solve_inflation(
-                                         struct perturbs * ppt,
+                                         struct perturbations * ppt,
                                          struct primordial * ppm,
                                          struct precision *ppr
                                          ) {
@@ -1433,9 +1439,9 @@ int primordial_inflation_solve_inflation(
   else if (ppm->behavior == analytical) {
 
     class_call_except(primordial_inflation_analytic_spectra(ppt,
-                                                              ppm,
-                                                              ppr,
-                                                              y_ini),
+                                                            ppm,
+                                                            ppr,
+                                                            y_ini),
                       ppm->error_message,
                       ppm->error_message,
                       free(y);free(y_ini);free(dy));
@@ -1510,7 +1516,7 @@ int primordial_inflation_solve_inflation(
  */
 
 int primordial_inflation_analytic_spectra(
-                                          struct perturbs * ppt,
+                                          struct perturbations * ppt,
                                           struct primordial * ppm,
                                           struct precision * ppr,
                                           double * y_ini
@@ -1586,80 +1592,27 @@ int primordial_inflation_analytic_spectra(
  */
 
 int primordial_inflation_spectra(
-                                 struct perturbs * ppt,
+                                 struct perturbations * ppt,
                                  struct primordial * ppm,
                                  struct precision * ppr,
                                  double * y_ini
                                  ) {
   int index_k;
 
-  /* number of threads (always one if no openmp) */
-  int number_of_threads=1;
-  /* index of the thread (always 0 if no openmp) */
-  int thread=0;
+  class_setup_parallel();
+  /* loop over Fourier wavenumbers */
+  for (index_k=0; index_k < ppm->lnk_size; index_k++) {
 
+    class_run_parallel(with_arguments(ppt,ppm,ppr,y_ini,index_k),
 
-  /* This code can be optionally compiled with the openmp option for parallel computation.
-     Inside parallel regions, the use of the command "return" is forbidden.
-     For error management, instead of "return _FAILURE_", we will set the variable below
-     to "abort = _TRUE_". This will lead to a "return _FAILURE_" just after leaving the
-     parallel region. */
-  int abort;
-
-#ifdef _OPENMP
-  /* instrumentation times */
-  double tstart, tstop, tspent;
-#endif
-
-#ifdef _OPENMP
-
-#pragma omp parallel
-  {
-    number_of_threads = omp_get_num_threads();
+    class_call(primordial_inflation_one_wavenumber(ppt,ppm,ppr,y_ini,index_k),
+               ppm->error_message,
+               ppm->error_message);
+    return _SUCCESS_;
+    );
   }
-#endif
 
-  abort = _FALSE_;
-
-#pragma omp parallel shared(ppt,ppm,ppr,abort,y_ini) private(index_k,thread,tspent,tstart,tstop) num_threads(number_of_threads)
-
-  {
-
-#ifdef _OPENMP
-    thread = omp_get_thread_num();
-    tspent=0.;
-#endif
-
-#pragma omp for schedule (dynamic)
-
-    /* loop over Fourier wavenumbers */
-    for (index_k=0; index_k < ppm->lnk_size; index_k++) {
-
-#ifdef _OPENMP
-      tstart = omp_get_wtime();
-#endif
-
-      class_call_parallel(primordial_inflation_one_wavenumber(ppt,ppm,ppr,y_ini,index_k),
-                          ppm->error_message,
-                          ppm->error_message);
-
-#ifdef _OPENMP
-      tstop = omp_get_wtime();
-
-      tspent += tstop-tstart;
-#endif
-
-     }
-
-#ifdef _OPENMP
-    if (ppm->primordial_verbose>1)
-      printf("In %s: time spent in parallel region (loop over k's) = %e s for thread %d\n",
-             __func__,tspent,thread);
-#endif
-
-  } /* end of parallel zone */
-
-  if (abort == _TRUE_) return _FAILURE_;
+  class_finish_parallel();
 
   ppm->is_non_zero[ppt->index_md_scalars][ppt->index_ic_ad] = _TRUE_;
   ppm->is_non_zero[ppt->index_md_tensors][ppt->index_ic_ten] = _TRUE_;
@@ -1683,7 +1636,7 @@ int primordial_inflation_spectra(
  */
 
 int primordial_inflation_one_wavenumber(
-                                        struct perturbs * ppt,
+                                        struct perturbations * ppt,
                                         struct primordial * ppm,
                                         struct precision * ppr,
                                         double * y_ini,
@@ -1708,7 +1661,7 @@ int primordial_inflation_one_wavenumber(
     y[ppm->index_in_dphi] = y_ini[ppm->index_in_dphi];
 
   /** - evolve the background until the relevant initial time for
-     integrating perturbations */
+      integrating perturbations */
   class_call(primordial_inflation_evolve_background(ppm,
                                                     ppr,
                                                     y,
@@ -1722,7 +1675,7 @@ int primordial_inflation_one_wavenumber(
              ppm->error_message);
 
   /** - evolve the background/perturbation equations from this time and
-     until some time after Horizon crossing */
+      until some time after Horizon crossing */
   class_call(primordial_inflation_one_k(ppm,
                                         ppr,
                                         k,
@@ -2647,7 +2600,7 @@ int primordial_inflation_find_phi_pivot(
 
       sigma_B = 2. * pow(_PI_,5) * pow(_k_B_,4) / 15. / pow(_h_P_,3) / pow(_c_,2);
       Omega_g0 = (4.*sigma_B/_c_*pow(2.726,4.)) / (3.*_c_*_c_*1.e10*h*h/_Mpc_over_m_/_Mpc_over_m_/8./_PI_/_G_);
-      Omega_r0 = 3.046*7./8.*pow(4./11.,4./3.)*Omega_g0;
+      Omega_r0 = 3.044*7./8.*pow(4./11.,4./3.)*Omega_g0;
 
       target = log(H0/0.05*pow(Omega_r0,0.5)*pow(2./100.,1./12.)*pow(rho_end/rho_c0,0.25));
 
@@ -2700,7 +2653,7 @@ int primordial_inflation_find_phi_pivot(
 
     case N_star:
 
-     class_call(primordial_inflation_evolve_background(ppm,
+      class_call(primordial_inflation_evolve_background(ppm,
                                                         ppr,
                                                         y,
                                                         dy,
@@ -2893,7 +2846,7 @@ int primordial_inflation_find_phi_pivot(
 
     case N_star:
 
-     class_call(primordial_inflation_evolve_background(ppm,
+      class_call(primordial_inflation_evolve_background(ppm,
                                                         ppr,
                                                         y,
                                                         dy,
@@ -3044,7 +2997,7 @@ int primordial_inflation_find_phi_pivot(
 /**
  * Routine returning derivative of system of background/perturbation
  * variables. Like other routines used by the generic integrator
- * (background_derivs, thermodynamics_derivs, perturb_derivs), this
+ * (background_derivs, thermodynamics_derivs, perturbations_derivs), this
  * routine has a generic list of arguments, and a slightly different
  * error management, with the error message returned directly in an
  * ErrMsg field.
@@ -3068,7 +3021,7 @@ int primordial_inflation_derivs(
   struct primordial_inflation_parameters_and_workspace * ppipaw;
   struct primordial * ppm;
 
-  ppipaw = parameters_and_workspace;
+  ppipaw = (struct primordial_inflation_parameters_and_workspace *)parameters_and_workspace;
   ppm = ppipaw->ppm;
 
   // a2
@@ -3264,7 +3217,7 @@ int primordial_inflation_derivs(
  */
 
 int primordial_external_spectrum_init(
-                                      struct perturbs * ppt,
+                                      struct perturbations * ppt,
                                       struct primordial * ppm
                                       ) {
   /** Summary: */
@@ -3274,7 +3227,7 @@ int primordial_external_spectrum_init(
   char command_with_arguments[2*_ARGUMENT_LENGTH_MAX_];
   FILE *process;
   int n_data_guess, n_data = 0;
-  double *k = NULL, *pks = NULL, *pkt = NULL, *tmp = NULL;
+  double *k = NULL, *pks = NULL, *pkt = NULL;
   double this_k, this_pks, this_pkt;
   int status;
   int index_k;
@@ -3288,17 +3241,17 @@ int primordial_external_spectrum_init(
     pkt = (double *)malloc(n_data_guess*sizeof(double));
   /* Prepare the command */
   /* If the command is just a "cat", no arguments need to be passed */
-  if(strncmp("cat ", ppm->command, 4) == 0) {
-    sprintf(arguments, " ");
+  if (strncmp("cat ", ppm->command, 4) == 0) {
+    class_sprintf(arguments, " ");
   }
   /* otherwise pass the list of arguments */
   else {
-    sprintf(arguments, " %g %g %g %g %g %g %g %g %g %g",
+    class_sprintf(arguments, " %g %g %g %g %g %g %g %g %g %g",
             ppm->custom1, ppm->custom2, ppm->custom3, ppm->custom4, ppm->custom5,
             ppm->custom6, ppm->custom7, ppm->custom8, ppm->custom9, ppm->custom10);
   }
   /* write the actual command in a string */
-  sprintf(command_with_arguments, "%s %s", ppm->command, arguments);
+  class_sprintf(command_with_arguments, "%s %s", ppm->command, arguments);
   if (ppm->primordial_verbose > 0)
     printf(" -> running: %s\n",command_with_arguments);
 
@@ -3318,26 +3271,14 @@ int primordial_external_spectrum_init(
     }
     /* Standard technique in C: if too many data, double the size of the vectors */
     /* (it is faster and safer that reallocating every new line) */
-    if((n_data+1) > n_data_guess) {
+    if ((n_data+1) > n_data_guess) {
       n_data_guess *= 2;
-      tmp = (double *)realloc(k,   n_data_guess*sizeof(double));
-      class_test(tmp == NULL,
-                 ppm->error_message,
-                 "Error allocating memory to read the external spectrum.\n");
-      k = tmp;
-      tmp = (double *)realloc(pks, n_data_guess*sizeof(double));
-      class_test(tmp == NULL,
-                 ppm->error_message,
-                 "Error allocating memory to read the external spectrum.\n");
-      pks = tmp;
+      class_realloc(k, n_data_guess*sizeof(double), ppm->error_message);
+      class_realloc(pks, n_data_guess*sizeof(double), ppm->error_message);
       if (ppt->has_tensors == _TRUE_) {
-        tmp = (double *)realloc(pkt, n_data_guess*sizeof(double));
-        class_test(tmp == NULL,
-                   ppm->error_message,
-                   "Error allocating memory to read the external spectrum.\n");
-        pkt = tmp;
-      };
-    };
+        class_realloc(pkt, n_data_guess*sizeof(double), ppm->error_message);
+      }
+    }
     /* Store */
     k  [n_data]   = this_k;
     pks[n_data]   = this_pks;
@@ -3346,7 +3287,7 @@ int primordial_external_spectrum_init(
     }
     n_data++;
     /* Check ascending order of the k's */
-    if(n_data>1) {
+    if (n_data>1) {
       class_test(k[n_data-1] <= k[n_data-2],
                  ppm->error_message,
                  "The k's are not strictly sorted in ascending order, "
@@ -3375,24 +3316,19 @@ int primordial_external_spectrum_init(
   ppm->lnk_size = n_data;
   /** - Make room */
   class_realloc(ppm->lnk,
-                ppm->lnk,
                 ppm->lnk_size*sizeof(double),
                 ppm->error_message);
   class_realloc(ppm->lnpk[ppt->index_md_scalars],
-                ppm->lnpk[ppt->index_md_scalars],
                 ppm->lnk_size*sizeof(double),
                 ppm->error_message);
   class_realloc(ppm->ddlnpk[ppt->index_md_scalars],
-                ppm->ddlnpk[ppt->index_md_scalars],
                 ppm->lnk_size*sizeof(double),
                 ppm->error_message);
   if (ppt->has_tensors == _TRUE_) {
     class_realloc(ppm->lnpk[ppt->index_md_tensors],
-                  ppm->lnpk[ppt->index_md_tensors],
                   ppm->lnk_size*sizeof(double),
                   ppm->error_message);
     class_realloc(ppm->ddlnpk[ppt->index_md_tensors],
-                  ppm->ddlnpk[ppt->index_md_tensors],
                   ppm->lnk_size*sizeof(double),
                   ppm->error_message);
   };
@@ -3423,7 +3359,7 @@ int primordial_external_spectrum_init(
   return _SUCCESS_;
 }
 
-int primordial_output_titles(struct perturbs * ppt,
+int primordial_output_titles(struct perturbations * ppt,
                              struct primordial * ppm,
                              char titles[_MAXTITLESTRINGLENGTH_]
                              ){
@@ -3435,7 +3371,7 @@ int primordial_output_titles(struct perturbs * ppt,
 
 }
 
-int primordial_output_data(struct perturbs * ppt,
+int primordial_output_data(struct perturbations * ppt,
                            struct primordial * ppm,
                            int number_of_titles,
                            double *data){

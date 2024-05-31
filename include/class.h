@@ -25,10 +25,14 @@
 #include "thermodynamics.h"
 #include "perturbations.h"
 #include "primordial.h"
-#include "nonlinear.h"
+#include "fourier.h"
 #include "transfer.h"
-#include "spectra.h"
+#include "harmonic.h"
+#include "distortions.h"
 #include "lensing.h"
 #include "output.h"
+
+/* hi_class modules */
+#include "hi_class.h"
 
 #endif

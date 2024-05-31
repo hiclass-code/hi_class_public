@@ -10,9 +10,9 @@ Author: Julien Lesgourgues
 
 After downloading `CLASS`, one can see the following files in the root directory contains:
 
-- some example of input files, the most important being `explanatory.ini`. a reference input file containing all possible flags, options and physical input parameters. While this documentation explains the structure and use of the code, `explanatory.ini` can be seen as the _physical_ documentation of `CLASS`. The other input file are alternative parameter input files (ending with `.ini`) and precision input files (ending with `.pre`)
+- some example of input files, the most important being `explanatory.ini`. a reference input file containing all possible flags, options and physical input parameters. While this documentation explains the structure and use of the code, `explanatory.ini` can be seen as the _physical_ documentation of `CLASS`. We also provide a few other input files ending with `.ini` (a concise input file `default.ini` with the most used parameters, and two files corresponding to the best-fit baseline models of respectively Planck 2015 and 2018), and a few precision input files (ending with `.pre`)
 
-- the `Makefile`,  with which you can compile the code by typing `make clean; make;` this will create the executable `class` and some binary files in the directory `build/`. The `Makefile` contains other compilation options that you can view inside the file.
+- the `Makefile`,  with which you can compile the code by typing `make clean; make -j;` this will create the executable `class` and some binary files in the directory `build/`. The `Makefile` contains other compilation options that you can view inside the file.
 
 - `CPU.py` is a python script designed for plotting the `CLASS` output; for documentation type `python CPU.py --help`
 
@@ -22,7 +22,7 @@ After downloading `CLASS`, one can see the following files in the root directory
 
 Other files are split between the following directories:
 
-- `source/` contains the C files for each `CLASS` module, i.e. each
+- `source/` contains the C files for each main `CLASS` module, i.e. each
 block containing some part of the physical equations and logic of
 the Boltzmann code.
 
@@ -47,12 +47,21 @@ it can be interfaced with other codes, etc.
 
 - `doc/` contains the automatic documentation (manual and input files required to build it)
 
-- `external_Pk/` contains examples of external codes that can be used to generate the primordial spectrum and be interfaced with `CLASS`, when one of the many options already built inside the code are not sufficient.
+- `external/` contains auxiliary or external algorithms used by `CLASS`, in particular:
 
-- `bbn/` contains interpolation tables produced by BBN codes, in order to predict e.g. \f$ Y_\mathrm{He}(\omega_b, \Delta N_\mathrm{eff})\f$.
+- `external/hyrec/` contains the recombination code HyRec (Lee and Ali-Haimoud 2020) that solves the recombinaiton equations by default.
 
-- `hyrec/` contains the recombination code HyRec of Yacine Ali-Haimoud and Chris Hirata, that can be used as an alternative to the built-in Recfast (using the input parameter `recombination = <...>`).
+- `external/RecfastCLASS/` contains an modified version of the recombinaiton code RECFAST v1.5. It can be used as an alternative to solve the recombinaiton equations (with `recombination=recfast').
 
+- `external/heating/` contains additional peices of code and interpolation tables for the calculation of energy injection (relevant for CMB anisotropies and spectral distorsions).
+
+- `external/distortions/` contains interpolation tables relevant for the calculation of CMB spectral distortions with J.Chluba's Green function method.
+
+- `external/bbn/` contains interpolation tables produced by BBN codes, in order to predict e.g. \f$ Y_\mathrm{He}(\omega_b, \Delta N_\mathrm{eff})\f$.
+
+- `external/external_Pk/` contains examples of external codes that can be used to generate the primordial spectrum and be interfaced with `CLASS`, when one of the many options already built inside the code are not sufficient.
+
+- `external/RealSpaceInterface` contains a software that uses `CLASS` to plot the eockution of linear perturabtions in reals space, with a graphical interface (credits M. Beutelspacher and G. Samaras).
 
 ## The ten-module backbone ##
 
@@ -70,16 +79,17 @@ The purpose of `class` consists in computing some background quantities, thermod
 
 5. compute the primordial spectra.
 
-6. eventually, compute non-linear corrections at small redshift/large wavenumber.
+6. compute the linear and non-linear 2-point statistics in Fourier space (i.e. the power spectra \f$P(k)\f$).
 
-7. compute transfer functions in harmonic space \f$\Delta_l(k)\f$ (unless one needs only Fourier spectra \f$P(k)\f$'s and no harmonic spectra \f$C_l\f$'s).
+7. compute the transfer functions in harmonic space \f$\Delta_l(k)\f$.
 
-8. compute the observable power spectra \f$C_l\f$'s (by convolving the primordial spectra and the harmonic transfer functions) and/or \f$P(k)\f$'s (by multiplying the primordial spectra and the appropriate source functions \f$S(k,\tau)\f$).
+8. compute the linear and non-linear 2-point statistics in harmonic space (harmonic power spectra \f$C_l\f$'s).
 
-9. eventually, compute the lensed CMB spectra (using second-order perturbation theory)
+9. compute the lensed CMB spectra (using second-order perturbation theory).
 
-10. write results in  files (when `CLASS` is used interactively. The python wrapper does not go through this step, after 1.-9. it just keeps the output stored internally).
+10. compute the CMB spectral distortions.
 
+(11. The results can optionally be written in files when `CLASS` is used interactively. The python wrapper does not go through this step.)
 
 ### Ten structures ###
 
@@ -87,21 +97,23 @@ In `class`, each of these steps is associated with a structure:
 
 1. `struct precision`   for input precision parameters (input physical parameters are dispatched among the other structures listed below)
 2. `struct background`  for cosmological background,
-3. `struct thermo`      for thermodynamics,
-4. `struct perturbs`    for source functions,
+3. `struct thermodynamics`      for thermodynamics,
+4. `struct perturbations`    for source functions,
 5. `struct primordial`  for primordial spectra,
-6. `struct nonlinear`   for nonlinear corrections,
-7. `struct transfers`   for transfer functions,
-8. `struct spectra`     for observable spectra,
+6. `struct fourier`   for Fourier spectra,
+7. `struct transfer`   for transfer functions,
+8. `struct harmonic`     for harmonic spectra,
 9. `struct lensing`     for lensed CMB spectra,
-10. `struct output`     for auxiliary variable describing the output format.
+10. `struct distortions` for CMB spectral distortions,
+
+(11. `struct output`     for auxiliary variable describing the output format.)
 
 A given structure contains "everything concerning one step that the
-subsequent steps need to know" (for instance, `struct perturbs` contains everything about source
+subsequent steps need to know" (for instance, `struct perturbations` contains everything about source
 functions that the transfer module needs to know). In particular, each
 structure contains one array of tabulated values (for `struct background`, background
-quantities as a function of time, for `struct thermo`, thermodynamical quantities as a
-function of redshift, for `struct perturbs`, sources \f$S(k, \tau)\f$, etc.).  It
+quantities as a function of time, for `struct thermodynamics`, thermodynamical quantities as a
+function of redshift, for `struct perturbations`, sources \f$S(k, \tau)\f$, etc.).  It
 also contains information about the size of this array and the value
 of the index of each physical quantity, so that the table can be
 easily read and interpolated. Finally, it contains any derived
@@ -123,12 +135,13 @@ Each structure is defined and filled in one of the following modules
 3. `thermodynamics.c`
 4. `perturbations.c `
 5. `primordial.c`
-6. `nonlinear.c`
+6. `fourier.c`
 7. `transfer.c`
-8. `spectra.c`
+8. `harmonic.c`
 9. `lensing.c`
-10. `output.c`
+10. `distortions.c`
 
+(11. `output.c`)
 
 Each of these modules contains at least three functions:
 
@@ -138,7 +151,7 @@ Each of these modules contains at least three functions:
 
 - `module_something_at_somevalue`
 
-where _module_ is one of `input, background, thermodynamics, perturb, primordial, nonlinear, transfer, spectra, lensing, output`.
+where _module_ is one of `input, background, thermodynamics, perturb, primordial, nonlinear, transfer, spectra, lensing, distortions, output`.
 
 
 The first function allocates and fills each structure. This can be
@@ -183,58 +196,64 @@ following lines
 
      struct background ba;
 
-     struct thermo th;
+     struct thermodynamics th;
 
-     struct perturbs pt;
+     struct perturbations pt;
 
      struct primordial pm;
 
-     struct nonlinear nl;
+     struct fourier fo;
 
-     struct transfers tr;
+     struct transfer tr;
 
-     struct spectra sp;
+     struct harmonic hr;
 
      struct lensing le;
+
+     struct distortions sd;
 
      struct output op;
 
 
-     input_init_from_arguments(argc, argv,&pr,&ba,&th,&pt,&tr,&pm,&sp,&nl,&le,&op,errmsg);
+     input_init(argc, argv,&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&op,errmsg);
 
      background_init(&pr,&ba);
 
      thermodynamics_init(&pr,&ba,&th);
 
-     perturb_init(&pr,&ba,&th,&pt);
+     perturbations_init(&pr,&ba,&th,&pt);
 
      primordial_init(&pr,&pt,&pm);
 
-     nonlinear_init(&pr,&ba,&th,&pt,&pm,&nl);
+     fourier_init(&pr,&ba,&th,&pt,&pm,&fo);
 
-     transfer_init(&pr,&ba,&th,&pt,&nl,&tr);
+     transfer_init(&pr,&ba,&th,&pt,&fo,&tr);
 
-     spectra_init(&pr,&ba,&pt,&pm,&nl,&tr,&sp);
+     harmonic_init(&pr,&ba,&pt,&pm,&fo,&tr,&hr);
 
-     lensing_init(&pr,&pt,&sp,&nl,&le);
+     lensing_init(&pr,&pt,&hr,&fo,&le);
 
-     output_init(&ba,&th,&pt,&pm,&tr,&sp,&nl,&le,&op)
+     distortions_init(&pr,&ba,&th,&pt,&pm,&sd);
+
+     output_init(&ba,&th,&pt,&pm,&tr,&hr,&fo,&le,&op)
 
 
      /****** done ******/
 
 
+     distortions_free(&sd);
+
      lensing_free(&le);
 
-     spectra_free(&sp);
+     harmonic_free(&hr);
 
      transfer_free(&tr);
 
-     nonlinear_free(&nl);
+     fourier_free(&fo);
 
      primordial_free(&pm);
 
-     perturb_free(&pt);
+     perturbations_free(&pt);
 
      thermodynamics_free(&th);
 
@@ -245,7 +264,7 @@ We can come back on the role of each argument. The arguments above are all point
 
 `input_init_from_arguments` needs all structures, because it will set the precision parameters inside the `precision` structure, and the physical parameters in some fields of the respective other structures. For instance, an input parameter relevant for the primordial spectrum calculation (like the tilt \f$n_s\f$) will be stored in the `primordial` structure. Hence, in ` input_init_from_arguments`, all structures can be seen as output arguments.
 
-Other `module_init()` functions typically need all previous structures, which contain the result of the previous modules, plus its own structures, which contain some relevant input parameters before the function is called, as well as all the result form the module when the function has been executed. Hence all passed structures can be seen as input argument, excepted the last one which is both input and output. An example is `perturb_init(&pr,&ba,&th,&pt)`.
+Other `module_init()` functions typically need all previous structures, which contain the result of the previous modules, plus its own structures, which contain some relevant input parameters before the function is called, as well as all the result form the module when the function has been executed. Hence all passed structures can be seen as input argument, excepted the last one which is both input and output. An example is `perturbations_init(&pr,&ba,&th,&pt)`.
 
 Each function `module_init()`  does not need __all__ previous structures, it happens that a module does not depend on a __all__ previous one. For instance, the primordial module does not need information on the background and thermodynamics evolution in order to compute the primordial spectra, so the dependency is reduced: `primordial_init(&pr,&pt,&pm)`.
 

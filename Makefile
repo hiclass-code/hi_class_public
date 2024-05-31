@@ -1,5 +1,6 @@
 #Some Makefile for CLASS.
 #Julien Lesgourgues, 28.11.2011
+#Nils Schöneberg, Matteo Lucca, 27.02.2019
 
 MDIR := $(shell pwd)
 WRKDIR = $(MDIR)/build
@@ -10,6 +11,7 @@ WRKDIR = $(MDIR)/build
 
 vpath %.c source:tools:main:test
 vpath %.o build
+vpath %.opp build
 vpath .base build
 
 ########################################################
@@ -20,6 +22,7 @@ vpath .base build
 CC       = gcc
 #CC       = icc
 #CC       = pgcc
+CPP      = g++ --std=c++11 -fpermissive -Wno-write-strings
 
 # your tool for creating static libraries:
 AR        = ar rv
@@ -28,17 +31,16 @@ AR        = ar rv
 # In order to use Python 3, you can manually
 # substitute python3 to python in the line below, or you can simply
 # add a compilation option on the terminal command line:
-# "PYTHON=python3 make all" (THanks to Marius Millea for pyhton3
-# compatibility)
+# "PYTHON=python3 make all" (Thanks to Marius Millea for python3 compatibility)
 PYTHON ?= python
 
 # your optimization flag
-OPTFLAG = -O4 -ffast-math #-march=native
+OPTFLAG = -O3
 #OPTFLAG = -Ofast -ffast-math #-march=native
 #OPTFLAG = -fast
 
 # your openmp flag (comment for compiling without openmp)
-OMPFLAG   = -fopenmp
+OMPFLAG   = -pthread #-fopenmp
 #OMPFLAG   = -mp -mp=nonuma -mp=allcores -g
 #OMPFLAG   = -openmp
 
@@ -47,37 +49,70 @@ CCFLAG = -g -fPIC
 LDFLAG = -g -fPIC
 
 # leave blank to compile without HyRec, or put path to HyRec directory
-# (with no slash at the end: e.g. hyrec or ../hyrec)
-HYREC = hyrec
+# (with no slash at the end: e.g. "external/RecfastCLASS")
+HYREC = external/HyRec2020
+RECFAST = external/RecfastCLASS
+HEATING = external/heating
+
+# path to hi_class external modules (with no slash at the end).
+# do not leave blank otherwise the code does not compile
+HI_CLASS_PATH = gravity_smg
 
 ########################################################
 ###### IN PRINCIPLE THE REST SHOULD BE LEFT UNCHANGED ##
 ########################################################
 
 # pass current working directory to the code
-CCFLAG += -D__CLASSDIR__='"$(MDIR)"'
+CLASSDIR ?= $(MDIR)
+CCFLAG += -D__CLASSDIR__='"$(CLASSDIR)"'
 
 # where to find include files *.h
 INCLUDES = -I../include
+HEADERFILES = $(wildcard ./include/*.h)
 
 # automatically add external programs if needed. First, initialize to blank.
 EXTERNAL =
 
-# eventually update flags for including HyRec
+vpath %.c $(RECFAST)
+#CCFLAG += -DRECFAST
+INCLUDES += -I../$(RECFAST)
+EXTERNAL += wrap_recfast.o
+HEADERFILES += $(wildcard ./$(RECFAST)/*.h)
+
+vpath %.c $(HEATING)
+#CCFLAG += -DHEATING
+INCLUDES += -I../$(HEATING)
+EXTERNAL += injection.o noninjection.o
+HEADERFILES += $(wildcard ./$(HEATING)/*.h)
+
+# update flags for including HyRec
 ifneq ($(HYREC),)
 vpath %.c $(HYREC)
 CCFLAG += -DHYREC
 #LDFLAGS += -DHYREC
-INCLUDES += -I../hyrec
-EXTERNAL += hyrectools.o helium.o hydrogen.o history.o
+INCLUDES += -I../$(HYREC)
+EXTERNAL += hyrectools.o helium.o hydrogen.o history.o wrap_hyrec.o energy_injection.o
+HEADERFILES += $(wildcard ./$(HYREC)/*.h)
 endif
 
-%.o:  %.c .base
+# eventually update flags for including gravity_smg
+ifneq ($(HI_CLASS_PATH),)
+vpath %.c $(HI_CLASS_PATH)
+CCFLAG += -DHI_CLASS_PATH
+#LDFLAGS += -DHI_CLASS_PATH
+INCLUDES += -I../gravity_smg/include
+EXTERNAL += input_smg.o background_smg.o perturbations_smg.o fourier_smg.o gravity_functions_smg.o gravity_models_smg.o
+endif
+
+%.o:  %.c .base $(HEADERFILES)
 	cd $(WRKDIR);$(CC) $(OPTFLAG) $(OMPFLAG) $(CCFLAG) $(INCLUDES) -c ../$< -o $*.o
 
-TOOLS = growTable.o dei_rkck.o sparse.o evolver_rkck.o  evolver_ndf15.o arrays.o parser.o quadrature.o hyperspherical.o common.o rootfinder.o
+%.opp:  %.c .base $(HEADERFILES)
+	cd $(WRKDIR);$(CPP) $(OPTFLAG) $(OMPFLAG) $(CCFLAG) $(INCLUDES) -c ../$< -o $*.opp
 
-SOURCE = input.o background.o thermodynamics.o perturbations.o primordial.o nonlinear.o transfer.o spectra.o lensing.o
+TOOLS = growTable.o dei_rkck.o sparse.o evolver_rkck.o  evolver_ndf15.o arrays.opp parser.o quadrature.o hyperspherical.opp common.o rootfinder.o trigonometric_integrals.o
+
+SOURCE = input.o background.o thermodynamics.o perturbations.opp primordial.opp fourier.o transfer.opp harmonic.opp lensing.opp distortions.o
 
 INPUT = input.o
 
@@ -93,11 +128,13 @@ TRANSFER = transfer.o
 
 PRIMORDIAL = primordial.o
 
-SPECTRA = spectra.o
+HARMONIC = harmonic.o
 
-NONLINEAR = nonlinear.o
+FOURIER = fourier.o
 
 LENSING = lensing.o
+
+DISTORTIONS = distortions.o
 
 OUTPUT = output.o
 
@@ -107,11 +144,11 @@ TEST_LOOPS = test_loops.o
 
 TEST_LOOPS_OMP = test_loops_omp.o
 
-TEST_DEGENERACY = test_degeneracy.o
+TEST_HARMONIC = test_harmonic.o
 
 TEST_TRANSFER = test_transfer.o
 
-TEST_NONLINEAR = test_nonlinear.o
+TEST_FOURIER = test_fourier.o
 
 TEST_PERTURBATIONS = test_perturbations.o
 
@@ -119,15 +156,11 @@ TEST_THERMODYNAMICS = test_thermodynamics.o
 
 TEST_BACKGROUND = test_background.o
 
-TEST_SIGMA = test_sigma.o
-
 TEST_HYPERSPHERICAL = test_hyperspherical.o
-
-TEST_STEPHANE = test_stephane.o
 
 C_TOOLS =  $(addprefix tools/, $(addsuffix .c,$(basename $(TOOLS))))
 C_SOURCE = $(addprefix source/, $(addsuffix .c,$(basename $(SOURCE) $(OUTPUT))))
-C_TEST = $(addprefix test/, $(addsuffix .c,$(basename $(TEST_DEGENERACY) $(TEST_LOOPS) $(TEST_TRANSFER) $(TEST_NONLINEAR) $(TEST_PERTURBATIONS) $(TEST_THERMODYNAMICS))))
+C_TEST = $(addprefix test/, $(addsuffix .c,$(basename $(TEST_DEGENERACY) $(TEST_LOOPS) $(TEST_TRANSFER) $(TEST_FOURIER) $(TEST_PERTURBATIONS) $(TEST_THERMODYNAMICS))))
 C_MAIN = $(addprefix main/, $(addsuffix .c,$(basename $(CLASS))))
 C_ALL = $(C_MAIN) $(C_TOOLS) $(C_SOURCE)
 H_ALL = $(addprefix include/, common.h svnversion.h $(addsuffix .h, $(basename $(notdir $(C_ALL)))))
@@ -142,53 +175,40 @@ libclass.a: $(TOOLS) $(SOURCE) $(EXTERNAL)
 	$(AR)  $@ $(addprefix build/, $(TOOLS) $(SOURCE) $(EXTERNAL))
 
 class: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(CLASS)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lm
-
-test_sigma: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(TEST_SIGMA)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o test_sigma $(addprefix build/,$(notdir $^)) -lm
+	$(CPP) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lm
 
 test_loops: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(TEST_LOOPS)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o $@ $(addprefix build/,$(notdir $^)) -lm
+	$(CPP) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o $@ $(addprefix build/,$(notdir $^)) -lm
 
 test_loops_omp: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(TEST_LOOPS_OMP)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o $@ $(addprefix build/,$(notdir $^)) -lm
+	$(CPP) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o $@ $(addprefix build/,$(notdir $^)) -lm
 
-test_stephane: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(TEST_STEPHANE)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o $@ $(addprefix build/,$(notdir $^)) -lm
-
-test_degeneracy: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(TEST_DEGENERACY)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o $@ $(addprefix build/,$(notdir $^)) -lm
+test_harmonic: $(TOOLS) $(SOURCE) $(EXTERNAL) $(TEST_HARMONIC)
+	$(CPP) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
 
 test_transfer: $(TOOLS) $(SOURCE) $(EXTERNAL) $(TEST_TRANSFER)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
+	$(CPP) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
 
-test_nonlinear: $(TOOLS) $(SOURCE) $(EXTERNAL) $(TEST_NONLINEAR)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
+test_fourier: $(TOOLS) $(SOURCE) $(EXTERNAL) $(TEST_FOURIER)
+	$(CPP) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
 
 test_perturbations: $(TOOLS) $(SOURCE) $(EXTERNAL) $(TEST_PERTURBATIONS)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
+	$(CPP) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
 
 test_thermodynamics: $(TOOLS) $(SOURCE) $(EXTERNAL) $(TEST_THERMODYNAMICS)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
+	$(CPP) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
 
 test_background: $(TOOLS) $(SOURCE) $(EXTERNAL) $(TEST_BACKGROUND)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
+	$(CPP) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o  $@ $(addprefix build/,$(notdir $^)) -lm
 
 test_hyperspherical: $(TOOLS) $(TEST_HYPERSPHERICAL)
 	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o test_hyperspherical $(addprefix build/,$(notdir $^)) -lm
-
 
 tar: $(C_ALL) $(C_TEST) $(H_ALL) $(PRE_ALL) $(INI_ALL) $(MISC_FILES) $(HYREC) $(PYTHON_FILES)
 	tar czvf class.tar.gz $(C_ALL) $(H_ALL) $(PRE_ALL) $(INI_ALL) $(MISC_FILES) $(HYREC) $(PYTHON_FILES)
 
 classy: libclass.a python/classy.pyx python/cclassy.pxd
-ifdef OMPFLAG
-	cp python/setup.py python/autosetup.py
-else
-	grep -v "lgomp" python/setup.py > python/autosetup.py
-endif
-	cd python; export CC=$(CC); $(PYTHON) autosetup.py install || $(PYTHON) autosetup.py install --user
-	rm python/autosetup.py
+	cd python; export CC=$(CC); $(PYTHON) setup.py install || $(PYTHON) setup.py install --user
 
 clean: .base
 	rm -rf $(WRKDIR);
