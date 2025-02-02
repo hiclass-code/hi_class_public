@@ -1654,6 +1654,7 @@ int fourier_init(
                "Your non-linear method variable is set to %d, out of the range defined in fourier.h",pfo->method);
   }
 
+  pfo->is_allocated = _TRUE_;
   return _SUCCESS_;
 }
 
@@ -1720,6 +1721,7 @@ int fourier_free(
     free(pfo->pk_eq_ddw_and_ddOmega);
   }
 
+  pfo->is_allocated = _FALSE_;
   return _SUCCESS_;
 }
 

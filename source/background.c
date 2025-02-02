@@ -876,6 +876,8 @@ int background_init(
              pba->error_message,
              pba->error_message);
 
+  pba->is_allocated = _TRUE_;
+
   return _SUCCESS_;
 
 }
@@ -899,6 +901,8 @@ int background_free(
   class_call(background_free_input(pba),
              pba->error_message,
              pba->error_message);
+
+  pba->is_allocated = _FALSE_;
 
   return _SUCCESS_;
 }
