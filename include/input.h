@@ -370,6 +370,7 @@ extern "C" {
                                     struct background * pba,
                                     struct thermodynamics * pth,
                                     struct perturbations * ppt,
+                                    struct fourier * pfo,
                                     struct distortions * psd,
                                     ErrorMsg errmsg);
 
