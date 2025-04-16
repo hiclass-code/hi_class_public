@@ -29,6 +29,7 @@ classy_folder = os.path.join(root_folder, "python")
 heat_folder = os.path.join(os.path.join(root_folder, "external"),"heating")
 recfast_folder = os.path.join(os.path.join(root_folder, "external"),"RecfastCLASS")
 hyrec_folder = os.path.join(os.path.join(root_folder, "external"),"HyRec2020")
+hiclass_folder = os.path.join(os.path.join(root_folder, "gravity_smg"), "include")
 
 # Recover the CLASS version
 with open(os.path.join(include_folder, 'common.h'), 'r') as v_file:
@@ -40,7 +41,7 @@ with open(os.path.join(include_folder, 'common.h'), 'r') as v_file:
 
 # Define cython extension and fix Python version
 classy_ext = Extension("classy", [os.path.join("python", "classy.pyx")],
-                       include_dirs=[np.get_include(), include_folder, heat_folder, recfast_folder, hyrec_folder],
+                       include_dirs=[np.get_include(), include_folder, heat_folder, recfast_folder, hyrec_folder, hiclass_folder],
                        libraries=liblist,
                        library_dirs=[root_folder, GCCPATH],
                        language="c++",

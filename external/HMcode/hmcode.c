@@ -7,6 +7,7 @@
 #include "fourier.h"
 #include "parallel.h"
 #include "sys/time.h"
+#include "hi_class.h"
 
 /**
  * Computes the nonlinear correction on the linear power spectrum with
@@ -187,7 +188,7 @@ int hmcode_compute(
   double mmin, mmax, nu_min;
 
   double sigma_disp, sigma_disp100, sigma8, sigma8_cb;
-  double delta_c, Delta_v;
+  double delta_c, Delta_v, Delta_v_0;
   double fraction;
 
   double sigma_nl, nu_nl, r_nl;
@@ -369,7 +370,20 @@ int hmcode_compute(
     delta_c = delta_c*(1.+0.012299*log10(Omega_m)); //Nakamura & Suto (1997) fitting formula for LCDM models (as in Mead 2016) //BUGFIX :: changed 0.0123 to 0.012299
     delta_c = delta_c*(1.+0.262*fnu); //Mead et al. (2016; arXiv 1602.02154) neutrino addition
 
-    Delta_v=418.*pow(Omega_m, -0.352); //Mead et al. (2015; arXiv 1505.07833)
+    Delta_v_0 = 418.;
+
+    // Correct the LCDM virialized overdensity
+    if (pba->has_smg) {
+      class_call(
+        hmcode_Delta_v_0_smg(
+          pba,
+          z_at_tau,
+          & Delta_v_0
+        ),
+        pfo->error_message, pfo->error_message);
+    };
+
+    Delta_v=Delta_v_0*pow(Omega_m, -0.352); //Mead et al. (2015; arXiv 1505.07833)
     Delta_v=Delta_v*(1.+0.916*fnu); //Mead et al. (2016; arXiv 1602.02154) neutrino addition
     break;
   case hmcode_version_2020_baryonic:
@@ -601,6 +615,10 @@ int hmcode_compute(
     //find growth rate at formation
     g_form = delta_c*growth/sigmaf_r[index_mass];
     if (g_form > 1.) g_form = 1.;
+    /** Here we correct the formation growth for extreme models where it is
+        g_form is very little and outside the precumputed table. */
+    if ((pba->has_smg == _TRUE_) && (g_form < phw->growtable[0]))
+      g_form = phw->growtable[0];
 
     /*class_call(array_interpolate_two_arrays_one_column(
       phw->growtable,

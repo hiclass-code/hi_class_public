@@ -1,5 +1,5 @@
-#ifndef __FOURIER_SMG__
-#define __FOURIER_SMG__
+#ifndef __HMCODE_SMG__
+#define __HMCODE_SMG__
 
 #include "common.h"
 #include "fourier.h"
@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-int fourier_hmcode_Delta_v_0_smg(
+int hmcode_Delta_v_0_smg(
   struct background *pba,
   double z_at_tau,
   double * Delta_v_0
