@@ -492,6 +492,8 @@ int perturbations_output_data(
           class_store_double(dataptr,tk[ppt->index_tp_eta_prime],ppt->has_source_eta_prime,storeidx);
           class_store_double(dataptr,tk[ppt->index_tp_H_T_Nb_prime],ppt->has_source_H_T_Nb_prime,storeidx);
           class_store_double(dataptr,tk[ppt->index_tp_k2gamma_Nb],ppt->has_source_k2gamma_Nb,storeidx);
+          class_store_double(dataptr,tk[ppt->index_tp_x_smg],ppt->has_source_x_smg,storeidx);
+          class_store_double(dataptr,tk[ppt->index_tp_x_prime_smg],ppt->has_source_x_prime_smg,storeidx);
         }
         if (ppt->has_velocity_transfers == _TRUE_) {
 
@@ -581,6 +583,8 @@ int perturbations_output_titles(
       class_store_columntitle(titles,"eta_prime",ppt->has_source_eta_prime);
       class_store_columntitle(titles,"H_T_Nb_prime",ppt->has_source_H_T_Nb_prime);
       class_store_columntitle(titles,"k2gamma_Nb",ppt->has_source_k2gamma_Nb);
+      class_store_columntitle(titles,"x_smg",ppt->has_source_x_smg);
+      class_store_columntitle(titles,"x_prime_smg",ppt->has_source_x_prime_smg);
     }
     if (ppt->has_velocity_transfers == _TRUE_) {
       class_store_columntitle(titles,"t_g",_TRUE_);
@@ -1319,6 +1323,8 @@ int perturbations_indices(
           ppt->has_source_delta_ncdm = _TRUE_;
         if(pba->has_smg == _TRUE_)
           ppt->has_source_x_smg = _TRUE_;
+        if(pba->has_smg == _TRUE_)
+          ppt->has_source_x_prime_smg = _TRUE_;
         // Thanks to the following lines, (phi,psi) are also stored as sources
         // (Obtained directly in newtonian gauge, infereed from (h,eta) in synchronous gauge).
         // If density transfer functions are requested in the (default) CLASS format,
@@ -1350,8 +1356,6 @@ int perturbations_indices(
           ppt->has_source_theta_dr = _TRUE_;
         if (pba->has_ncdm == _TRUE_)
           ppt->has_source_theta_ncdm = _TRUE_;
-        if(pba->has_smg == _TRUE_)
-          ppt->has_source_x_prime_smg = _TRUE_;
       }
 
       if (ppt->has_cl_number_count == _TRUE_) {
@@ -8114,7 +8118,14 @@ int perturbations_sources(
 
     /* x_smg */
     if(ppt->has_source_x_smg == _TRUE_) {
-      _set_source_(ppt->index_tp_x_smg) = pvecmetric[ppw->index_mt_x_smg];
+      /* Synchronous to Newtonian */
+      _set_source_(ppt->index_tp_x_smg) = pvecmetric[ppw->index_mt_x_smg] + pvecmetric[ppw->index_mt_alpha];
+    }
+
+    /* x_prime_smg */
+    if(ppt->has_source_x_prime_smg == _TRUE_) {
+      /* Synchronous to Newtonian */
+      _set_source_(ppt->index_tp_x_prime_smg) = pvecmetric[ppw->index_mt_x_prime_smg] + pvecmetric[ppw->index_mt_alpha_prime];
     }
 
     /* delta_dr */
@@ -8226,11 +8237,6 @@ int perturbations_sources(
 
       _set_source_(ppt->index_tp_theta_scf) = rho_plus_p_theta_scf/(pvecback[pba->index_bg_rho_scf]+pvecback[pba->index_bg_p_scf])
         + theta_shift; // N-body gauge correction
-    }
-
-    /* x_prime_smg */
-    if(ppt->has_source_x_prime_smg == _TRUE_) {
-      _set_source_(ppt->index_tp_x_prime_smg) = pvecmetric[ppw->index_mt_x_prime_smg];
     }
 
     /* theta_dr */
