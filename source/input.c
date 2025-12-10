@@ -958,6 +958,12 @@ int input_find_root(double *xzero,
 
   (*fevals)++;
   dx = 1.5*f1*dxdy;
+  if(fabs(dx) < x1*_EPSILON_){
+    /* In this special case, we are very close to the correct location already
+       (or are even at the exact correct location) */
+    *xzero = x1;
+    return _SUCCESS_;
+  }
 
   /** Then we do a linear hunt for the boundaries */
   /* Try fifteen times to go above and below the root (i.e. where shooting succeeds) */
@@ -1216,9 +1222,10 @@ int input_get_guess(double *xguess,
       break;
     case Neff:
       for(index_ncdm=0;index_ncdm<ba.N_ncdm;++index_ncdm){
-        N_nonur_guess += ba.deg_ncdm[index_ncdm]* 1.0132;
+        N_nonur_guess += ba.deg_ncdm[index_ncdm]* pow(ba.T_ncdm[index_ncdm],4)/pow(4./11.,(4./3.));
       }
       N_nonur_guess += ba.Omega0_idr/ba.Omega0_g/(7./8.)*pow(11./4.,(4./3.));
+
       xguess[index_guess] = pfzw->target_value[index_guess] - N_nonur_guess;
       dxdy[index_guess] = 1.;
       break;
@@ -1642,6 +1649,11 @@ int input_read_precisions(struct file_content * pfc,
 #include "precisions.h"
 #undef __ASSIGN_DEFAULT_PRECISION__
 
+  /** The base path is a special precision parameter
+       and is assigned here manually to its default value
+      It is the path relative to which CLASS will look for all files */
+  strcpy(ppr->base_path,__CLASSDIR__);
+
   /** Read all precision parameters from input (these very concise
       lines parse all precision parameters thanks to the macros
       defined in macros_precision.h) */
@@ -1656,6 +1668,9 @@ int input_read_precisions(struct file_content * pfc,
       errmsg
     );
   }
+
+  /** Now read the relative base path, overwriting possibly the default */
+  class_read_string("base_path",ppr->base_path);
 
   return _SUCCESS_;
 
