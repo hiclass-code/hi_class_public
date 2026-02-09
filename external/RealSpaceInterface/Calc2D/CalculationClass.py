@@ -4,7 +4,7 @@ import logging
 import cv2
 import numpy as np
 
-from classy import Class
+from hiclassy import HiClass
 
 from Calc2D.TransferFunction import ComputeTransferFunctionList
 from Calc2D.DataGeneration import GenerateGaussianData, GenerateSIData
@@ -71,7 +71,7 @@ class Calculation(object):
         Valuenew = dict()
         FValue_abs = np.abs(self.FValue)
         _min, _max = FValue_abs.min(), FValue_abs.max()
-        dimensions = (self.endshape[0] / 2, self.endshape[1])
+        dimensions = (self.endshape[0] // 2, self.endshape[1])
         for quantity, FT in FValuenew.items():
             FT_abs = np.abs(FT)
             FT_normalized = cv2.resize(FT_abs, dimensions).ravel()
@@ -98,7 +98,7 @@ class Calculation(object):
         return Value.ravel(), cv2.resize(
             (np.abs(self.FValue) - np.abs(self.FValue).min()) /
             (np.abs(self.FValue).max() - np.abs(self.FValue).min()),
-            (self.endshape[0] / 2, self.endshape[1])).ravel(), (minimum,
+            (self.endshape[0] // 2, self.endshape[1])).ravel(), (minimum,
                                                                 maximum)
 
     def getTransferData(self, redshiftindex):
@@ -131,7 +131,7 @@ class Calculation(object):
             Pkh = data["Pkh"]
             self.z_rec = data["z_rec"]
         else:
-            cosmo = Class()
+            cosmo = HiClass()
             cosmo.set(settings)
             cosmo.compute()
             # Cl's

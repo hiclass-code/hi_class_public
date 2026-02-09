@@ -6,7 +6,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline, RectBivariateSpline
 import sys
 import logging
 
-from classy import Class
+from hiclassy import HiClass
 
 import Calc2D.Database as Database
 import config
@@ -21,7 +21,7 @@ def ComputeTransferData(settings, redshift):
     if database_key in database:
         return database[database_key], redshift
     else:
-        cosmo = Class()
+        cosmo = HiClass()
         cosmo.set(settings)
         cosmo.compute()
 
@@ -42,6 +42,7 @@ def ComputeTransferFunctionList(cosmologicalParameters, redshift, kperdecade=200
     class_settings.update({
         "output": "mTk",
         "gauge": "newtonian",
+        "matter_source_in_current_gauge": "yes",
         "evolver": "1",
         "P_k_max_h/Mpc": P_k_max,
         "k_per_decade_for_pk": kperdecade,

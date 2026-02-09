@@ -1,4 +1,4 @@
-/** @file fourier_smg.c Documented fourier_smg module
+/** @file hmcode_smg.c Documented hmcode_smg module
  *
  * Emilio Bellini, Ignacy Sawicki, Miguel Zumalacarregui, 2024
  *
@@ -12,13 +12,13 @@
  *
  * -# all the functions end with "_smg" to make them easily
  *    recognizable
- * -# all the functions starting with "fourier_" are
- *    directly called by fourier.c or the classy wrapper
- * -# all the functions that do not start with "fourier_"
- *    are only used internally in fourier_smg.c
+ * -# all the functions starting with "hmcode_" are
+ *    directly called by hmcode.c or the hiclassy wrapper
+ * -# all the functions that do not start with "hmcode_"
+ *    are only used internally in hmcode_smg.c
  */
 
-#include "fourier_smg.h"
+#include "hmcode_smg.h"
 
 
 /**
@@ -33,7 +33,7 @@
  * @param Delta_v_0  Input/Output: value of the virialized overdensity
  * @return the error status
  */
-int fourier_hmcode_Delta_v_0_smg(
+int hmcode_Delta_v_0_smg(
                                  struct background *pba,
                                  double z_at_tau,
                                  double * Delta_v_0

@@ -413,6 +413,9 @@ int input_read_from_file(struct file_content * pfc,
   class_read_int("input_verbose",input_verbose);
   if (input_verbose >0) printf("Reading input parameters\n");
 
+  /** -- Special setting of parameter, before anything else: did shooting fail? */
+  pba->shooting_failed = _FALSE_;
+
   /** Find out if shooting necessary and, eventually, shoot and initialize
       read parameters */
   class_call(input_shooting(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
@@ -422,12 +425,16 @@ int input_read_from_file(struct file_content * pfc,
              errmsg,
              errmsg);
 
-  /** If no shooting is necessary, initialize read parameters without it */
-  if (has_shooting == _FALSE_){
-    class_call(input_read_parameters(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
-                                     errmsg),
-               errmsg,
-               errmsg);
+  /** Update structs with input that is potentially updated after shooting */
+  class_call(input_read_parameters(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
+                                    errmsg),
+              errmsg,
+              errmsg);
+
+  if (has_shooting == _TRUE_ && pba->shooting_failed == _TRUE_) {
+    // Shooting failed, but error must be thrown in background in order to trigger a
+    // runtime error, so here we skip the rest and go straight to background
+    return _SUCCESS_;
   }
 
   /** Write info on the read/unread parameters. This is the correct place to do it,
@@ -522,7 +529,7 @@ int input_shooting(struct file_content * pfc,
   double param1, param2;
   double * unknown_parameter;
   int unknown_parameters_size;
-  int counter, index_target, i;
+  int counter, index_target;
   int fevals=0;
   double xzero;
   double *dxdF, *x_inout;
@@ -533,6 +540,7 @@ int input_shooting(struct file_content * pfc,
   /* array of parameters passed by the user for which we need shooting (= target parameters) */
   char * const target_namestrings[] = {"100*theta_s",
                                        "theta_s_100",
+                                       "Neff",
                                        "Omega_dcdmdr",
                                        "omega_dcdmdr",
                                        "Omega_scf",
@@ -544,6 +552,7 @@ int input_shooting(struct file_content * pfc,
   /* array of corresponding parameters that must be adjusted in order to meet the target (= unknown parameters) */
   char * const unknown_namestrings[] = {"h",                        /* unknown param for target '100*theta_s' */
                                         "h",                        /* unknown param for target 'theta_s_100' */
+                                        "N_ur",                     /* unknown param for target 'Neff' */
                                         "Omega_ini_dcdm",           /* unknown param for target 'Omega_dcdmd' */
                                         "omega_ini_dcdm",           /* unknown param for target 'omega_dcdmdr' */
                                         "scf_shooting_parameter",   /* unknown param for target 'Omega_scf' */
@@ -557,6 +566,7 @@ int input_shooting(struct file_content * pfc,
      each time to saves a lot of time) */
   enum computation_stage target_cs[] = {cs_thermodynamics, /* computation stage for target '100*theta_s' */
                                         cs_thermodynamics, /* computation stage for target 'theta_s_100' */
+                                        cs_background,     /* computation stage for target 'Neff' */
                                         cs_background,     /* computation stage for target 'Omega_dcdmdr' */
                                         cs_background,     /* computation stage for target 'omega_dcdmdr' */
                                         cs_background,     /* computation stage for target 'Omega_scf' */
@@ -606,16 +616,11 @@ int input_shooting(struct file_content * pfc,
     *has_shooting=_TRUE_;
 
     /* Create file content structure with additional entries */
-    class_call(parser_init(&(fzw.fc),
-                           pfc->size+unknown_parameters_size,
-                           pfc->filename,
-                           errmsg),
+    class_call(parser_extend(pfc, unknown_parameters_size, errmsg),
                errmsg,errmsg);
 
-    /* Copy input file content to the new file content structure: */
-    memcpy(fzw.fc.name, pfc->name, pfc->size*sizeof(FileArg));
-    memcpy(fzw.fc.value, pfc->value, pfc->size*sizeof(FileArg));
-    memcpy(fzw.fc.read, pfc->read, pfc->size*sizeof(short));
+    class_call(parser_init_from_pfc(pfc, &(fzw.fc), errmsg),
+               errmsg,errmsg);
 
     class_alloc(unknown_parameter,
                 unknown_parameters_size*sizeof(double),
@@ -647,7 +652,7 @@ int input_shooting(struct file_content * pfc,
       fzw.target_name[counter] = index_target;
       /* store target value of target parameter */
       fzw.target_value[counter] = param1;
-      fzw.unknown_parameters_index[counter]=pfc->size+counter;
+      fzw.unknown_parameters_index[counter]=pfc->size+counter-unknown_parameters_size;
       /* substitute the name of the target parameter with the name of the
          corresponding unknown parameter */
       strcpy(fzw.fc.name[fzw.unknown_parameters_index[counter]],unknown_namestrings[index_target]);
@@ -658,10 +663,9 @@ int input_shooting(struct file_content * pfc,
 
       /* We can do 1 dimensional root finding */
       if (input_verbose > 0) {
-        fprintf(stdout,
-                "Computing unknown input parameter '%s' using input parameter '%s'\n",
-                fzw.fc.name[fzw.unknown_parameters_index[0]],
-                target_namestrings[fzw.target_name[0]]);
+        printf("Computing unknown input parameter '%s' using input parameter '%s'\n",
+               fzw.fc.name[fzw.unknown_parameters_index[0]],
+               target_namestrings[fzw.target_name[0]]);
       }
 
       /* If shooting fails, postpone error to background module to play nice with MontePython. */
@@ -679,9 +683,14 @@ int input_shooting(struct file_content * pfc,
       // precision of around 1e-16, so 1e-20 should be good enough for the shooting
       class_sprintf(fzw.fc.value[fzw.unknown_parameters_index[0]],"%.20e",xzero);
       if (input_verbose > 0) {
-        fprintf(stdout," -> found '%s = %s'\n",
-                fzw.fc.name[fzw.unknown_parameters_index[0]],
-                fzw.fc.value[fzw.unknown_parameters_index[0]]);
+        if (shooting_failed == _FALSE_){
+          printf(" -> found '%s = %s'\n",
+                  fzw.fc.name[fzw.unknown_parameters_index[0]],
+                  fzw.fc.value[fzw.unknown_parameters_index[0]]);
+        }
+        else{
+          printf("Shooting failed! Aborting...\n");
+        }
       }
 
     }
@@ -690,7 +699,7 @@ int input_shooting(struct file_content * pfc,
 
       /* We need to do multidimensional root finding */
       if (input_verbose > 0) {
-        fprintf(stdout,"Computing unknown input parameters\n");
+        printf("Computing unknown input parameters\n");
       }
 
       /* Allocate local variables */
@@ -727,9 +736,14 @@ int input_shooting(struct file_content * pfc,
         class_sprintf(fzw.fc.value[fzw.unknown_parameters_index[counter]],
                 "%.20e",x_inout[counter]);
         if (input_verbose > 0) {
-          fprintf(stdout," -> found '%s = %s'\n",
-                  fzw.fc.name[fzw.unknown_parameters_index[counter]],
-                  fzw.fc.value[fzw.unknown_parameters_index[counter]]);
+          if (shooting_failed == _FALSE_){
+            printf(" -> found '%s = %s'\n",
+                    fzw.fc.name[fzw.unknown_parameters_index[counter]],
+                    fzw.fc.value[fzw.unknown_parameters_index[counter]]);
+          }
+          else{
+            printf("Shooting failed! Aborting...\n");
+          }
         }
       }
 
@@ -738,36 +752,18 @@ int input_shooting(struct file_content * pfc,
       free(dxdF);
     }
 
-    if (input_verbose > 1) {
-      fprintf(stdout,"Shooting completed using %d function evaluations\n",fevals);
+    if (input_verbose > 1 && shooting_failed == _FALSE_) {
+      printf("Shooting completed using %d function evaluations\n",fevals);
     }
-
-    /** Read all parameters from the fc obtained through shooting */
-    class_call(input_read_parameters(&(fzw.fc),ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
-                                     errmsg),
-               errmsg,
-               errmsg);
 
     /** Set status of shooting */
     pba->shooting_failed = shooting_failed;
-    if (pba->shooting_failed == _TRUE_) {
-      background_free_input(pba);
-      thermodynamics_free_input(pth);
-      perturbations_free_input(ppt);
-    }
 
-    /* all parameters read in fzw must be considered as read in pfc. At the same
-       time the parameters read before in pfc (like theta_s,...) must still be
-       considered as read (hence we could not do a memcopy) */
-    for (i=0; i < pfc->size; i ++) {
-      if (fzw.fc.read[i] == _TRUE_)
-        pfc->read[i] = _TRUE_;
-    }
-
-    /* Free tuned pfc */
-    parser_free(&(fzw.fc));
+    parser_copy(&(fzw.fc), pfc, pfc->size - unknown_parameters_size, pfc->size);
 
     /** Free arrays allocated */
+    class_call(parser_free(&(fzw.fc)),
+               errmsg, errmsg);
     free(unknown_parameter);
     free(fzw.unknown_parameters_index);
     free(fzw.target_name);
@@ -788,17 +784,13 @@ int input_shooting(struct file_content * pfc,
   if (flag1 == _TRUE_ || flag2 == _TRUE_) {
     /* Tell the main function that shooting indeed has occured */
     *has_shooting=_TRUE_;
+
     /* Create file content structure with additional entries */
-    class_call(parser_init(&(fzw.fc),
-                           pfc->size+1,
-                           pfc->filename,
-                           errmsg),
+    class_call(parser_extend(pfc, 1, errmsg),
                errmsg,errmsg);
 
-    /* Copy input file content to the new file content structure: */
-    memcpy(fzw.fc.name, pfc->name, pfc->size*sizeof(FileArg));
-    memcpy(fzw.fc.value, pfc->value, pfc->size*sizeof(FileArg));
-    memcpy(fzw.fc.read, pfc->read, pfc->size*sizeof(short));
+    class_call(parser_init_from_pfc(pfc, &(fzw.fc), errmsg),
+               errmsg,errmsg);
 
     fzw.target_size = 1;
     class_alloc(fzw.unknown_parameters_index,
@@ -821,18 +813,17 @@ int input_shooting(struct file_content * pfc,
       fzw.target_value[0] = param2;
     }
     /* store target value of target parameter */
-    fzw.unknown_parameters_index[0]=pfc->size;
+    fzw.unknown_parameters_index[0]=pfc->size - 1;
     fzw.required_computation_stage = cs_nonlinear;
     /* substitute the name of the target parameter with the name of the
        corresponding unknown parameter */
-    strcpy(fzw.fc.name[pfc->size],"A_s");
+    strcpy(fzw.fc.name[pfc->size - 1],"A_s");
 
     /* Print to the user */
     if (input_verbose > 0) {
-      fprintf(stdout,
-              "Computing unknown input parameter '%s' using input parameter '%s'\n",
-              (flag1 ==_TRUE_?"sigma8":"S8"),
-              "A_s");
+      printf("Computing unknown input parameter '%s' using input parameter '%s'\n",
+             (flag1 ==_TRUE_?"sigma8":"S8"),
+             "A_s");
     }
 
     /* Set a guess for A_s from LCDM (doesn't need to be super accurate) */
@@ -857,31 +848,18 @@ int input_shooting(struct file_content * pfc,
     A_s = (fzw.target_value[0]/sigma8_or_S8) *(fzw.target_value[0]/sigma8_or_S8) * A_s; //(truesigma/sigma_for_guess)^2 *A_s_for_guess
 
     /* Store the derived value with high enough accuracy */
-    class_sprintf(fzw.fc.value[pfc->size],"%.20e",A_s);
+    class_sprintf(fzw.fc.value[pfc->size - 1],"%.20e",A_s);
     if (input_verbose > 0) {
-      fprintf(stdout," -> found '%s = %s'\n",
-              fzw.fc.name[pfc->size],
-              fzw.fc.value[pfc->size]);
+      printf(" -> found '%s = %s'\n",
+             fzw.fc.name[pfc->size - 1],
+             fzw.fc.value[pfc->size - 1]);
     }
 
-    /* Now read the remaining parameters from the fine tuned fzw into the individual structures */
-    class_call(input_read_parameters(&(fzw.fc),ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
-                                     errmsg),
-               errmsg,
-               errmsg);
-
-    /* all parameters read in fzw must be considered as read in pfc. At the same
-       time the parameters read before in pfc (like theta_s,...) must still be
-       considered as read (hence we could not do a memcopy) */
-    for (i=0; i < pfc->size; i ++) {
-      if (fzw.fc.read[i] == _TRUE_)
-        pfc->read[i] = _TRUE_;
-    }
-
-    /* Free tuned pfc */
-    parser_free(&(fzw.fc));
+    parser_copy(&(fzw.fc), pfc, pfc->size - 1, pfc->size);
 
     /** Free arrays allocated */
+    class_call(parser_free(&(fzw.fc)),
+               errmsg, errmsg);
     free(fzw.unknown_parameters_index);
     free(fzw.target_name);
     free(fzw.target_value);
@@ -918,11 +896,11 @@ int input_needs_shooting_for_target(struct file_content * pfc,
 
   *needs_shooting = _TRUE_;
   switch (target_name){
-    case Omega_dcdmdr:
-    case omega_dcdmdr:
-    case Omega_scf:
-    case Omega_ini_dcdm:
-    case omega_ini_dcdm:
+  case Omega_dcdmdr:
+  case omega_dcdmdr:
+  case Omega_scf:
+  case Omega_ini_dcdm:
+  case omega_ini_dcdm:
     /* Check that Omega's or omega's are nonzero: */
     if (target_value == 0.)
       *needs_shooting = _FALSE_;
@@ -980,6 +958,12 @@ int input_find_root(double *xzero,
 
   (*fevals)++;
   dx = 1.5*f1*dxdy;
+  if(fabs(dx) < x1*_EPSILON_){
+    /* In this special case, we are very close to the correct location already
+       (or are even at the exact correct location) */
+    *xzero = x1;
+    return _SUCCESS_;
+  }
 
   /** Then we do a linear hunt for the boundaries */
   /* Try fifteen times to go above and below the root (i.e. where shooting succeeds) */
@@ -1206,9 +1190,13 @@ int input_get_guess(double *xguess,
   int i;
   double Omega_M, a_decay, gamma, Omega0_dcdmdr=1.0;
   int index_guess;
+  int index_ncdm; double N_nonur_guess = 0.0;
 
   /* Cheat to read only known parameters: */
   pfzw->fc.size -= pfzw->target_size;
+
+  /* Assume for now shooting did not fail */
+  ba.shooting_failed = _FALSE_;
 
   class_call(input_read_precisions(&(pfzw->fc),&pr,&ba,&th,&pt,&tr,&pm,&hr,&fo,&le,&sd,&op,
                                    errmsg),
@@ -1231,6 +1219,15 @@ int input_get_guess(double *xguess,
       /** Update pb to reflect guess */
       ba.h = xguess[index_guess];
       ba.H0 = ba.h *  1.e5 / _c_;
+      break;
+    case Neff:
+      for(index_ncdm=0;index_ncdm<ba.N_ncdm;++index_ncdm){
+        N_nonur_guess += ba.deg_ncdm[index_ncdm]* pow(ba.T_ncdm[index_ncdm],4)/pow(4./11.,(4./3.));
+      }
+      N_nonur_guess += ba.Omega0_idr/ba.Omega0_g/(7./8.)*pow(11./4.,(4./3.));
+
+      xguess[index_guess] = pfzw->target_value[index_guess] - N_nonur_guess;
+      dxdy[index_guess] = 1.;
       break;
     case Omega_dcdmdr:
       Omega_M = ba.Omega0_cdm+ba.Omega0_idm+ba.Omega0_dcdmdr+ba.Omega0_b;
@@ -1375,6 +1372,9 @@ int input_try_unknown_parameters(double * unknown_parameter,
   int param;
   short compute_sigma8 = _FALSE_;
 
+  /* Assume for now shooting did not fail */
+  ba.shooting_failed = _FALSE_;
+
   pfzw = (struct fzerofun_workspace *) voidpfzw;
   /** Read input parameters */
   // This needs to be done with enough accuracy. A standard double has a relative
@@ -1492,6 +1492,9 @@ int input_try_unknown_parameters(double * unknown_parameter,
     case theta_s:
     case theta_s_100:
       output[i] = 100.*th.rs_rec/th.ra_rec-pfzw->target_value[i];
+      break;
+    case Neff:
+      output[i] = ba.Neff-pfzw->target_value[i];
       break;
     case Omega_dcdmdr:
       rho_dcdm_today = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_dcdm];
@@ -1646,6 +1649,11 @@ int input_read_precisions(struct file_content * pfc,
 #include "precisions.h"
 #undef __ASSIGN_DEFAULT_PRECISION__
 
+  /** The base path is a special precision parameter
+       and is assigned here manually to its default value
+      It is the path relative to which CLASS will look for all files */
+  strcpy(ppr->base_path,__CLASSDIR__);
+
   /** Read all precision parameters from input (these very concise
       lines parse all precision parameters thanks to the macros
       defined in macros_precision.h) */
@@ -1660,6 +1668,9 @@ int input_read_precisions(struct file_content * pfc,
       errmsg
     );
   }
+
+  /** Now read the relative base path, overwriting possibly the default */
+  class_read_string("base_path",ppr->base_path);
 
   return _SUCCESS_;
 
@@ -1720,7 +1731,7 @@ int input_read_parameters(struct file_content * pfc,
    * This function is exclusively for those parameters, NOT
    *  related to any physical species
    * */
-  class_call(input_read_parameters_general(pfc,pba,pth,ppt,psd,
+  class_call(input_read_parameters_general(pfc,pba,pth,ppt,pfo,psd,
                                            errmsg),
              errmsg,
              errmsg);
@@ -1797,6 +1808,7 @@ int input_read_parameters(struct file_content * pfc,
  * @param pba     Input: pointer to background structure
  * @param pth     Input: pointer to thermodynamics structure
  * @param ppt     Input: pointer to perturbation structure
+ * @param pfo     Input: pointer to fourier structure
  * @param psd     Input: pointer to distorsion structure
  * @param errmsg  Input: Error message
  * @return the error status
@@ -1806,6 +1818,7 @@ int input_read_parameters_general(struct file_content * pfc,
                                   struct background * pba,
                                   struct thermodynamics * pth,
                                   struct perturbations * ppt,
+                                  struct fourier * pfo,
                                   struct distortions * psd,
                                   ErrorMsg errmsg){
 
@@ -2154,6 +2167,12 @@ int input_read_parameters_general(struct file_content * pfc,
     class_read_flag_or_deprecated("nbody_gauge_transfer_functions","Nbody gauge transfer functions",ppt->has_Nbody_gauge_transfers);
 
   }
+
+  /** 4.c) Do we want matter and baryon+CDM sources in current gauge, instead of automatic conversion to gauge-invariant variables? */
+  class_read_flag("matter_source_in_current_gauge",ppt->has_matter_source_in_current_gauge);
+
+  /** 4.d) Do we want output perturbations in current gauge, instead of automatic conversion to Newtonian variables? */
+  class_read_flag("get_perturbations_in_current_gauge",ppt->get_perturbations_in_current_gauge);
 
   /** 5) h in [-] and H_0/c in [1/Mpc = h/2997.9 = h*10^5/c] */
   /* Read */
@@ -2507,25 +2526,10 @@ int input_read_parameters_species(struct file_content * pfc,
 
 
   /** 3) Omega_0_ur (ultra-relativistic species / massless neutrino) */
-  /**
-   * We want to keep compatibility with old input files, and as such 'N_eff' is still
-   * an allowed parameter name, although it is deprecated and its use is discouraged.
-   * */
   /* Read */
   class_call(parser_read_double(pfc,"N_ur",&param1,&flag1,errmsg),
              errmsg,
              errmsg);
-  /* Compability code BEGIN */
-  class_call(parser_read_double(pfc,"N_eff",&param2,&flag2,errmsg),
-             errmsg,
-             errmsg);
-  class_test((flag1 == _TRUE_) && (flag2 == _TRUE_),
-             errmsg,
-             "You added both 'N_eff' (deprecated) and 'N_ur'. Please use solely 'N_ur'.");
-  if (flag2 == _TRUE_){
-    param1 = param2;
-    flag1 = _TRUE_;
-  }
   /* Compability code END */
   class_call(parser_read_double(pfc,"Omega_ur",&param2,&flag2,errmsg),
              errmsg,
@@ -2554,7 +2558,7 @@ int input_read_parameters_species(struct file_content * pfc,
       pba->Omega0_ur = param3/pba->h/pba->h;
     }
   }
-  class_test(pba->Omega0_ur<0,errmsg,"You cannot set the density of ultra-relativistic relics (dark radiation/neutrinos) to negative values.");
+  class_test(pba->Omega0_ur<0,errmsg,"You cannot set the density of ultra-relativistic relics (dark radiation/neutrinos) to negative values. You might have input a total Neff smaller than what your massive neutrinos require minimally (around 1.02 * N_ncdm * deg_ncdm).");
 
   /** 3.a) Case of non-standard properties */
   /* Read */
@@ -2667,18 +2671,28 @@ int input_read_parameters_species(struct file_content * pfc,
                errmsg,
                errmsg);
 
-    /** 5.d) Mass or Omega of each ncdm species */
+    /** 5.d) Mass and/or Omega of each ncdm species */
     /* Read */
     class_read_list_of_doubles_or_default("m_ncdm",pba->m_ncdm_in_eV,0.0,N_ncdm);
+    for (n=0; n<N_ncdm; n++){
+      class_test(pba->m_ncdm_in_eV[n]<0,
+                 errmsg,
+                 "You entered a negative non-CDM mass m_ncdm[%d], which makes no sense. This error was not caught in previous CLASS versions because the mass is always squared in the code, so CLASS returned the exact same results form +m_ncdm and -m_ncdm. If you want to define an 'effective negative neutrino mass' in the sense of e.g. 2405.00836 or 2407.10965, you can implement it in a python script following e.g. eq.(3) of 2407.10965",n);
+    }
+
     class_read_list_of_doubles_or_default("Omega_ncdm",pba->Omega0_ncdm,0.0,N_ncdm);
+    // the name M_ncdm is borrowed temporarily to store omega_ncdm
     class_read_list_of_doubles_or_default("omega_ncdm",pba->M_ncdm,0.0,N_ncdm);
     for (n=0; n<N_ncdm; n++){
       if (pba->M_ncdm[n]!=0.0){
         /* Test */
         class_test(pba->Omega0_ncdm[n]!=0,errmsg,
                    "You can only enter one of 'Omega_ncdm' or 'omega_ncdm' for ncdm species %d.",n);
-        /* Complete set of parameters */
+        /* Complete set of parameters: if the user passed either
+           Omega_ncdm or omega_ncdm, now it's stored anyway as
+           Omega_0_ncdm */
         pba->Omega0_ncdm[n] = pba->M_ncdm[n]/pba->h/pba->h;
+        // the name M_ncdm is now available for its real destination
       }
       /* Set default value
          this is the right place for passing the default value of the mass
@@ -3050,24 +3064,12 @@ int input_read_parameters_species(struct file_content * pfc,
         pth->n_index_idm_dr = param3;
       }
 
-      /** 7.2.2.e) idr_nature */
-      class_call(parser_read_string(pfc,"idr_nature",&string1,&flag1,errmsg),
-                 errmsg,
-                 errmsg);
-      if (flag1 == _TRUE_) {
-        if ((strstr(string1,"free_streaming") != NULL) || (strstr(string1,"Free_Streaming") != NULL) || (strstr(string1,"Free_streaming") != NULL) || (strstr(string1,"FREE_STREAMING") != NULL)) {
-          ppt->idr_nature = idr_free_streaming;
-        }
-        if ((strstr(string1,"fluid") != NULL) || (strstr(string1,"Fluid") != NULL) || (strstr(string1,"FLUID") != NULL)) {
-          ppt->idr_nature = idr_fluid;
-        }
-      }
     }
 
-    /** 7.2.2.f) Strength of self interactions */
+    /** 7.2.2.e) Strength of self interactions */
     class_read_double_one_of_two("b_dark","b_idr",pth->b_idr);
 
-    /** 7.2.2.g) Read alpha_idm_dr or alpha_dark */
+    /** 7.2.2.f) Read alpha_idm_dr or alpha_dark */
     class_call(parser_read_list_of_doubles(pfc,"alpha_idm_dr",&entries_read,&(ppt->alpha_idm_dr),&flag1,errmsg),
                errmsg,
                errmsg);
@@ -3105,6 +3107,24 @@ int input_read_parameters_species(struct file_content * pfc,
     /* If we don't have perturbations, we should free the arrays again if necessary */
     else if (ppt->alpha_idm_dr != NULL) {
       free(ppt->alpha_idm_dr);
+    }
+  }
+
+  /** 7.2.2.g) idr_nature */
+  if (pba->T_idr > 0) {
+    class_call(parser_read_string(pfc,"idr_nature",&string1,&flag1,errmsg),
+               errmsg,
+               errmsg);
+    if (flag1 == _TRUE_) {
+      if ((strstr(string1,"free_streaming") != NULL) || (strstr(string1,"Free_Streaming") != NULL) || (strstr(string1,"Free_streaming") != NULL) || (strstr(string1,"FREE_STREAMING") != NULL)) {
+        ppt->idr_nature = idr_free_streaming;
+      }
+      else if ((strstr(string1,"fluid") != NULL) || (strstr(string1,"Fluid") != NULL) || (strstr(string1,"FLUID") != NULL)) {
+        ppt->idr_nature = idr_fluid;
+      }
+      else {
+        class_stop(errmsg, "idr_nature has to be either free_streaming or fluid, but you entered %s.", string1);
+      }
     }
   }
 
@@ -3846,61 +3866,103 @@ int input_read_parameters_nonlinear(struct file_content * pfc,
       ppt->has_nl_corrections_based_on_delta_m = _TRUE_;
       class_read_int("extrapolation_method",pfo->extrapolation_method);
 
-      class_call(parser_read_string(pfc,
-                                    "feedback model",
-                                    &(string1),
-                                    &(flag1),
-                                    errmsg),
+      class_call(parser_read_string(pfc,"hmcode_version",&string1,&flag1,errmsg),
                  errmsg,
                  errmsg);
+      /* Compatibility code BEGIN */
+      if(flag1 == _FALSE_){
+        class_call(parser_read_string(pfc,"HMcode_version",&string1,&flag1,errmsg),
+                   errmsg,
+                   errmsg);
+      }
+      if(flag1 == _FALSE_){
+        class_call(parser_read_string(pfc,"hmcode version",&string1,&flag1,errmsg),
+                   errmsg,
+                   errmsg);
+      }
 
+      /* Compatibility code END */
       if (flag1 == _TRUE_) {
-
-        if (strstr(string1,"emu_dmonly") != NULL) {
-          pfo->feedback = nl_emu_dmonly;
+        if ((strstr(string1,"15") != NULL)||(strstr(string1,"16") != NULL)) {
+          pfo->hm_version = hmcode_version_2015;
         }
-        if (strstr(string1,"owls_dmonly") != NULL) {
-          pfo->feedback = nl_owls_dmonly;
+        else if ((strstr(string1,"20baryon") != NULL) || (strstr(string1,"20_baryon") != NULL)) {
+          pfo->hm_version = hmcode_version_2020_baryonic;
         }
-        if (strstr(string1,"owls_ref") != NULL) {
-          pfo->feedback = nl_owls_ref;
+        else if ((strstr(string1,"20") != NULL)) {
+          pfo->hm_version = hmcode_version_2020;
         }
-        if (strstr(string1,"owls_agn") != NULL) {
-          pfo->feedback = nl_owls_agn;
-        }
-        if (strstr(string1,"owls_dblim") != NULL) {
-          pfo->feedback = nl_owls_dblim;
+        else{
+          class_stop(errmsg,
+                     "You specified 'hmcode_version' = '%s'. It has to be one of {'2015','2020','2020_baryonic_feedback'}.",string1);
         }
       }
 
-      class_call(parser_read_double(pfc,"eta_0",&param2,&flag2,errmsg),
-                 errmsg,
-                 errmsg);
-      class_call(parser_read_double(pfc,"c_min",&param3,&flag3,errmsg),
-                 errmsg,
-                 errmsg);
+      if (pfo->hm_version == hmcode_version_2015) {
 
-      class_test(((flag1 == _TRUE_) && ((flag2 == _TRUE_) || (flag3 == _TRUE_))),
-                 errmsg,
-                 "In input file, you cannot enter both a baryonic feedback model and a choice of baryonic feedback parameters, choose one of both methods");
+        class_call(parser_read_string(pfc,"feedback_model",&string1,&flag1,errmsg),
+                   errmsg,
+                   errmsg);
 
-      if ((flag2 == _TRUE_) && (flag3 == _TRUE_)) {
-        pfo->feedback = nl_user_defined;
-        class_read_double("eta_0", pfo->eta_0);
-        class_read_double("c_min", pfo->c_min);
-      }
-      else if ((flag2 == _TRUE_) && (flag3 == _FALSE_)) {
-        pfo->feedback = nl_user_defined;
-        class_read_double("eta_0", pfo->eta_0);
-        pfo->c_min = (0.98 - pfo->eta_0)/0.12;
-      }
-      else if ((flag2 == _FALSE_) && (flag3 == _TRUE_)) {
-        pfo->feedback = nl_user_defined;
-        class_read_double("c_min", pfo->c_min);
-        pfo->eta_0 = 0.98 - 0.12*pfo->c_min;
-      }
+        /* Compatibility code BEGIN */
+        if (flag1 == _FALSE_) {
+          class_call(parser_read_string(pfc,"feedback model",&string1,&flag1,errmsg),
+                     errmsg,
+                     errmsg);
+        }
+        /* Compatibility code END */
 
+        if (flag1 == _TRUE_) {
+
+          if (strstr(string1,"emu_dmonly") != NULL) {
+            pfo->feedback = hmcode_emu_dmonly;
+          }
+          if (strstr(string1,"owls_dmonly") != NULL) {
+            pfo->feedback = hmcode_owls_dmonly;
+          }
+          if (strstr(string1,"owls_ref") != NULL) {
+            pfo->feedback = hmcode_owls_ref;
+          }
+          if (strstr(string1,"owls_agn") != NULL) {
+            pfo->feedback = hmcode_owls_agn;
+          }
+          if (strstr(string1,"owls_dblim") != NULL) {
+            pfo->feedback = hmcode_owls_dblim;
+          }
+        }
+
+        class_call(parser_read_double(pfc,"eta_0",&param2,&flag2,errmsg),
+                   errmsg,
+                   errmsg);
+        class_call(parser_read_double(pfc,"c_min",&param3,&flag3,errmsg),
+                   errmsg,
+                   errmsg);
+
+        class_test(((flag1 == _TRUE_) && ((flag2 == _TRUE_) || (flag3 == _TRUE_))),
+                   errmsg,
+                   "In input file, you cannot enter both a baryonic feedback model and a choice of baryonic feedback parameters, choose one of both methods");
+
+        if ((flag2 == _TRUE_) && (flag3 == _TRUE_)) {
+          pfo->feedback = hmcode_user_defined;
+          class_read_double("eta_0", pfo->eta_0);
+          class_read_double("c_min", pfo->c_min);
+        }
+        else if ((flag2 == _TRUE_) && (flag3 == _FALSE_)) {
+          pfo->feedback = hmcode_user_defined;
+          class_read_double("eta_0", pfo->eta_0);
+          pfo->c_min = (0.98 - pfo->eta_0)/0.12;
+        }
+        else if ((flag2 == _FALSE_) && (flag3 == _TRUE_)) {
+          pfo->feedback = hmcode_user_defined;
+          class_read_double("c_min", pfo->c_min);
+          pfo->eta_0 = 0.98 - 0.12*pfo->c_min;
+        }
+      }
+      else if (pfo->hm_version == hmcode_version_2020_baryonic) {
+        class_read_double("log10T_heat_hmcode",pfo->log10T_heat_hmcode);
+      }
       class_read_double("z_infinity", pfo->z_infinity);
+      class_read_int("nk_wiggle", pfo->nk_wiggle);
     }
     else if (strstr(string1,"no")!=NULL){
       pfo->method=nl_none;
@@ -3928,6 +3990,15 @@ int input_read_parameters_nonlinear(struct file_content * pfc,
         pfo->has_pk_eq = _TRUE_;
       }
     }
+  }
+
+  /** 2.a) analytic nowiggle linear spectrum */
+  class_read_flag("analytic_nowiggle", pfo->has_pk_analytic_nowiggle);
+
+  /** 2.b) numerical nowiggle linear spectrum (can be computed only if the linear power spectrum is computed) */
+
+  if (ppt->has_pk_matter == _TRUE_) {
+    class_read_flag("numerical_nowiggle", pfo->has_pk_numerical_nowiggle);
   }
 
   return _SUCCESS_;
@@ -5755,6 +5826,19 @@ int input_default_params(struct background *pba,
      non-linear corrections neglected */
 
   /**
+   * Default to any module: not allocated yet
+   */
+  pba->is_allocated = _FALSE_;
+  pth->is_allocated = _FALSE_;
+  ppt->is_allocated = _FALSE_;
+  pfo->is_allocated = _FALSE_;
+  ptr->is_allocated = _FALSE_;
+  phr->is_allocated = _FALSE_;
+  ppm->is_allocated = _FALSE_;
+  ple->is_allocated = _FALSE_;
+  psd->is_allocated = _FALSE_;
+
+  /**
    * Default to input_read_parameters_general
    */
 
@@ -5804,6 +5888,10 @@ int input_default_params(struct background *pba,
   ppt->gauge=synchronous;
   /** 4.b) N-body gauge */
   ppt->has_Nbody_gauge_transfers = _FALSE_;
+  /** 4.c) keep delta_m, theta_m, delta_cb, theta_cb in current gauge */
+  ppt->has_matter_source_in_current_gauge = _FALSE_;
+  /** 4.d) keep output perturbations in current gauge */
+  ppt->get_perturbations_in_current_gauge = _FALSE_;
 
   /** 5) Hubble parameter */
   pba->h = 0.67810;
@@ -5972,8 +6060,6 @@ int input_default_params(struct background *pba,
   pba->phi_prime_ini_scf = 1;          //     factors of the radiation attractor values
   /** 9.b.3) Tuning parameter */
   pba->scf_tuning_index = 0;
-  /** 9.b.4) Shooting parameter */
-  pba->shooting_failed = _FALSE_;
 
   /**
    * Deafult to input_read_parameters_heating
@@ -6039,8 +6125,16 @@ int input_default_params(struct background *pba,
   pfo->method = nl_none;
   pfo->has_pk_eq = _FALSE_;
   pfo->extrapolation_method = extrap_max_scaled;
-  pfo->feedback = nl_emu_dmonly;
+  pfo->feedback = hmcode_emu_dmonly;
+  pfo->hm_version = hmcode_version_2020;
   pfo->z_infinity = 10.;
+  pfo->has_pk_numerical_nowiggle = _FALSE_;
+  pfo->pk_l_nw_index = &(pfo->index_pk_cluster);
+
+  pfo->log10T_heat_hmcode = 7.8;
+  pfo->nk_wiggle = 512;
+
+  pfo->has_pk_analytic_nowiggle = _FALSE_;
 
   /**
    * Default to input_read_parameters_primordial
