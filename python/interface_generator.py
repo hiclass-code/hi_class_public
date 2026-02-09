@@ -68,7 +68,7 @@ def main():
                 in_modules = True
 
     logger.info('Extracted the following headers: %s', ', '.join(headers))
-    output = 'lvdgdmsiuy.pyx'
+    output = 'hiclassy.pyx'
     logger.info('Creating %s', output)
     structs = od()
     output_file = open(output, 'w')

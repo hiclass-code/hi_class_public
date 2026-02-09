@@ -4,7 +4,7 @@ import logging
 import cv2
 import numpy as np
 
-from lvdgdmsiuy import TZCCYAMXZK
+from hiclassy import HiClass
 
 from Calc2D.TransferFunction import ComputeTransferFunctionList
 from Calc2D.DataGeneration import GenerateGaussianData, GenerateSIData
@@ -131,7 +131,7 @@ class Calculation(object):
             Pkh = data["Pkh"]
             self.z_rec = data["z_rec"]
         else:
-            cosmo = TZCCYAMXZK()
+            cosmo = HiClass()
             cosmo.set(settings)
             cosmo.compute()
             # Cl's

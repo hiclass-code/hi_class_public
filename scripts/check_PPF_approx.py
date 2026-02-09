@@ -8,7 +8,7 @@
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from lvdgdmsiuy import TZCCYAMXZK
+from hiclassy import HiClass
 
 
 # Select the output wavenumbers (in 1/Mpc) for the perturbations
@@ -42,7 +42,7 @@ for M in models:
         gauge = 'Synchronous'
 
     # We are putting a CLASS object into each part of the dictionary
-    cosmo[M] = TZCCYAMXZK()
+    cosmo[M] = HiClass()
 
     # Now we actually set the corresponding parameters
     # Inputs: temperature Cls (tCl), matter power spectrum (mPk), density transfers (dTk), velocity transfers (vTk)
@@ -128,7 +128,7 @@ for Omega_K in [-0.1, 0.0, 0.1]:
                 use_ppf = 'no'
 
             # Set the specific CLASS model
-            cosmo[M] = TZCCYAMXZK()
+            cosmo[M] = HiClass()
 
             cosmo[M].set({'output':'tCl mPk dTk vTk','k_output_values':str(k_out).strip('[]'),
                   'h':h[M],
@@ -191,7 +191,7 @@ for Omega_K in [-0.1, 0.0, 0.1]:
                 use_ppf = 'no'
 
             # Generate the CLASS object
-            cosmo[M] = TZCCYAMXZK()
+            cosmo[M] = HiClass()
 
             cosmo[M].set({'output':'tCl mPk dTk vTk','k_output_values':str(k_out).strip('[]'),
                   'h':h[M],

@@ -23,7 +23,7 @@ if b"mvec" not in MVEC_STRING:
 # define absolute paths
 root_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 include_folder = os.path.join(root_folder, "include")
-lvdgdmsiuy_folder = os.path.join(root_folder, "python")
+hiclassy_folder = os.path.join(root_folder, "python")
 heat_folder = os.path.join(os.path.join(root_folder, "external"),"heating")
 recfast_folder = os.path.join(os.path.join(root_folder, "external"),"RecfastCLASS")
 hyrec_folder = os.path.join(os.path.join(root_folder, "external"),"HyRec2020")
@@ -40,7 +40,7 @@ with open(os.path.join(include_folder, 'common.h'), 'r') as v_file:
             break
 
 # Define cython extension and fix Python version
-lvdgdmsiuy_ext = Extension("lvdgdmsiuy", [os.path.join(lvdgdmsiuy_folder, "lvdgdmsiuy.pyx")],
+hiclassy_ext = Extension("hiclassy", [os.path.join(hiclassy_folder, "hiclassy.pyx")],
                            include_dirs=[nm.get_include(), include_folder, heat_folder, recfast_folder, hyrec_folder, hiclass_folder, hmcode_folder, halofit_folder],
                            libraries=liblist,
                            library_dirs=[root_folder, GCCPATH],
@@ -49,13 +49,13 @@ lvdgdmsiuy_ext = Extension("lvdgdmsiuy", [os.path.join(lvdgdmsiuy_folder, "lvdgd
                            extra_compile_args=["-std=c++11"]
                        )
 import sys
-lvdgdmsiuy_ext.cython_directives = {'language_level': "3" if sys.version_info.major>=3 else "2"}
+hiclassy_ext.cython_directives = {'language_level': "3" if sys.version_info.major>=3 else "2"}
 
 setup(
-    name='lvdgdmsiuy',
+    name='hiclassy',
     version=VERSION,
     description='Python interface to the Cosmological Boltzmann code CLASS',
     url='http://www.class-code.net',
     cmdclass={'build_ext': build_ext},
-    ext_modules=[lvdgdmsiuy_ext],
+    ext_modules=[hiclassy_ext],
 )

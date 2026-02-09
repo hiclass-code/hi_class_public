@@ -13,7 +13,7 @@
  * -# all the functions end with "_smg" to make them easily
  *    recognizable
  * -# all the functions starting with "background" are
- *    directly called by background.c or the lvdgdmsiuy wrapper
+ *    directly called by background.c or the hiclassy wrapper
  * -# all the functions that do not start with "background"
  *    are only used internally in background_smg.c
  */

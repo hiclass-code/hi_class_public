@@ -15,7 +15,7 @@
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from lvdgdmsiuy import TZCCYAMXZK
+from hiclassy import HiClass
 from scipy.optimize import fsolve
 
 
@@ -81,7 +81,7 @@ for i, Neff in enumerate(var_array):
     print (' * Compute with %s=%e, %s=%e, %s=%e'%('Neff',Neff,'omega_cdm',omega_cdm,'h',h))
     #
     # create and instance of CLASS
-    M[i] = TZCCYAMXZK()
+    M[i] = HiClass()
     # set input parameters
     M[i].set(common_settings)
     #M[i].set(better_precision_settings) # you could put also better precision settings if you wanted

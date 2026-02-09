@@ -10,7 +10,7 @@
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from lvdgdmsiuy import TZCCYAMXZK
+from hiclassy import HiClass
 from scipy.interpolate import interp1d
 import math
 
@@ -44,7 +44,7 @@ common_settings = {# LambdaCDM parameters (Planck 18 + lensing + BAO bestfit)
 #
 # call CLASS
 #
-M = TZCCYAMXZK()
+M = HiClass()
 M.set(common_settings)
 
 

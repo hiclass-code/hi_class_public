@@ -5,16 +5,16 @@
 # We also show for comparison the linear spectrum, as well as the no-wiggle power spectrum computed in two ways.
 
 
-# import lvdgdmsiuy module
-from lvdgdmsiuy import TZCCYAMXZK
+# import hiclassy module
+from hiclassy import HiClass
 # uncomment to get plots displayed in notebook
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-# create an instance of TZCCYAMXZK
-LambdaCDM = TZCCYAMXZK()
+# create an instance of HiClass
+LambdaCDM = HiClass()
 # pass input parameters
 LambdaCDM.set_baseline('p18') # Start from Planck 2018 baseline
 LambdaCDM.set({'output':'tCl,pCl,lCl,mPk','analytic_nowiggle':'yes','numerical_nowiggle':'yes','lensing':'yes'})

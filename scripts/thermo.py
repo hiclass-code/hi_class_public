@@ -9,11 +9,11 @@
 # uncomment to get plots displayed in notebook#%matplotlib inline
 import matplotlib.pyplot as plt
 import numpy as np
-from lvdgdmsiuy import TZCCYAMXZK
+from hiclassy import HiClass
 
 
 # Create a CLASS instance
-M = TZCCYAMXZK()
+M = HiClass()
 
 # We could customize our input parameters but here we choose to stick to the default LambdaCDM parameters
 # No need to pass the 'output' field since we only need CLASS to compute the background and thermodynamics evolution 

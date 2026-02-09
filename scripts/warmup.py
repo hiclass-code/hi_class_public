@@ -5,12 +5,12 @@
 # of temperature, polarisation and lensing potential, as well as the matter power spectrum
 
 
-# import lvdgdmsiuy module
-from lvdgdmsiuy import TZCCYAMXZK
+# import hiclassy module
+from hiclassy import HiClass
 
 
 # create an instance of CLASS
-LambdaCDM = TZCCYAMXZK()
+LambdaCDM = HiClass()
 
 ####################################################
 #
@@ -41,10 +41,10 @@ LambdaCDM.set(input)
 # LambdaCDM.set_baseline('p18lb')
 # Here 'p18lb' is a short-cut for Planck18 + lensing + BAO bestfit
 # other options are 'p18l' and 'p18'
-# These pre-settings are defined in the lvdgdmsiuy function .set_baseline()
+# These pre-settings are defined in the hiclassy function .set_baseline()
 
-# In older versions of lvdgdmsiuy one needed to execute CLASS with .compute()
-# This is no longer necessary, the code execution happens directly when calling lvdgdmsiuy functions
+# In older versions of hiclassy one needed to execute CLASS with .compute()
+# This is no longer necessary, the code execution happens directly when calling hiclassy functions
 
 
 # get lesned C_l spectra

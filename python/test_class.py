@@ -5,7 +5,7 @@
 .. credits:: Benjamin Audren, Thomas Tram
 .. version:: 1.0
 
-This is a python script for testing CLASS and its wrapper lvdgdmsiuy using nose.
+This is a python script for testing CLASS and its wrapper hiclassy using nose.
 To run the test suite, type
 nosetests test_class.py
 If you want to extract the problematic input parameters at a later stage,
@@ -81,8 +81,8 @@ import os
 import shutil
 import unittest
 
-from lvdgdmsiuy import TZCCYAMXZK
-from lvdgdmsiuy import CosmoSevereError
+from hiclassy import HiClass
+from hiclassy import CosmoSevereError
 from math import log10
 from matplotlib.offsetbox import AnchoredText
 from nose.plugins.attrib import attr
@@ -91,7 +91,7 @@ from parameterized import parameterized
 # Customise test by reading environment variables
 CLASS_VERBOSE = bool(int(os.getenv('CLASS_VERBOSE', '0'))) # Print output from CLASS?
 COMPARE_OUTPUT_GAUGE = bool(int(os.getenv('COMPARE_OUTPUT_GAUGE', '0'))) # Compare synchronous and Newtonian gauge outputs?
-COMPARE_OUTPUT_REF = bool(int(os.getenv('COMPARE_OUTPUT_REF', '0'))) # Compare lvdgdmsiuy with classyref?
+COMPARE_OUTPUT_REF = bool(int(os.getenv('COMPARE_OUTPUT_REF', '0'))) # Compare hiclassy with classyref?
 POWER_ALL = bool(int(os.getenv('POWER_ALL', '0'))) # Combine every extension with each other? (Very slow!)
 VALGRIND_MODE = bool(int(os.getenv('VALGRIND_MODE', '0')))
 
@@ -262,12 +262,12 @@ def custom_name_func(testcase_func, param_num, param):
 
 class TestClass(unittest.TestCase):
     """
-    Testing Class and its wrapper lvdgdmsiuy on different cosmologies
+    Testing Class and its wrapper hiclassy on different cosmologies
 
     To run it, do
     ~] nosetest test_class.py
 
-    It will run many times TZCCYAMXZK, on different cosmological scenarios, and
+    It will run many times HiClass, on different cosmological scenarios, and
     everytime testing for different output possibilities (none asked, only mPk,
     etc..)
 
@@ -293,8 +293,8 @@ class TestClass(unittest.TestCase):
         set up data used in the tests.
         setUp is called before each test function execution.
         """
-        self.cosmo = TZCCYAMXZK()
-        self.cosmo_newt = TZCCYAMXZK()
+        self.cosmo = HiClass()
+        self.cosmo_newt = HiClass()
 
         if CLASS_VERBOSE:
             self.verbose = {
@@ -371,7 +371,7 @@ class TestClass(unittest.TestCase):
 
         self.assertTrue(
             self.cosmo.state,
-            "TZCCYAMXZK failed to go through all __init__ methods")
+            "HiClass failed to go through all __init__ methods")
         # Depending
         if 'output' in self.scenario:
             # Positive tests of raw cls
@@ -419,7 +419,7 @@ class TestClass(unittest.TestCase):
             # Compare synchronous and Newtonian gauge
             self.assertTrue(
                 self.cosmo_newt.state,
-                "TZCCYAMXZK failed to go through all __init__ methods in Newtonian gauge")
+                "HiClass failed to go through all __init__ methods in Newtonian gauge")
 
             self.compare_output(self.cosmo, "Synchronous", self.cosmo_newt, 'Newtonian', COMPARE_CL_RELATIVE_ERROR_GAUGE, COMPARE_PK_RELATIVE_ERROR_GAUGE)
 

@@ -9,7 +9,7 @@
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from lvdgdmsiuy import TZCCYAMXZK
+from hiclassy import HiClass
 
 
 # We want to use a few CPL fluid models, parameterized as usual through w0,wa
@@ -34,7 +34,7 @@ for w0 in w0vec:
         # If the model is LCDM, we could run it as a fluid with w0_fld = -1, wa_fld=0 ,
         # but it's probably nicer to do it as the usual cosmological constant
         # We also set the Gauge to be Newtonian, though this isn't critical
-        cosmo[M] = TZCCYAMXZK()
+        cosmo[M] = HiClass()
         cosmo[M].set({'input_verbose':1,'background_verbose':1,'gauge' : 'Newtonian'})
         if M!='LCDM':
             cosmo[M].set({'Omega_Lambda':0.,'w0_fld':w0,'wa_fld':wa})

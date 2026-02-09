@@ -1,6 +1,6 @@
-from ._lvdgdmsiuy import (
+from ._hiclassy import (
     __version__,
-    TZCCYAMXZK,
+    HiClass,
     CosmoSevereError,
     CosmoComputationError
 )
