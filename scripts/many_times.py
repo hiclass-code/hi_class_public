@@ -11,7 +11,7 @@
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from classy import Class
+from lvdgdmsiuy import TZCCYAMXZK
 from scipy.interpolate import interp1d
 import math
 
@@ -61,7 +61,7 @@ common_settings = {# LambdaCDM parameters (Planck 18 + lensing + BAO bestfit)
                    'matter_source_in_current_gauge':'yes'}
 
 # create an instance of CLASS
-M = Class()
+M = TZCCYAMXZK()
 # set input parameters
 M.set(common_settings)
 

@@ -41,7 +41,7 @@ it can be interfaced with other codes, etc.
 
 - `output/` is where the output files will be written by default (this can be changed to another directory by adjusting the input parameter `root = <...>`)
 
-- `python/` contains the python wrapper of `CLASS`, called classy (see `python/README`)
+- `python/` contains the python wrapper of `CLASS`, called lvdgdmsiuy (see `python/README`)
 
 - `cpp/` contains the C++ wrapper of `CLASS`, called ClassEngine (see `cpp/README`)
 

@@ -14,7 +14,7 @@
 
 
 # import necessary modules
-from classy import Class
+from lvdgdmsiuy import TZCCYAMXZK
 from math import pi
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
@@ -46,7 +46,7 @@ common_settings = {# LambdaCDM parameters (Planck 18 + lensing + BAO bestfit)
 # call CLASS a first time just to compute z_rec (will compute transfer functions at default: z=0)
 #
 ###############
-M = Class()
+M = TZCCYAMXZK()
 M.set(common_settings)
 # get derived parameters computed by CLASS for this cosmology: here we get
 # the redshift at recombination (z_rec), the conformal time at recombination (tau_rec), and the conformal time today (conformal_age)

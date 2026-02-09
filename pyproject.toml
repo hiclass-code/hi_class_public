@@ -1,5 +1,5 @@
 [project]
-name = "classy"
+name = "lvdgdmsiuy"
 dynamic=["version"]
 description="Python interface to the Cosmological Boltzmann code CLASS"
 authors = [
@@ -11,7 +11,7 @@ authors = [
 
 [project.urls]
 Homepage = "http://www.class-code.net"
-# Documentation = https://readthdocs.org/classy # TBD
+# Documentation = https://readthdocs.org/lvdgdmsiuy # TBD
 
 [build-system]
 requires = ['setuptools','wheel','numpy','cython']

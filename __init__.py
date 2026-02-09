@@ -1,6 +1,6 @@
-from ._classy import (
+from ._lvdgdmsiuy import (
     __version__,
-    Class,
+    TZCCYAMXZK,
     CosmoSevereError,
     CosmoComputationError
 )

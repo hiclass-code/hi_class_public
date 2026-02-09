@@ -7,12 +7,12 @@ class
 libclass.a
 *out
 *.gch
-python/classy.c
+python/lvdgdmsiuy.c
 python/*.pyc
 python/build/i
 ini_files
 .vscode/
-python/classy.cpp
+python/lvdgdmsiuy.cpp
 *.pyc
 python/build/
 *.dSYM
@@ -22,5 +22,5 @@ doc/manual/html
 doc/manual/latex
 *.gch
 python/dist/
-python/classy.egg-info/
-classy.egg-info
+python/lvdgdmsiuy.egg-info/
+lvdgdmsiuy.egg-info

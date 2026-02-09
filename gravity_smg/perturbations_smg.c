@@ -13,7 +13,7 @@
  * -# all the functions end with "_smg" to make them easily
  *    recognizable
  * -# all the functions starting with "perturbations_" are
- *    directly called by perturbations.c or the classy wrapper
+ *    directly called by perturbations.c or the lvdgdmsiuy wrapper
  * -# all the functions that do not start with "perturbations_"
  *    are only used internally in perturbations_smg.c
  */

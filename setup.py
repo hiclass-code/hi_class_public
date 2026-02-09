@@ -40,7 +40,7 @@ if b"mvec" not in MVEC_STRING:
 
 # define absolute paths
 include_folder = os.path.join(root_folder, "include")
-classy_folder = os.path.join(root_folder, "python")
+lvdgdmsiuy_folder = os.path.join(root_folder, "python")
 heat_folder = os.path.join(os.path.join(root_folder, "external"),"heating")
 recfast_folder = os.path.join(os.path.join(root_folder, "external"),"RecfastCLASS")
 hyrec_folder = os.path.join(os.path.join(root_folder, "external"),"HyRec2020")
@@ -55,16 +55,16 @@ with open(os.path.join(include_folder, 'common.h'), 'r') as v_file:
             break
 
 # Define cython extension and fix Python version
-classy_ext = Extension("classy._classy", [os.path.join("python", "classy.pyx")],
+lvdgdmsiuy_ext = Extension("lvdgdmsiuy._lvdgdmsiuy", [os.path.join("python", "lvdgdmsiuy.pyx")],
                        include_dirs=[np.get_include(), include_folder, heat_folder, recfast_folder, hyrec_folder, hiclass_folder],
                        libraries=liblist,
                        library_dirs=[root_folder, GCCPATH],
                        language="c++",
                        extra_compile_args=["-std=c++11"],
-                       depends=["libclass.a","python/cclassy.pxd"]
+                       depends=["libclass.a","python/clvdgdmsiuy.pxd"]
                        )
 
-classy_ext.cython_directives = {'language_level': "3" if sys.version_info.major>=3 else "2"}
+lvdgdmsiuy_ext.cython_directives = {'language_level': "3" if sys.version_info.major>=3 else "2"}
 
 
 
@@ -90,7 +90,7 @@ print("Included files : ", pck_files)
 
 
 # Make a custom builder in order to compile the C code as well, using the makefile
-class classy_builder(build_ext):
+class lvdgdmsiuy_builder(build_ext):
 
     def build_extension(self, ext):
       # Make sure to put the current python version into the 'PYTHON' variable
@@ -115,15 +115,15 @@ class classy_builder(build_ext):
 
 # Finally, perform the actual setup
 setup(
-    name='classy',
+    name='lvdgdmsiuy',
     version=VERSION,
     description='Python interface to the Cosmological Boltzmann code CLASS',
     url='http://www.class-code.net',
-    cmdclass={'build_ext': classy_builder},
-    ext_modules=[classy_ext],
-    packages = ["classy"],
-    package_dir={"classy":"."},
-    package_data={'classy': pck_files},
+    cmdclass={'build_ext': lvdgdmsiuy_builder},
+    ext_modules=[lvdgdmsiuy_ext],
+    packages = ["lvdgdmsiuy"],
+    package_dir={"lvdgdmsiuy":"."},
+    package_data={'lvdgdmsiuy': pck_files},
     include_package_data=True,
     zip_safe=False
 )
