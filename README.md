@@ -11,9 +11,9 @@ hi_class extends the CLASS Boltzmann code to cover Horndeski and related scalar-
 
 ## Authors
 
-- Miguel Zumalacarregui
 - Emilio Bellini
 - Ignacy Sawicki
+- Miguel Zumalacarregui
 
 ## Installation
 
