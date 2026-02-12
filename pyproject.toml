@@ -1,5 +1,6 @@
 [project]
 name = "hiclassy"
+readme = "README.md"
 dynamic=["version"]
 description="Python interface to the Cosmological Boltzmann code hi_class"
 authors = [
