@@ -225,24 +225,24 @@ int gravity_models_gravity_properties_smg(
      pba->gravity_model_smg = alpha_attractor_canonical;
      pba->field_evolution_smg = _TRUE_;
      pba->is_quintessence_smg = _TRUE_;
-     flag2=_TRUE_;
+     flag2 = _TRUE_;
 
      pba->parameters_size_smg = 6;
      class_read_list_of_doubles("parameters_smg",pba->parameters_smg,pba->parameters_size_smg);
 
-     class_call(parser_read_string(pfc,"log_10_param_alpha",&string2,&flag2,errmsg),
+     class_call(parser_read_string(pfc,"log_10_param_alpha",&string3,&flag3,errmsg),
                 errmsg,
                 errmsg);
 
-     if(flag2 == _TRUE_ && ((strstr(string2,"y") != NULL) || (strstr(string2,"Y") != NULL))){
+     if(flag3 == _TRUE_ && ((strstr(string3,"y") != NULL) || (strstr(string3,"Y") != NULL))){
        pba->parameters_smg[2] = pow(10, pba->parameters_smg[2]);
      }
 
-     class_call(parser_read_string(pfc,"use_phi_no_f",&string2,&flag2,errmsg),
+     class_call(parser_read_string(pfc,"use_phi_no_f",&string3,&flag3,errmsg),
                 errmsg,
                 errmsg);
 
-     if(flag2 == _TRUE_ && ((strstr(string2,"y") != NULL) || (strstr(string2,"Y") != NULL))){
+     if(flag3 == _TRUE_ && ((strstr(string3,"y") != NULL) || (strstr(string3,"Y") != NULL))){
        pba->parameters_smg[1] =  pba->parameters_smg[1]/sqrt(pba->parameters_smg[2]);
      }
 
@@ -459,6 +459,7 @@ int gravity_models_gravity_properties_smg(
         }
 
         class_read_double("param_shoot_M2_smg",pba->parameters_smg[pba->tuning_index_2_smg]);
+        printf("M2_today_smg = %e, param_shoot_M2_smg = %e \n",pba->M2_today_smg,pba->parameters_smg[pba->tuning_index_2_smg]);
            // printf("updating param = %e to tune M2 \n",pba->parameters_smg[pba->tuning_index_2_smg]);
        }
      }
