@@ -424,12 +424,19 @@ int input_read_from_file(struct file_content * pfc,
                             errmsg),
              errmsg,
              errmsg);
+  
+  // Init local variable for tuned_smg, otherwise later it is overwritten
+  short parameters_tuned_smg = pba->parameters_tuned_smg;
 
   /** Update structs with input that is potentially updated after shooting */
   class_call(input_read_parameters(pfc,ppr,pba,pth,ppt,ptr,ppm,phr,pfo,ple,psd,pop,
                                     errmsg),
               errmsg,
               errmsg);
+
+  // Reassign the right value to pba->parameters_tuned_smg,
+  // since it is potentially updated by input_read_parameters
+  pba->parameters_tuned_smg = parameters_tuned_smg;
 
   if (has_shooting == _TRUE_ && pba->shooting_failed == _TRUE_) {
     // Shooting failed, but error must be thrown in background in order to trigger a
