@@ -94,8 +94,8 @@ int thermodynamics_at_z(
     /* Calculate dkappa/dtau (dkappa/dtau = a n_e x_e sigma_T = a^{-2} n_e(today) x_e sigma_T in units of 1/Mpc) */
     pvecthermo[pth->index_th_dkappa] = (1.+z) * (1.+z) * pth->n_e * x0 * sigmaTrescale * _sigma_ * _Mpc_over_m_;
 
-    /* tau_d scales like (1+z)**2 */
-    pvecthermo[pth->index_th_tau_d] = pth->thermodynamics_table[(pth->tt_size-1)*pth->th_size+pth->index_th_tau_d]*pow((1+z)/(1.+pth->z_table[pth->tt_size-1]),2);
+    /* the baryon optical depth kappa_b scales like (1+z)**2 */
+    pvecthermo[pth->index_th_kappa_b] = pth->thermodynamics_table[(pth->tt_size-1)*pth->th_size+pth->index_th_kappa_b]*pow((1+z)/(1.+pth->z_table[pth->tt_size-1]),2);
 
     if (pth->compute_damping_scale == _TRUE_) {
 
@@ -426,6 +426,8 @@ int thermodynamics_init(
 
   free(pvecback);
 
+  pth->is_allocated = _TRUE_;
+
   return _SUCCESS_;
 }
 
@@ -456,6 +458,8 @@ int thermodynamics_free(
   class_call(thermodynamics_free_input(pth),
              pth->error_message,
              pth->error_message);
+
+  pth->is_allocated = _FALSE_;
 
   return _SUCCESS_;
 }
@@ -586,7 +590,9 @@ int thermodynamics_helium_from_bbn(
      .....
   */
 
-  class_open(fA,ppr->sBBN_file, "r",pth->error_message);
+  FileName bbn_path;
+  class_sprintf(bbn_path,"%s%s",ppr->base_path,ppr->sBBN_file);
+  class_open(fA,bbn_path, "r",pth->error_message);
 
   /* go through each line */
   while (fgets(line,_LINE_LENGTH_MAX_-1,fA) != NULL) {
@@ -964,12 +970,12 @@ int thermodynamics_indices(
   class_define_index(pth->index_th_g,_TRUE_,index_th,1);
   class_define_index(pth->index_th_dg,_TRUE_,index_th,1);
   class_define_index(pth->index_th_ddg,_TRUE_,index_th,1);
-  /* Baryon quantities, Temperature, Sound Speed, Drag time end */
+  /* Baryon quantities: temperature, sound Speed, optical depth */
   class_define_index(pth->index_th_Tb,_TRUE_,index_th,1);
   class_define_index(pth->index_th_dTb,_TRUE_,index_th,1);
   class_define_index(pth->index_th_wb,_TRUE_,index_th,1);
   class_define_index(pth->index_th_cb2,_TRUE_,index_th,1);
-  class_define_index(pth->index_th_tau_d,_TRUE_,index_th,1);
+  class_define_index(pth->index_th_kappa_b,_TRUE_,index_th,1); // baryon optical depth
   /* Derivatives of baryon sound speed (only computed if some non-minimal tight-coupling schemes is requested) */
   class_define_index(pth->index_th_dcb2,pth->compute_cb2_derivatives,index_th,1);
   class_define_index(pth->index_th_ddcb2,pth->compute_cb2_derivatives,index_th,1);
@@ -1504,6 +1510,11 @@ int thermodynamics_set_parameters_reionization(
     break;
   }
 
+  /* infer conf_time_reio from z_reio */
+  class_call(background_tau_of_z(pba,pth->z_reio,&(pth->conf_time_reio)),
+             pba->error_message,
+             pth->error_message);
+
   return _SUCCESS_;
 
 }
@@ -1729,7 +1740,7 @@ int thermodynamics_calculate_remaining_quantities(
   /* The temporary quantities stored in columns ddkappa and dddkappa will not be used anymore, so they can and WILL be overwritten by other
      intermediate steps of other computations */
 
-  class_call(thermodynamics_calculate_conformal_drag_time(pba,pth,pvecback),
+  class_call(thermodynamics_calculate_baryon_optical_depth(pba,pth,pvecback),
              pth->error_message,
              pth->error_message);
 
@@ -1803,7 +1814,7 @@ int thermodynamics_output_summary(
   printf("    Thomson optical depth crosses one at z_* = %f\n",pth->z_star);
   printf("    giving an angle 100*theta_* = %f\n",100.*pth->rs_star/pth->ra_star);
   printf(" -> baryon drag stops at z = %f\n",pth->z_d);
-  printf("    corresponding to conformal time = %f Mpc\n",pth->tau_d);
+  printf("    corresponding to conformal time = %f Mpc\n",pth->tau_d); // conformal baryon drag time
   printf("    with comoving sound horizon rs = %f Mpc\n",pth->rs_d);
 
   switch (pth->reio_parametrization) {
@@ -1825,10 +1836,7 @@ int thermodynamics_output_summary(
       printf(" -> reionization with optical depth = %f\n",pth->tau_reio);
       break;
     }
-    class_call(background_tau_of_z(pba,pth->z_reio,&tau_reio),
-               pba->error_message,
-               pth->error_message);
-    printf("    corresponding to conformal time = %f Mpc\n",tau_reio);
+    printf("    corresponding to conformal time = %f Mpc\n",pth->conf_time_reio);
     break;
 
   case reio_bins_tanh:
@@ -2335,6 +2343,7 @@ int thermodynamics_reionization_evolve_with_tau(
     if (ptw->ptrp->reionization_parameters[ptw->ptrp->index_re_reio_start] < pth->helium_fullreio_redshift+ppr->reionization_start_factor*pth->helium_fullreio_width) {
       ptw->ptrp->reionization_parameters[ptw->ptrp->index_re_reio_start] = pth->helium_fullreio_redshift+ppr->reionization_start_factor*pth->helium_fullreio_width;
     }
+    break;
   case reio_half_tanh:
     ptw->ptrp->reionization_parameters[ptw->ptrp->index_re_reio_start] = z_inf;
     break;
@@ -3142,7 +3151,7 @@ int thermodynamics_vector_free(
 }
 
 /**
- * Compute the baryon drag conformal time tau_d = [int_{tau_today}^{tau} dtau -dkappa_d/dtau]
+ * Compute the baryon optical depth kappa_b = [int_{tau_today}^{tau} dtau -dkappa_b/dtau]
  *
  * @param pba                Input: pointer to background structure
  * @param pth                Input/Output: pointer to initialized thermodynamics structure
@@ -3150,11 +3159,11 @@ int thermodynamics_vector_free(
  * @return the error status
  */
 
-int thermodynamics_calculate_conformal_drag_time(
-                                                 struct background* pba,
-                                                 struct thermodynamics* pth,
-                                                 double* pvecback
-                                                 ) {
+int thermodynamics_calculate_baryon_optical_depth(
+                                                  struct background* pba,
+                                                  struct thermodynamics* pth,
+                                                  double* pvecback
+                                                  ) {
 
   /** Summary: */
 
@@ -3163,7 +3172,7 @@ int thermodynamics_calculate_conformal_drag_time(
   int index_tau;
   int last_index_back;
 
-  /** - compute minus the baryon drag interaction rate time, -dkappa_d/dtau = -[1/R * kappa'], with R = 3 rho_b / 4 rho_gamma,
+  /** - compute minus the baryon drag interaction rate time, -dkappa_b/dtau = -[1/R * kappa'], with R = 3 rho_b / 4 rho_gamma,
       stored temporarily in column ddkappa */
 
   /* find the value of last_index_back for tau_table[0] in order to speed up subsequent interpolations in the loop */
@@ -3206,14 +3215,14 @@ int thermodynamics_calculate_conformal_drag_time(
              pth->error_message,
              pth->error_message);
 
-  /** - compute tau_d = [int_{tau_today}^{tau} dtau -dkappa_d/dtau] */
+  /** - compute baryon optical depth kappa_b = [int_{tau_today}^{tau} dtau -dkappa_b/dtau] */
   class_call(array_integrate_spline_table_line_to_line(pth->tau_table,
                                                        pth->tt_size,
                                                        pth->thermodynamics_table,
                                                        pth->th_size,
                                                        pth->index_th_ddkappa,
                                                        pth->index_th_dddkappa,
-                                                       pth->index_th_tau_d,
+                                                       pth->index_th_kappa_b, // baryon optical depth
                                                        pth->error_message),
              pth->error_message,
              pth->error_message);
@@ -3871,7 +3880,8 @@ int thermodynamics_calculate_recombination_quantities(
 }
 
 /**
- * Calculate various quantities at the time of ending of baryon drag (It is precisely where tau_d crosses one)
+ * Find the baryon drag time and calculate various quantities at this
+ * time. The baryon drag time is defined as the time when kappa_b(tau_d)=1.
  *
  * @param ppr                Input: pointer to precision structure
  * @param pba                Input: pointer to background structure
@@ -3893,25 +3903,29 @@ int thermodynamics_calculate_drag_quantities(
   int index_tau;
   int last_index_back;
 
-  /** - find baryon drag time (when tau_d crosses one, using linear interpolation) and sound horizon at that time */
+  /** - get close to baryon drag time */
   index_tau=0;
-  while ((pth->thermodynamics_table[(index_tau)*pth->th_size+pth->index_th_tau_d] < 1.) && (index_tau < pth->tt_size)) {
+  while ((pth->thermodynamics_table[(index_tau)*pth->th_size+pth->index_th_kappa_b] < 1.) && (index_tau < pth->tt_size)) {
     index_tau++;
   }
 
+  /** - use linear interpolation to find the precise redshift z_d at baryon drag, that is, at the time when the baryon optical depth crosses one, kappa_b(tau)=1 */
   pth->z_d = pth->z_table[index_tau-1]+
-    (1.-pth->thermodynamics_table[(index_tau-1)*pth->th_size+pth->index_th_tau_d])
-    /(pth->thermodynamics_table[(index_tau)*pth->th_size+pth->index_th_tau_d]-pth->thermodynamics_table[(index_tau-1)*pth->th_size+pth->index_th_tau_d])
+    (1.-pth->thermodynamics_table[(index_tau-1)*pth->th_size+pth->index_th_kappa_b])
+    /(pth->thermodynamics_table[(index_tau)*pth->th_size+pth->index_th_kappa_b]-pth->thermodynamics_table[(index_tau-1)*pth->th_size+pth->index_th_kappa_b])
     *(pth->z_table[index_tau]-pth->z_table[index_tau-1]);
 
+  /** - find the conformal time tau_d associated to this redshift z_d */
   class_call(background_tau_of_z(pba,pth->z_d,&(pth->tau_d)),
              pba->error_message,
              pth->error_message);
 
+  /** - find other baxckground quantities at this time */
   class_call(background_at_z(pba,pth->z_d, long_info, inter_normal, &last_index_back, pvecback),
              pba->error_message,
              pth->error_message);
 
+  /** - store the conformal and physical sound horizon at this time (very useful to get the BAO scale) */
   pth->rs_d=pvecback[pba->index_bg_rs];
   pth->ds_d=pth->rs_d/(1.+pth->z_d);
 
@@ -4395,7 +4409,7 @@ int thermodynamics_output_titles(
     class_store_columntitle(titles, "T_idr [K]", _TRUE_);
     class_store_columntitle(titles,"dmu_idr",_TRUE_);
   }
-  class_store_columntitle(titles,"tau_d",_TRUE_);
+  class_store_columntitle(titles,"kappa_b",_TRUE_); // baryon optical depth
   //class_store_columntitle(titles,"max. rate",_TRUE_);
   class_store_columntitle(titles,"r_d",pth->compute_damping_scale);
 
@@ -4473,7 +4487,7 @@ int thermodynamics_output_data(
       class_store_double(dataptr, pvecthermo[pth->index_th_T_idr],_TRUE_,storeidx);
       class_store_double(dataptr,pvecthermo[pth->index_th_dmu_idr],_TRUE_,storeidx);
     }
-    class_store_double(dataptr,pvecthermo[pth->index_th_tau_d],_TRUE_,storeidx);
+    class_store_double(dataptr,pvecthermo[pth->index_th_kappa_b],_TRUE_,storeidx); // baryon optical depth
     //class_store_double(dataptr,pvecthermo[pth->index_th_rate],_TRUE_,storeidx);
     class_store_double(dataptr,pvecthermo[pth->index_th_r_d],pth->compute_damping_scale,storeidx);
 
@@ -4735,14 +4749,14 @@ int thermodynamics_idm_initial_temperature(
 
   /* idm-idr steady state */
   if ((pth->has_idm_dr == _TRUE_) && (pth->n_index_idm_dr == 0)) {
-    epsilon = 2*4./3.*pvecback[pba->index_bg_rho_idr]/pvecback[pba->index_bg_rho_idm]*
-      pth->a_idm_dr*pow((1.+ z_ini)/1.e7,pth->n_index_idm_dr)*pba->Omega0_idm*pow(pba->h,2) / pvecback[pba->index_bg_H]*(1.+z_ini);
+    ptdw->dmu_idm_dr = pth->a_idm_dr*pow((1.+ z_ini)/1.e7,pth->n_index_idm_dr)*pba->Omega0_idm*pow(pba->h,2); // constant
+    ptdw->Sinv_idm_dr  = 4./3.*pvecback[pba->index_bg_rho_idr]/pvecback[pba->index_bg_rho_idm]; // propto (1+z_ini)
+    epsilon = 2*ptdw->Sinv_idm_dr*ptdw->dmu_idm_dr / pvecback[pba->index_bg_H]*(1.+z_ini); // constant
   }
   /* idm_g steady state */
   else if (pth->has_idm_g == _TRUE_ && pth->n_index_idm_g == -2) {
-    ptdw->dmu_idm_dr = pth->a_idm_dr*pow((1.+ z_ini)/1.e7,pth->n_index_idm_dr)*pba->Omega0_idm*pow(pba->h,2);
-    ptdw->Sinv_idm_dr  = 4./3.*pvecback[pba->index_bg_rho_idr]/pvecback[pba->index_bg_rho_idm];
-    alpha = 2.* ptdw->dmu_idm_dr * ptdw->Sinv_idm_dr;
+    ptdw->dmu_idm_g =  3./8./_PI_/_G_*pow(1.+z_ini, 2+pth->n_index_idm_g)*pba->Omega0_idm*pba->H0*pba->H0*pth->u_idm_g*pow(_c_,4)*_sigma_/1.e11/_eV_/_Mpc_over_m_; // constant
+    beta = 2.*4./3. * pvecback[pba->index_bg_rho_g]/pvecback[pba->index_bg_rho_idm] * ptdw->dmu_idm_g / pvecback[pba->index_bg_H] * (1+z_ini); // constant
   }
   /* idm_b steady state */
   else if (pth->has_idm_b == _TRUE_ && pth->n_index_idm_b == -3) {
@@ -4753,7 +4767,7 @@ int thermodynamics_idm_initial_temperature(
     ptdw->R_idm_b = (pvecback[pba->index_bg_a]*pvecback[pba->index_bg_rho_b]*pth->cross_idm_b*pth->n_coeff_idm_b/(m_b+pth->m_idm))
       *pow(T_diff_idm_b,(pth->n_index_idm_b+1.0)/2.0)*FHe
       *(3.e-4*pow(_c_,4.)/(8.*_PI_*_Mpc_over_m_*_G_*_eV_));
-    alpha = 2.*pth->m_idm/(pth->m_idm + m_b)*ptdw->R_idm_b;
+    alpha = 2.*pth->m_idm/(pth->m_idm + m_b)*ptdw->R_idm_b; // approximately constant
   }
 
   /* This formula (assuming alpha,beta,epsilon=const) approximates the steady-state solution of the IDM temperature evolution equation */

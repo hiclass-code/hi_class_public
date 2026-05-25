@@ -876,6 +876,8 @@ int background_init(
              pba->error_message,
              pba->error_message);
 
+  pba->is_allocated = _TRUE_;
+
   return _SUCCESS_;
 
 }
@@ -899,6 +901,8 @@ int background_free(
   class_call(background_free_input(pba),
              pba->error_message,
              pba->error_message);
+
+  pba->is_allocated = _FALSE_;
 
   return _SUCCESS_;
 }
@@ -2574,6 +2578,9 @@ int background_output_titles(
   class_store_columntitle(titles,"(.)p_tot",_TRUE_);
   class_store_columntitle(titles,"(.)p_tot_prime",_TRUE_);
 
+  class_store_columntitle(titles,"Omega_r(z)",_TRUE_);
+  class_store_columntitle(titles,"Omega_m(z)",_TRUE_);
+
   class_store_columntitle(titles,"gr.fac. D",_TRUE_);
   class_store_columntitle(titles,"gr.fac. f",_TRUE_);
 
@@ -2654,6 +2661,9 @@ int background_output_data(
     class_store_double(dataptr,pvecback[pba->index_bg_rho_tot],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_p_tot],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_p_tot_prime],_TRUE_,storeidx);
+
+    class_store_double(dataptr,pvecback[pba->index_bg_Omega_r],_TRUE_,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_Omega_m],_TRUE_,storeidx);
 
     class_store_double(dataptr,pvecback[pba->index_bg_D],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_f],_TRUE_,storeidx);

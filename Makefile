@@ -53,6 +53,8 @@ LDFLAG = -g -fPIC
 HYREC = external/HyRec2020
 RECFAST = external/RecfastCLASS
 HEATING = external/heating
+HALOFIT = external/Halofit
+HMCODE = external/HMcode
 
 # path to hi_class external modules (with no slash at the end).
 # do not leave blank otherwise the code does not compile
@@ -101,8 +103,18 @@ vpath %.c $(HI_CLASS_PATH)
 CCFLAG += -DHI_CLASS_PATH
 #LDFLAGS += -DHI_CLASS_PATH
 INCLUDES += -I../gravity_smg/include
-EXTERNAL += input_smg.o background_smg.o perturbations_smg.o fourier_smg.o gravity_functions_smg.o gravity_models_smg.o
+EXTERNAL += input_smg.o background_smg.o perturbations_smg.o gravity_functions_smg.o gravity_models_smg.o hmcode_smg.o
 endif
+
+vpath %.c $(HALOFIT)
+INCLUDES += -I../$(HALOFIT)
+EXTERNAL += halofit.o
+HEADERFILES += $(wildcard ./$(HALOFIT)/*.h)
+
+vpath %.c $(HMCODE)
+INCLUDES += -I../$(HMCODE)
+EXTERNAL += hmcode.opp
+HEADERFILES += $(wildcard ./$(HMCODE)/*.h)
 
 %.o:  %.c .base $(HEADERFILES)
 	cd $(WRKDIR);$(CC) $(OPTFLAG) $(OMPFLAG) $(CCFLAG) $(INCLUDES) -c ../$< -o $*.o
@@ -208,7 +220,14 @@ tar: $(C_ALL) $(C_TEST) $(H_ALL) $(PRE_ALL) $(INI_ALL) $(MISC_FILES) $(HYREC) $(
 	tar czvf class.tar.gz $(C_ALL) $(H_ALL) $(PRE_ALL) $(INI_ALL) $(MISC_FILES) $(HYREC) $(PYTHON_FILES)
 
 classy: libclass.a python/classy.pyx python/cclassy.pxd
-	cd python; export CC=$(CC); $(PYTHON) setup.py install || $(PYTHON) setup.py install --user
+	export CC=$(CC); output=$$($(PYTHON) -m pip install . 2>&1); \
+    echo "$$output"; \
+    if echo "$$output" | grep -q "ERROR: Cannot uninstall"; then \
+        site_packages=$$($(PYTHON) -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib())" || $(PYTHON) -c "import site; print(site.getsitepackages()[0])") && \
+        echo "Cleaning up previous installation in: $$site_packages" && \
+        rm -rf $$site_packages/classy* && \
+        $(PYTHON) -m pip install .; \
+    fi
 
 clean: .base
 	rm -rf $(WRKDIR);
