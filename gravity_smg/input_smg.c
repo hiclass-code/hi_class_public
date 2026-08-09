@@ -328,6 +328,7 @@ int input_default_params_smg(
   /** - background structure */
 
   pba->gravity_model_smg = propto_omega; /* gravitational model */
+  pba->gravity_submodel_smg = unspecified; /* gravity sub-model (e.g. branch of the model) */
   pba->expansion_model_smg = lcdm; /*expansion model (only for parameterizations*/
   pba->Omega0_smg = 0.; /* Scalar field defaults */
   pba->M2_today_smg = 1.; //*Planck mass today*/
