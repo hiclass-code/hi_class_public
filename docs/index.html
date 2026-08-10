@@ -1085,5 +1085,26 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
 })();
 </script>
 
+<!-- Analytics: GoatCounter (https://www.goatcounter.com). Cookieless, stores no
+     personal data and sets nothing on the visitor's device, so no consent banner
+     is required. To switch it on, replace SITECODE below with the site code from
+     the goatcounter.com account — while it still reads SITECODE nothing is
+     loaded and no requests are made. -->
+<script>
+(function () {
+	'use strict';
+	var code = 'SITECODE';
+	if (code === 'SITECODE') { return; }   // not configured yet — stay inert
+
+	// count.js prefers a data-goatcounter attribute and falls back to this global.
+	window.goatcounter = { endpoint: 'https://' + code + '.goatcounter.com/count' };
+
+	var s = document.createElement('script');
+	s.async = true;
+	s.src = 'https://gc.zgo.at/count.js';
+	document.head.appendChild(s);
+})();
+</script>
+
 </body>
 </html>
