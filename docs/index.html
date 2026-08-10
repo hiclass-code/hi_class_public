@@ -255,6 +255,39 @@
       <figcaption>Relative agreement of the CMB angular power spectra computed by <code>hi_class</code> and the
         other codes in the comparison paper.</figcaption>
     </figure>
+
+    <div class="feature feature--stack">
+      <div class="feature-body">
+        <p class="eyebrow">From Python</p>
+        <h3 class="feature-title">Drive it from a script or a notebook</h3>
+        <p>Building the code also builds <code>classy</code>, the Python wrapper inherited from CLASS.
+          Parameters go in as a dictionary — <code>hi_class</code> options alongside the standard CLASS
+          ones — and spectra come back as arrays, ready to plot. Worked examples ship in
+          <code>notebooks/</code>.</p>
+      </div>
+<pre class="snippet"><code>from classy import Class
+
+cosmo = Class()
+cosmo.set({
+    <span class="k">'output'</span>: 'tCl,pCl,lCl,mPk',
+    <span class="k">'lensing'</span>: 'yes',
+
+    <span class="c"># Brans-Dicke:  G2 = (omega_BD/phi) X - V0,  G4 = phi Mp^2/2</span>
+    <span class="k">'gravity_model'</span>: 'brans dicke',
+    <span class="c"># V0, omega_BD, phi_ini, phi'_ini</span>
+    <span class="k">'parameters_smg'</span>: '0.7, 15, 1., 0',
+    <span class="k">'M_pl_today_smg'</span>: 1.0,
+    <span class="k">'a_min_stability_test_smg'</span>: 1e-6,
+
+    <span class="k">'Omega_smg'</span>: -1,  <span class="c"># fixed by the closure equation</span>
+    <span class="k">'Omega_Lambda'</span>: 0,
+    <span class="k">'Omega_fld'</span>: 0,
+})
+cosmo.compute()
+
+cl = cosmo.lensed_cl(2500)  <span class="c"># TT, TE, EE, lensing</span>
+pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code></pre>
+    </div>
   </div>
 </section>
 

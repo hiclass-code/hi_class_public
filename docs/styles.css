@@ -420,6 +420,10 @@ a.badge:hover { border-color: var(--accent-line); color: var(--accent); text-dec
 	color: var(--text);
 }
 
+/* Full-width variant: prose above, snippet below, for longer listings */
+.feature--stack { grid-template-columns: 1fr; }
+.feature--stack .feature-body { max-width: var(--prose); }
+
 .feature-title {
 	font-size: clamp(19px, 2.4vw, 23px);
 	margin: 0 0 14px;
