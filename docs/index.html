@@ -1,455 +1,1056 @@
-<HTML lang=en>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hi_class — Horndeski in the Cosmic Linear Anisotropy Solving System</title>
+<meta name="description" content="hi_class is an Einstein-Boltzmann solver for dark energy and modified gravity. It implements Horndeski's theory in CLASS and computes any linear cosmological observable in seconds.">
+<link rel="canonical" href="https://miguelzuma.github.io/hi_class_public/">
+<meta name="theme-color" content="#07090b">
 
-<HEAD>
-<TITLE>hi_class</TITLE>
-<base href="https://miguelzuma.github.io/" />
+<meta property="og:type" content="website">
+<meta property="og:title" content="hi_class — Horndeski in the Cosmic Linear Anisotropy Solving System">
+<meta property="og:description" content="Einstein-Boltzmann solver for dark energy and modified gravity.">
+<meta property="og:url" content="https://miguelzuma.github.io/hi_class_public/">
+<meta property="og:image" content="https://miguelzuma.github.io/hi_class_public/imgs/hi_class.gif">
+<meta name="twitter:card" content="summary_large_image">
 
+<link rel="icon" type="image/png" href="imgs/hi_class_icon_64x64.png">
+<link rel="stylesheet" href="styles.css">
+</head>
 
-<link rel="stylesheet" type="text/css" href="./css/mystyle.css" />
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
 
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-38788271-3"></script>
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">hi_class</a>
+    <div class="nav-links">
+      <a href="#science">Science</a>
+      <a href="#code">Code</a>
+      <a href="#download">Download</a>
+      <a href="#resources" class="nav-secondary">Resources</a>
+      <a href="#team" class="nav-secondary">Team</a>
+      <a href="#pubs"><span class="nav-long">Publications</span><span class="nav-short">Papers</span></a>
+    </div>
+    <a class="nav-gh" href="https://github.com/miguelzuma/hi_class_public" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ==================== Hero ==================== -->
+<header class="hero" id="top">
+  <div class="wrap">
+    <img class="hero-logo" src="imgs/hi_class.gif" width="720" height="729"
+         alt="The hi_class logo: the word hi_class in green terminal type, surrounded by falling cosmological symbols">
+    <h1>Horndeski in the Cosmic Linear Anisotropy Solving System</h1>
+    <p class="hero-tagline">An Einstein-Boltzmann solver for dark energy and modified gravity.</p>
+
+    <div class="hero-actions">
+      <a class="btn btn--primary" href="https://github.com/miguelzuma/hi_class_public" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        Get the code
+      </a>
+      <a class="btn" href="https://arxiv.org/abs/1605.06102" target="_blank" rel="noopener">Read the paper</a>
+      <a class="btn" href="#resources">Documentation</a>
+    </div>
+
+    <p class="badges">
+      <a class="badge badge--count" href="#pubs"><b id="hero-pub-count">99</b> papers</a>
+      <span class="badge">v2.0</span>
+      <span class="badge">built on CLASS</span>
+      <a class="badge" href="https://ascl.net/1808.010" target="_blank" rel="noopener">ascl:1808.010</a>
+    </p>
+  </div>
+</header>
+
+<!-- ==================== The Science ==================== -->
+<section class="band" id="science">
+  <div class="wrap">
+    <p class="eyebrow">The Science</p>
+    <h2>Linear cosmology for the most general scalar-tensor theory</h2>
+
+    <div class="prose">
+      <p class="lede"><code>hi_class</code> implements Horndeski's theory in the modern
+        <a href="http://class-code.net/" target="_blank" rel="noopener">Cosmic Linear Anisotropy Solving System</a>.
+        It can be used to compute any linear cosmological observable in seconds, including FRW distances, CMB,
+        matter power and number count spectra. <code>hi_class</code> can be readily interfaced with
+        <a href="https://monte-python.readthedocs.io/en/latest/" target="_blank" rel="noopener">Monte Python</a>
+        to test gravity and dark energy models.</p>
+
+      <p>Horndeski is the most general scalar-tensor theory described by second-order equations of motion, and
+        contains many well known models, including (but by no means limited to) covariant Galileons, Brans-Dicke,
+        f(R), chameleons, k-essence and quintessence. <code>hi_class</code> relies on a reformulation of the
+        Effective Field Theory for Dark Energy developed by E. Bellini and I. Sawicki (see
+        <a href="https://inspirehep.net/literature/1290333" target="_blank" rel="noopener">JCAP 1407 (2014) 050</a>).</p>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Any linear observable</h3>
+        <p>FRW distances, CMB temperature and polarization, matter power and number counts — and their
+          cross-correlations.</p>
+      </div>
+      <div class="card">
+        <h3>Fast enough for Bayesian analysis</h3>
+        <p>A full Horndeski model — background, lensed CMB and matter power spectrum — in well under a second
+          on a multi-core desktop, so MCMC chains stay tractable. Interfaces directly with Monte Python.</p>
+      </div>
+      <div class="card">
+        <h3>Covariant or effective theory</h3>
+        <p>Start from a Horndeski Lagrangian and <code>hi_class</code> derives the background and
+          &alpha;-functions itself, or parametrize the &alpha;-functions directly.</p>
+      </div>
+      <div class="card">
+        <h3>Free and open</h3>
+        <p>Available to the scientific community on GitHub, and registered in the Astrophysics Source Code
+          Library.</p>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="feature-body">
+        <p class="eyebrow">Flexible input</p>
+        <h3 class="feature-title">Two ways to test gravity</h3>
+        <p>The <em>effective-theory approach</em> consists of providing a parametrization of the
+          &alpha;-functions and the equation of state, independent of any underlying theory, with the aim of
+          testing for particular physical effects.</p>
+        <p>The <em>covariant-theory approach</em> starts from a particular model defined in terms of the
+          Horndeski functions G<sub>i</sub>. Upon specifying the initial conditions for the background field
+          and the additional parameters of the theory, <code>hi_class</code> automatically computes the
+          cosmological background and the &alpha;-functions are fully determined.</p>
+        <p>Worked-out examples ship with the code — Galileon, nKGB, quintessence (monomial and tracker),
+          Brans-Dicke and &alpha;-attractors — and serve as a template for further implementations.
+          <code>hi_class</code> is easy to use and to modify, so new models are straightforward to add.</p>
+      </div>
+<pre class="snippet"><code><span class="c"># a covariant Lagrangian: quartic Galileon</span>
+<span class="c">#   G2 = -X</span>
+<span class="c">#   G3 = c3 X /(H0^2 Mp)</span>
+<span class="c">#   G4 = Mp^2/2 + c4 X^2/(H0^2 Mp)^2</span>
+<span class="k">Omega_smg</span>        = -1
+<span class="k">gravity_model</span>    = galileon
+<span class="k">gravity_submodel</span> = quartic
+
+<span class="c"># ...or the EFT alpha-functions directly</span>
+<span class="k">gravity_model</span>    = propto_omega
+<span class="k">parameters_smg</span>   = 1., 0., 0., 0., 1.
+<span class="k">expansion_model</span>  = lcdm</code></pre>
+    </div>
+
+    <h3 class="eyebrow" style="margin-top:44px">Presented and described in</h3>
+    <ul class="refs">
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/1462237" target="_blank" rel="noopener">hi_class: Horndeski in the Cosmic Linear Anisotropy Solving System</a>
+        <span class="ref-meta">M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira ·
+          <span class="mono">JCAP 1708 (2017) 019</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://arxiv.org/abs/1909.01828" target="_blank" rel="noopener">hi_class: Background Evolution, Initial Conditions and Approximation Schemes</a>
+        <span class="ref-meta">E. Bellini, I. Sawicki, M. Zumalacarregui ·
+          <span class="mono">JCAP 2002 (2020) 008</span></span>
+      </li>
+    </ul>
+
+    <h3 class="eyebrow" style="margin-top:44px">Selected results obtained with hi_class</h3>
+    <ul class="refs">
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/2910498" target="_blank" rel="noopener">The Cosmological Evidence for Non-Minimal Coupling</a>
+        <span class="ref-meta">W. Wolf, C. García-García, T. Anton, P. G. Ferreira ·
+          <span class="mono">PRL 135 (2025)</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/2850039" target="_blank" rel="noopener">Modified gravity constraints from the full shape modeling of clustering measurements from DESI 2024</a>
+        <span class="ref-meta">DESI Collaboration: M. Ishak, J. Pan, R. Calderon <i>et al.</i> ·
+          <span class="mono">JCAP 09 (2025)</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/1738351" target="_blank" rel="noopener">Testing modified gravity at cosmological distances with LISA standard sirens</a>
+        <span class="ref-meta">LISA Cosmology Working Group ·
+          <span class="mono">JCAP 07 (2019) 024</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/2670531" target="_blank" rel="noopener">Euclid: Constraining linearly scale-independent modifications of gravity with the spectroscopic and photometric primary probes</a>
+        <span class="ref-meta">Euclid Collaboration: N. Frusciante, F. Pace, V. F. Cardone <i>et al.</i> ·
+          <span class="mono">A&amp;A 690 (2024)</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/2823318" target="_blank" rel="noopener">Scant evidence for thawing quintessence</a>
+        <span class="ref-meta">W. Wolf, C. García-García, D. J. Bartlett, P. G. Ferreira ·
+          <span class="mono">PRD 110 (2024)</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/1851169" target="_blank" rel="noopener">Positivity Bounds on Dark Energy: When Matter Matters</a>
+        <span class="ref-meta">C. de Rham, S. Melville, J. Noller ·
+          <span class="mono">JCAP 08 (2021) 018</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/1713441" target="_blank" rel="noopener">KiDS+GAMA: Constraints on Horndeski gravity from combined large-scale structure probes</a>
+        <span class="ref-meta">A. Spurio Mancini <i>et al.</i> ·
+          <span class="mono">MNRAS 490 (2019)</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/1833034" target="_blank" rel="noopener">Early modified gravity in light of the H<sub>0</sub> tension and LSS data</a>
+        <span class="ref-meta">M. Braglia, M. Ballardini, F. Finelli, K. Koyama ·
+          <span class="mono">PRD 103 (2021)</span></span>
+      </li>
+    </ul>
+
+    <p style="margin-top:22px"><a href="#pubs">See all <b id="science-pub-count">99</b> publications using
+      <code>hi_class</code> &rarr;</a> If your article is not listed, please
+      <a href="#contact">contact us</a>.</p>
+  </div>
+</section>
+
+<!-- ==================== The Code ==================== -->
+<section class="band band--soft" id="code">
+  <div class="wrap">
+    <p class="eyebrow">The Code</p>
+    <h2>Flexible, fast and accurate</h2>
+
+    <div class="prose">
+      <p class="lede"><code>hi_class</code> computes the cosmological predictions of alternative theories of
+        gravity. It solves the linear equations starting deep in the radiation era, and returns any cosmological
+        observable — distances, the matter power spectrum, Cosmic Microwave Background temperature and
+        polarization, and their correlation with the matter distribution.</p>
+    </div>
+
+    <dl class="qualities">
+      <div>
+        <dt>Flexible</dt>
+        <dd>Test gravity two ways: parametrize the &alpha;-functions and the equation of state independently
+          of any underlying theory, or start from a covariant Horndeski Lagrangian and let <code>hi_class</code>
+          determine the background and the &alpha;-functions itself. Worked-out models ship ready to run, and
+          every configuration is screened for ghost and gradient instabilities before it is used.</dd>
+      </div>
+      <div>
+        <dt>Fast</dt>
+        <dd>A full model — background, lensed CMB and matter power spectrum — takes well under a second on a
+          multi-core desktop. That is what makes Bayesian parameter estimation practical, and
+          <code>hi_class</code> interfaces directly with Monte Python to do it.</dd>
+      </div>
+      <div>
+        <dt>Accurate</dt>
+        <dd>Accuracy was established in a dedicated comparison paper,
+          <a href="https://inspirehep.net/literature/1625713" target="_blank" rel="noopener"><i>A comparison of
+          Einstein-Boltzmann solvers for testing General Relativity</i></a>, which ran the same models through
+          four independent codes: <code>hi_class</code>,
+          <a href="https://eftcamb.github.io/" target="_blank" rel="noopener">EFTCAMB</a>,
+          <a href="https://www.cita.utoronto.ca/~zqhuang/coop/" target="_blank" rel="noopener">COOP</a> and the
+          CAMB-based Galileon code of
+          <a href="https://inspirehep.net/literature/1298787" target="_blank" rel="noopener">Barreira
+          <i>et al.</i></a> Across that range of models the CMB and matter power spectra agree to
+          <b class="num">0.1%</b> — as good as base CLASS/CAMB at default precision parameters — and to
+          <b class="num">0.5%</b> at low multipoles, comfortably within cosmic variance. That is sufficient
+          precision for tests of gravity with next-generation surveys.</dd>
+      </div>
+    </dl>
+
+    <figure>
+      <img src="imgs/CAMB_compare_Cl_web_inverse.png" width="399" height="397" loading="lazy"
+           alt="Relative difference between the CMB temperature power spectra computed by hi_class and by other Einstein-Boltzmann solvers, shown as a function of multipole.">
+      <figcaption>Relative agreement of the CMB angular power spectra computed by <code>hi_class</code> and the
+        other codes in the comparison paper.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ==================== Download ==================== -->
+<section class="band" id="download">
+  <div class="wrap">
+    <p class="eyebrow">Download</p>
+    <h2>Get hi_class</h2>
+
+    <div class="prose">
+      <p><code>hi_class</code> is freely available to the scientific community. The code can be cloned from the
+        GitHub repository or downloaded as a compressed archive. To get started and find detailed information on
+        the available models and code functionality, please read the <code>hi_class.ini</code> file.</p>
+    </div>
+
+    <div class="hero-actions" style="justify-content:flex-start; margin:24px 0 0">
+      <a class="btn btn--primary" href="https://github.com/miguelzuma/hi_class_public" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        Clone on GitHub
+      </a>
+      <a class="btn" href="https://github.com/miguelzuma/hi_class_public/archive/hi_class.zip">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a.75.75 0 01.75.75v7.19l2.22-2.22a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 011.06-1.06l2.22 2.22V1.75A.75.75 0 018 1zM2.75 13a.75.75 0 000 1.5h10.5a.75.75 0 000-1.5H2.75z"/></svg>
+        Download .zip
+      </a>
+    </div>
+
+    <h3 class="eyebrow" style="margin-top:44px">How to cite</h3>
+    <div class="prose">
+      <p>If you use <code>hi_class</code> in a publication or preprint, please cite at least the original CLASS
+        paper and the two <code>hi_class</code> papers.</p>
+    </div>
+    <ul class="refs">
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/896300" target="_blank" rel="noopener">CLASS II: Approximation schemes</a>
+        <span class="ref-meta">D. Blas, J. Lesgourgues, T. Tram · <span class="mono">JCAP 1107 (2011) 034</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://arxiv.org/abs/1605.06102" target="_blank" rel="noopener">hi_class: Horndeski in the Cosmic Linear Anisotropy Solving System</a>
+        <span class="ref-meta">M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira ·
+          <span class="mono">JCAP 1708 (2017) 019</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://arxiv.org/abs/1909.01828" target="_blank" rel="noopener">hi_class: Background Evolution, Initial Conditions and Approximation Schemes</a>
+        <span class="ref-meta">E. Bellini, I. Sawicki, M. Zumalacarregui ·
+          <span class="mono">JCAP 2002 (2020) 008</span></span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== Resources ==================== -->
+<section class="band band--soft" id="resources">
+  <div class="wrap">
+    <p class="eyebrow">Resources</p>
+    <h2>Documentation, courses and tools</h2>
+
+    <div class="res-grid">
+      <a class="res" href="https://github.com/miguelzuma/hi_class_public/wiki" target="_blank" rel="noopener">
+        <span class="res-name">Wiki</span>
+        <span class="res-desc">Documentation and usage notes on GitHub.</span>
+      </a>
+      <a class="res" href="https://groups.google.com/d/forum/hi_class" target="_blank" rel="noopener">
+        <span class="res-name">Forum</span>
+        <span class="res-desc">Ask questions and search past threads on Google Groups.</span>
+      </a>
+      <a class="res" href="https://www.youtube.com/watch?v=R22XhKUwzX4" target="_blank" rel="noopener">
+        <span class="res-name">Video introduction</span>
+        <span class="res-desc">An introduction to the CLASS code on YouTube.</span>
+      </a>
+      <a class="res" href="https://lesgourg.github.io/class-tour-Tokyo.html" target="_blank" rel="noopener">
+        <span class="res-name">The official CLASS tour</span>
+        <span class="res-desc">Slides from the CLASS lecture tour.</span>
+      </a>
+      <a class="res" href="https://indico.cern.ch/event/688110/timetable/#20180424" target="_blank" rel="noopener">
+        <span class="res-name">School in Cosmo Tools, Aachen 2018</span>
+        <span class="res-desc">Slides, exercises and lecture videos (click the clip icon).</span>
+      </a>
+      <a class="res" href="https://ascl.net/1808.010" target="_blank" rel="noopener">
+        <span class="res-name">ascl:1808.010</span>
+        <span class="res-desc">Astrophysics Source Code Library entry.</span>
+      </a>
+      <a class="res" href="https://github.com/itrharrison/hi_class" target="_blank" rel="noopener">
+        <span class="res-name">CosmoSIS wrapper</span>
+        <span class="res-desc">Use hi_class with the CosmoSIS MCMC sampler.</span>
+      </a>
+      <div class="res">
+        <span class="res-name">Introductory slides</span>
+        <span class="res-desc">hi_class at
+          <a href="https://miguelzuma.github.io/hi_class/hi_class_course_Corfu.pdf" target="_blank" rel="noopener">Corfu</a> and
+          <a href="https://miguelzuma.github.io/hi_class/hi_class_course_IFT.pdf" target="_blank" rel="noopener">IFT Madrid</a>;
+          Monte Python at
+          <a href="https://miguelzuma.github.io/hi_class/montepython_course_IFT.pdf" target="_blank" rel="noopener">IFT Madrid</a>.</span>
+      </div>
+      <div class="res">
+        <span class="res-name">Lecture notes</span>
+        <span class="res-desc">
+          <a href="https://miguelzuma.github.io/hi_class/hc_MP_notes_IFT.pdf" target="_blank" rel="noopener">CLASS, hi_class and Monte Python</a>
+          (IFT Madrid).</span>
+      </div>
+      <div class="res">
+        <span class="res-name">Exercises</span>
+        <span class="res-desc">
+          <a href="https://miguelzuma.github.io/hi_class/hi_class_exercises_IFT.pdf" target="_blank" rel="noopener">CLASS / hi_class</a> and
+          <a href="https://miguelzuma.github.io/hi_class/montepython_exercises_IFT.pdf" target="_blank" rel="noopener">Monte Python</a>
+          from <a href="https://workshops.ift.uam-csic.es/cosmotools2017" target="_blank" rel="noopener">IFT Cosmo Tools 2017</a>
+          and <a href="https://indico.cern.ch/event/688110/timetable/#20180424" target="_blank" rel="noopener">Aachen Cosmo Tools 2018</a>.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== Team ==================== -->
+<section class="band" id="team">
+  <div class="wrap">
+    <p class="eyebrow">The Team</p>
+    <h2>Who develops hi_class</h2>
+
+    <ul class="team">
+      <li class="member">
+        <a href="https://emiliobellini.github.io/" target="_blank" rel="noopener">
+          <img src="imgs/collaborators/Bellini.jpg" width="92" height="92" loading="lazy" alt="">
+          Emilio Bellini</a>
+      </li>
+      <li class="member">
+        <a href="https://www.pedroferreira.co.uk/" target="_blank" rel="noopener">
+          <img src="imgs/collaborators/Ferreira.jpg" width="92" height="92" loading="lazy" alt="">
+          Pedro G. Ferreira</a>
+      </li>
+      <li class="member">
+        <a href="https://www2.physics.ox.ac.uk/contacts/people/garcia-garcia" target="_blank" rel="noopener">
+          <img src="imgs/collaborators/Garcia-Garcia.jpg" width="92" height="92" loading="lazy" alt="">
+          Carlos Garcia-Garcia</a>
+      </li>
+      <li class="member">
+        <a href="https://lesgourg.github.io/" target="_blank" rel="noopener">
+          <img src="imgs/collaborators/Lesgourgues.png" width="92" height="92" loading="lazy" alt="">
+          Julien Lesgourgues</a>
+      </li>
+      <li class="member">
+        <a href="https://inspirehep.net/authors/1448250" target="_blank" rel="noopener">
+          <img src="imgs/collaborators/Renk.jpg" width="92" height="92" loading="lazy" alt="">
+          Janina Renk</a>
+      </li>
+      <li class="member">
+        <a href="https://www.ceico.cz/team/researchers/ignacy-sawicki" target="_blank" rel="noopener">
+          <img src="imgs/collaborators/Sawicki.jpg" width="92" height="92" loading="lazy" alt="">
+          Ignacy Sawicki</a>
+      </li>
+      <li class="member">
+        <a href="https://inspirehep.net/authors/1724905" target="_blank" rel="noopener">
+          <img src="imgs/collaborators/Traykova.jpg" width="92" height="92" loading="lazy" alt="">
+          Dina Traykova</a>
+      </li>
+      <li class="member">
+        <a href="https://miguelzuma.github.io" target="_blank" rel="noopener">
+          <img src="imgs/collaborators/Zumalacarregui.jpg" width="92" height="92" loading="lazy" alt="">
+          Miguel Zumalacarregui</a>
+      </li>
+    </ul>
+
+    <p class="prose" style="margin-top:34px">We are very grateful to Thomas Tram for his invaluable advice, and to
+      the many users who have offered suggestions, found bugs and contributed to improve the code.</p>
+  </div>
+</section>
+
+<!-- ==================== Contact ==================== -->
+<section class="band band--soft" id="contact">
+  <div class="wrap">
+    <p class="eyebrow">Contact</p>
+    <h2>Get in touch</h2>
+    <div class="prose">
+      <p>If you are interested in using a beta version, or for other inquiries about <code>hi_class</code>,
+        please contact <span class="contact-mail">emilio - bellini -- physics.ox.ac.uk</span> or
+        <span class="contact-mail">miguelzuma -- berkeley.edu</span>.</p>
+      <p>Bug reports and feature requests are also welcome on the
+        <a href="https://github.com/miguelzuma/hi_class_public/issues" target="_blank" rel="noopener">GitHub issue
+        tracker</a> and the
+        <a href="https://groups.google.com/d/forum/hi_class" target="_blank" rel="noopener">hi_class forum</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== Publications ==================== -->
+<section class="band" id="pubs">
+  <div class="wrap">
+    <p class="eyebrow">Publications</p>
+    <h2>Papers using hi_class</h2>
+
+    <p class="pub-headline"><b id="pub-total">99</b> <span>publications have used <code>hi_class</code></span></p>
+
+    <div class="prose">
+      <p>Spanning <b id="pub-span">2015&ndash;2026</b>, from single-author theory papers to Euclid, DESI, KiDS and
+        LISA collaboration analyses. If your article is missing, please
+        <a href="#contact">let us know</a>.</p>
+    </div>
+
+    <div class="pub-toolbar">
+      <div class="pub-search">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11.74 10.34a6 6 0 10-1.4 1.4l3.2 3.2a1 1 0 001.42-1.42l-3.21-3.18zM7 11a4 4 0 110-8 4 4 0 010 8z"/></svg>
+        <label class="skip-link" for="pub-filter">Filter publications</label>
+        <input type="search" id="pub-filter" placeholder="Filter by title, author or arXiv number…"
+               autocomplete="off" spellcheck="false">
+      </div>
+      <p class="pub-count" id="pub-count" aria-live="polite" role="status"></p>
+    </div>
+
+    <div id="pub-groups">
+
+<section class="pub-year" data-year="2026">
+  <h3 class="pub-year-head">2026 <span class="pub-year-count">7</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3178756" target="_blank" rel="noopener">The Status of Single Scalar Field Dark Energy</a>
+      <p class="pub-meta"><span class="pub-authors">C. Garc&iacute;a-Garc&iacute;a, P. G. Ferreira, W. J. Wolf</span><span class="pub-ref">2607.07777</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3175252" target="_blank" rel="noopener">Constraining dark energy with complementary probes of large-scale structure</a>
+      <p class="pub-meta"><span class="pub-authors">N. Shah, K. Koyama, J. Noller, L. Yi</span><span class="pub-ref">2606.31977</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3174253" target="_blank" rel="noopener">Dark energy perturbations and the robustness of cosmological neutrino-mass constraints</a>
+      <p class="pub-meta"><span class="pub-authors">Y.-H. Yang, E. N. Saridakis, Y.-F. Cai, H.-R. Yu</span><span class="pub-ref">2606.28074</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3159112" target="_blank" rel="noopener">cloelib: A Flexible Python Library for Computing Cosmological Observables in the Euclid Era</a>
+      <p class="pub-meta"><span class="pub-authors">M. Bonici, G. Canas-Herrera, P. Carrilho et al.</span><span class="pub-ref">2605.23839</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3146385" target="_blank" rel="noopener">PySCo-EFT and ECOSMOG-EFT: a tandem of N-body simulation codes for the Effective Field Theory of Dark Energy</a>
+      <p class="pub-meta"><span class="pub-authors">H. Ganjoo, Y. Rasera, E. Bellini, M.-A. Breton et al.</span><span class="pub-ref">2604.15434</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3124710" target="_blank" rel="noopener">H-EFTCAMB: A Cobaya-Integrated, Python-Wrapped Extension of EFTCAMB for Covariant Horndeski Gravity</a>
+      <p class="pub-meta"><span class="pub-authors">G. Ye et al</span><span class="pub-ref">2603.01662</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3117390" target="_blank" rel="noopener">On the Difficulties with Late-Time Solutions for the Hubble Tension</a>
+      <p class="pub-meta"><span class="pub-authors">P. Bansal, D. Huterer</span><span class="pub-ref">2602.06293</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2025">
+  <h3 class="pub-year-head">2025 <span class="pub-year-count">18</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/arxiv/2512.20171" target="_blank" rel="noopener">Abundance of cosmic voids in EFT of dark energy</a>
+      <p class="pub-meta"><span class="pub-authors">T. Takadera, S. Hirano, T. Kobayashi</span><span class="pub-ref">2512.20171</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/arxiv/2512.13691" target="_blank" rel="noopener">Non-parametric exploration of minimally coupled gravity with phantom crossing</a>
+      <p class="pub-meta"><span class="pub-authors">M. Cataneo, K. Koyama</span><span class="pub-ref">2512.13691</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3092589" target="_blank" rel="noopener">KiDS-Legacy: Constraints on Horndeski gravity from weak lensing combined with galaxy clustering and CMB</a>
+      <p class="pub-meta"><span class="pub-authors">B. St&ouml;lzner, R. Reischke, M. Grasso, M. Cataneo, B. Joachimi et al.</span><span class="pub-ref">2512.11039</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/arxiv/2512.09748" target="_blank" rel="noopener">Euclid preparation. Review of forecast constraints on dark energy and modified gravity</a>
+      <p class="pub-meta"><span class="pub-authors">Euclid Collaboration: N. Frusciante, M. Martinelli et al.</span><span class="pub-ref">2512.09748</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3087667" target="_blank" rel="noopener">Clustering in dynamical dark energy: observational constraints from DESI, CMB, and supernovae</a>
+      <p class="pub-meta"><span class="pub-authors">Y. Yang, Q. Wang, X. Ren, E. Saridakis, Y. Cai</span><span class="pub-ref">2511.22478</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3082748" target="_blank" rel="noopener">New multiprobe analysis of modified gravity and evolving dark energy</a>
+      <p class="pub-meta"><span class="pub-authors">Z. Lu, T. Simon</span><span class="pub-ref">2511.10616</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3082861" target="_blank" rel="noopener">A Dynamical Scalar Field Model for Dark Energy: Addressing the Hubble Tension and Cosmic Evolution</a>
+      <p class="pub-meta"><span class="pub-authors">A. Kottur, J. Mahajan, R. Dabhade</span><span class="pub-ref">2511.10317</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/3080519" target="_blank" rel="noopener">KGB-evolution: a relativistic N-body code for kinetic gravity braiding models</a>
+      <p class="pub-meta"><span class="pub-authors">A. Nouri-Zonoz, F. Hassani, E. Bellini, M. Kunz</span><span class="pub-ref">2511.04676</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2974467" target="_blank" rel="noopener">From Dark Radiation to Dark Energy: Unified Cosmological Evolution in K-essence Models</a>
+      <p class="pub-meta"><span class="pub-authors">E. Moreno, J. De-Santiago</span><span class="pub-ref">2509.25088</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2972006" target="_blank" rel="noopener">Cosmological constraints on Galileon dark energy with broken shift symmetry</a>
+      <p class="pub-meta"><span class="pub-authors">W. Wolf, P. Ferreira, C. Garcia-Garcia</span><span class="pub-ref">2509.17586</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2954584" target="_blank" rel="noopener">Dark energy constraints in light of theoretical priors</a>
+      <p class="pub-meta"><span class="pub-authors">N. Shah, K. Koyama, J. Noller</span><span class="pub-ref">2507.19450</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2953547" target="_blank" rel="noopener">Monodromic Dark Energy and DESI</a>
+      <p class="pub-meta"><span class="pub-authors">S. Goldstein, M. Celoria, F. Schmidt</span><span class="pub-ref">2507.16970</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2928753" target="_blank" rel="noopener">Euclid preparation. Constraining parameterised models of modifications of gravity with the spectroscopic and photometric primary probes</a>
+      <p class="pub-meta"><span class="pub-authors">Euclid Collaboration: I. S. Albuquerque, N. Frusciante, Z. Sakr et al.</span><span class="pub-ref">2506.03008</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2919107" target="_blank" rel="noopener">Nonlinear dynamics in Horndeski gravity: a renormalized approach to effective gravitational coupling</a>
+      <p class="pub-meta"><span class="pub-authors">L. Amendola, C. Bernal, R. Gannouji</span><span class="pub-ref">2505.03999</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2910498" target="_blank" rel="noopener">The Cosmological Evidence for Non-Minimal Coupling</a>
+      <p class="pub-meta"><span class="pub-authors">W. Wolf, C. Garcia-Garcia, T. Anton, P. Ferreira</span><span class="pub-ref">2504.07679</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2899840" target="_blank" rel="noopener">Modified gravity constraints with Planck ISW-lensing bispectrum</a>
+      <p class="pub-meta"><span class="pub-authors">A. Chudaykin, M. Kunz, J. Carron</span><span class="pub-ref">2503.09893</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2897444" target="_blank" rel="noopener">Preference for evolving dark energy in light of the galaxy bispectrum</a>
+      <p class="pub-meta"><span class="pub-authors">Z. Lu, T. Simon, P. Zhang</span><span class="pub-ref">2503.04602</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2877709" target="_blank" rel="noopener">Robustness of Dark Energy Phenomenology Across Different Parameterizations</a>
+      <p class="pub-meta"><span class="pub-authors">W. Wolf, C. Garcia-Garcia, P. Ferreira</span><span class="pub-ref">2502.04929</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2024">
+  <h3 class="pub-year-head">2024 <span class="pub-year-count">12</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2854680" target="_blank" rel="noopener">Exploring cosmological imprints of phantom crossing with dynamical dark energy in Horndeski gravity</a>
+      <p class="pub-meta"><span class="pub-authors">Y. Tiwari, U. Upadhyay, R. Jain</span><span class="pub-ref">2412.00931</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2850039" target="_blank" rel="noopener">Modified gravity constraints from the full shape modeling of clustering measurements from DESI 2024</a>
+      <p class="pub-meta"><span class="pub-authors">DESI Collaboration: M. Ishak, J. Pan, R. Calderon et al.</span><span class="pub-ref">2411.12026</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2833082" target="_blank" rel="noopener">Matching current observational constraints with nonminimally coupled dark energy</a>
+      <p class="pub-meta"><span class="pub-authors">W. Wolf, P. Ferreira, C. Garcia-Garcia</span><span class="pub-ref">2409.17019</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2832453" target="_blank" rel="noopener">Testing gravity with the full-shape galaxy power spectrum: First constraints on scale-dependent modified gravity</a>
+      <p class="pub-meta"><span class="pub-authors">A. Aviles</span><span class="pub-ref">2409.15640</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2829390" target="_blank" rel="noopener">Fast radio bursts as a probe of gravity on cosmological scales</a>
+      <p class="pub-meta"><span class="pub-authors">D. Neumann, R. Reischke, S. Hagstotz, H. Hildebrandt</span><span class="pub-ref">2409.11163</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2828412" target="_blank" rel="noopener">Constraints on dark energy and modified gravity from the BOSS Full-Shape and DESI BAO data</a>
+      <p class="pub-meta"><span class="pub-authors">P. Taule, M. Marinucci, G. Biselli, M. Pietroni, F. Vernizzi</span><span class="pub-ref">2409.08971</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2823318" target="_blank" rel="noopener">Scant evidence for thawing quintessence</a>
+      <p class="pub-meta"><span class="pub-authors">W. Wolf, C. García-García, D. Bartlett, P. Ferreira</span><span class="pub-ref">2408.17318</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2810552" target="_blank" rel="noopener">Interpretable and physics-informed emulator for the linear matter power spectrum from machine learning</a>
+      <p class="pub-meta"><span class="pub-authors">J. B. Orjuela-Quintana, D. Sapone, S. Nesseris</span><span class="pub-ref">2407.16640</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2808363" target="_blank" rel="noopener">mochi_class: Modelling Optimisation to Compute Horndeski In class</a>
+      <p class="pub-meta"><span class="pub-authors">M. Cataneo, E. Bellini</span><span class="pub-ref">2407.11968</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2804242" target="_blank" rel="noopener">Modified gravity interpretation of the evolving dark energy in light of DESI data</a>
+      <p class="pub-meta"><span class="pub-authors">A. Chudaykin, M. Kunz</span><span class="pub-ref">2407.02558</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2765832" target="_blank" rel="noopener">A simple prediction of the non-linear matter power spectrum in Brans-Dicke gravity from linear theory</a>
+      <p class="pub-meta"><span class="pub-authors">H. Sletmoen, H. Winther</span><span class="pub-ref">2403.03786</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2746325" target="_blank" rel="noopener">Constraining dark energy with the integrated Sachs-Wolfe effect</a>
+      <p class="pub-meta"><span class="pub-authors">E. Seraille, J. Noller, B. Sherwin</span><span class="pub-ref">2401.06221</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2023">
+  <h3 class="pub-year-head">2023 <span class="pub-year-count">6</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2690644" target="_blank" rel="noopener">Probing Early Modification of Gravity with Planck, ACT and SPT</a>
+      <p class="pub-meta"><span class="pub-authors">G. F. Abellán, M. Braglia, M. Ballardini, F. Finelli, V. Poulin</span><span class="pub-ref">2308.12345</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2675262" target="_blank" rel="noopener">Machine learning unveils the linear matter power spectrum of modified gravity</a>
+      <p class="pub-meta"><span class="pub-authors">J. B. Orjuela-Quintana, S. Nesseris, D. Sapone</span><span class="pub-ref">2307.03643</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2670531" target="_blank" rel="noopener">Euclid: Constraining linearly scale-independent modifications of gravity with the spectroscopic and photometric primary probes</a>
+      <p class="pub-meta"><span class="pub-authors">Euclid Collaboration: N. Frusciante, F. Pace, V. F. Cardone et al.</span><span class="pub-ref">2306.12368</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2651855" target="_blank" rel="noopener">Probing Dark Energy and Modifications of Gravity with Ground-Based Millimeter-Wavelength Line Intensity Mapping</a>
+      <p class="pub-meta"><span class="pub-authors">A. Moradinezhad Dizgah, E. Bellini, G. Keating</span><span class="pub-ref">2304.08471</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2643086" target="_blank" rel="noopener">Revisiting Vainshtein Screening for fast N-body simulations</a>
+      <p class="pub-meta"><span class="pub-authors">G. Brando, K. Koyama, H. Winther</span><span class="pub-ref">2303.09549</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2641565" target="_blank" rel="noopener">Testing gravity on cosmological scales: theoretical predictions with the COLA method</a>
+      <p class="pub-meta"><span class="pub-authors">B. Fiorini (PhD thesis)</span><span class="pub-ref">2303.07121</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2022">
+  <h3 class="pub-year-head">2022 <span class="pub-year-count">6</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2618245" target="_blank" rel="noopener">The Effective Fluid Approach for Modified Gravity and Its Applications</a>
+      <p class="pub-meta"><span class="pub-authors">S. Nesseris</span><span class="pub-ref">2212.12768</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2169669" target="_blank" rel="noopener">Testing gravity with gravitational wave friction and gravitational slip</a>
+      <p class="pub-meta"><span class="pub-authors">I. Matos, E. Bellini, M. Calvão, M. Kunz</span><span class="pub-ref">2210.12174</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2157307" target="_blank" rel="noopener">A Forecast for Large Scale Structure Constraints on Horndeski Gravity with Line Intensity Mapping</a>
+      <p class="pub-meta"><span class="pub-authors">B. Scott, K. Karkare, S. Bird</span><span class="pub-ref">2209.13029</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2080566" target="_blank" rel="noopener">Neutrino mass and kinetic gravity braiding degeneracies</a>
+      <p class="pub-meta"><span class="pub-authors">G. Garcia-Arroyo, J. L. Cervantes-Cota, U. Nucamendi</span><span class="pub-ref">2205.05755</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2055932" target="_blank" rel="noopener">Enabling matter power spectrum emulation in beyond-ΛCDM cosmologies with COLA</a>
+      <p class="pub-meta"><span class="pub-authors">G. Brando, B. Fiorini, K. Koyama, H. Winther</span><span class="pub-ref">2203.11120</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/2026624" target="_blank" rel="noopener">Positivity bounds from multiple vacua and their cosmological consequences</a>
+      <p class="pub-meta"><span class="pub-authors">S. Melville, J. Noller</span><span class="pub-ref">2202.01222</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2021">
+  <h3 class="pub-year-head">2021 <span class="pub-year-count">5</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1875725" target="_blank" rel="noopener">On tachyonic stability priors for dark energy</a>
+      <p class="pub-meta"><span class="pub-authors">R. Gsponer, J. Noller</span><span class="pub-ref">2107.01044</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1862738" target="_blank" rel="noopener">Fully relativistic predictions in Horndeski gravity from standard Newtonian N-body simulations</a>
+      <p class="pub-meta"><span class="pub-authors">G. Brando, K. Koyama, D. Wands, M. Zumalacárregui, I. Sawicki, E. Bellini</span><span class="pub-ref">2105.04491</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1852905" target="_blank" rel="noopener">Theoretical priors in scalar-tensor cosmologies: Shift-symmetric Horndeski models</a>
+      <p class="pub-meta"><span class="pub-authors">D. Traykova, E. Bellini, P. G. Ferreira, C. García-García, J. Noller, M. Zumalacárregui</span><span class="pub-ref">2103.11195</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1851169" target="_blank" rel="noopener">Positivity Bounds on Dark Energy: When Matter Matters</a>
+      <p class="pub-meta"><span class="pub-authors">C. de Rham, S. Melville and J. Noller</span><span class="pub-ref">2103.06855</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1849617" target="_blank" rel="noopener">Testing modified (Horndeski) gravity by combining intrinsic galaxy alignments with cosmic shear</a>
+      <p class="pub-meta"><span class="pub-authors">R. Reischke, V. Bosca, T. Tugendhat, B. Malte Schäfer</span><span class="pub-ref">2103.01657</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2020">
+  <h3 class="pub-year-head">2020 <span class="pub-year-count">12</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1833646" target="_blank" rel="noopener">Can Conformally Invariant Modified Gravity Solve The Hubble Tension?</a>
+      <p class="pub-meta"><span class="pub-authors">T. Abadi and E. Kovetz</span><span class="pub-ref">2011.13853</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1833034" target="_blank" rel="noopener">Early modified gravity in light of the H<sub>0</sub> tension and LSS data</a>
+      <p class="pub-meta"><span class="pub-authors">M. Braglia, M. Ballardini, F. Finelli and K. Koyama</span><span class="pub-ref">2011.12934</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1812574" target="_blank" rel="noopener">Scalar-tensor cosmologies without screening</a>
+      <p class="pub-meta"><span class="pub-authors">J. Noller, L. Santoni, E. Trincherini, L. Trombetta</span><span class="pub-ref">2008.08649</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1809093" target="_blank" rel="noopener">Constraining Scalar-Tensor Modified Gravity with Gravitational Waves and Large Scale Structure Surveys</a>
+      <p class="pub-meta"><span class="pub-authors">T. Baker, I. Harrison</span><span class="pub-ref">2007.13791</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1802119" target="_blank" rel="noopener">Relativistic Corrections to the Growth of Structure in Modified Gravity</a>
+      <p class="pub-meta"><span class="pub-authors">G. Brando, K. Koyama, D. Wands</span><span class="pub-ref">2006.11019</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1799652" target="_blank" rel="noopener">Cross-bispectra Constraints on Modified Gravity Theories from Nancy Grace Roman Space Telescope and Rubin Observatory Legacy Survey of Space and Time</a>
+      <p class="pub-meta"><span class="pub-authors">C. Heinrich, O. Doré</span><span class="pub-ref">2006.03138</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1794410" target="_blank" rel="noopener">Information entropy in cosmological inference problems</a>
+      <p class="pub-meta"><span class="pub-authors">A. Pinho, R. Reischke, M. Teich, B. Malte Schäfer</span><span class="pub-ref">2005.02035</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1793879" target="_blank" rel="noopener">Improvements in cosmological constraints from breaking growth degeneracy</a>
+      <p class="pub-meta"><span class="pub-authors">L. Perenon, S. Ilic, R. Maartens, A. de la Cruz-Dombriz</span><span class="pub-ref">2005.00418</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1792446" target="_blank" rel="noopener">A larger value for H0 by an evolving gravitational constant</a>
+      <p class="pub-meta"><span class="pub-authors">Matteo Braglia et al.</span><span class="pub-ref">2004.11161</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1790840" target="_blank" rel="noopener">The H0 tension: ΔG_N vs. ΔN_eff</a>
+      <p class="pub-meta"><span class="pub-authors">G. Ballesteros, A. Notari, F. Rompineve</span><span class="pub-ref">2004.05049</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1785417" target="_blank" rel="noopener">Gravity in the Era of Equality: Towards solutions to the Hubble problem without fine-tuned initial conditions</a>
+      <p class="pub-meta"><span class="pub-authors">M. Zumalacarregui</span><span class="pub-ref">2003.06396</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1775805" target="_blank" rel="noopener">Cosmological constraints on dark energy in light of gravitational wave bounds</a>
+      <p class="pub-meta"><span class="pub-authors">J. Noller</span><span class="pub-ref">2001.05469</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2019">
+  <h3 class="pub-year-head">2019 <span class="pub-year-count">11</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1763812" target="_blank" rel="noopener">Theoretical priors in scalar-tensor cosmologies: Thawing quintessence</a>
+      <p class="pub-meta"><span class="pub-authors">C. Garcia-Garcia, E. Bellini, P. Ferreira, D. Traykova, M. Zumalacarregui</span><span class="pub-ref">1911.02868</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://arxiv.org/abs/1909.01828" target="_blank" rel="noopener"><code>hi_class:</code> Background Evolution, Initial Conditions and Approximation Schemes</a>
+      <p class="pub-meta"><span class="pub-authors">E. Bellini, I. Sawicki, M. Zumalacarregui</span><span class="pub-ref">1909.01828</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1738351" target="_blank" rel="noopener">Testing modified gravity at cosmological distances with LISA standard sirens</a>
+      <p class="pub-meta"><span class="pub-authors">LISA Cosmology Working Group</span><span class="pub-ref">1906.01593</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1735272" target="_blank" rel="noopener">Dark sector evolution in Horndeski models</a>
+      <p class="pub-meta"><span class="pub-authors">F. Pace et al.</span><span class="pub-ref">1905.06795</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1735156" target="_blank" rel="noopener">The Shape Dependence of Vainshtein Screening in the Cosmic Matter Bispectrum</a>
+      <p class="pub-meta"><span class="pub-authors">C. Burrage, J. Dombrowski, D. Saadeh</span><span class="pub-ref">1905.06260</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1734039" target="_blank" rel="noopener">Alpha-attractor dark energy in view of next-generation cosmological surveys</a>
+      <p class="pub-meta"><span class="pub-authors">C. Garcia-Garcia et al.</span><span class="pub-ref">1905.03753</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1732298" target="_blank" rel="noopener">Modified Gravity Away from a ΛCDM Background</a>
+      <p class="pub-meta"><span class="pub-authors">G. Brando et al.</span><span class="pub-ref">1904.12903</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1729556" target="_blank" rel="noopener">Designing Horndeski and the effective fluid approach</a>
+      <p class="pub-meta"><span class="pub-authors">R. Arjona, W. Cardona, S. Nesseris</span><span class="pub-ref">1904.06294</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1729299" target="_blank" rel="noopener">Positivity in the sky</a>
+      <p class="pub-meta"><span class="pub-authors">S. Melville J. Noller</span><span class="pub-ref">1904.05874</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1722260" target="_blank" rel="noopener">The phenomenology of beyond Horndeski gravity</a>
+      <p class="pub-meta"><span class="pub-authors">D. Traykova, E. Bellini, P. Ferreira</span><span class="pub-ref">1902.10687</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1713441" target="_blank" rel="noopener">KiDS+GAMA: Constraints on Horndeski gravity from combined large-scale structure probes</a>
+      <p class="pub-meta"><span class="pub-authors">A Spurio Mancini et al.</span><span class="pub-ref">1901.03686</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2018">
+  <h3 class="pub-year-head">2018 <span class="pub-year-count">12</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1706040" target="_blank" rel="noopener">Cosmological parameter constraints for Horndeski scalar-tensor gravity</a>
+      <p class="pub-meta"><span class="pub-authors">J. Noller, A. Nicola</span><span class="pub-ref">1811.12928</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1702495" target="_blank" rel="noopener">Radiative stability and observational constraints on dark energy and modified gravity</a>
+      <p class="pub-meta"><span class="pub-authors">J. Noller, A. Nicola</span><span class="pub-ref">1811.03082</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1701047" target="_blank" rel="noopener">No Slip CMB</a>
+      <p class="pub-meta"><span class="pub-authors">M. Brush, E. Linder, M. Zumalacarregui</span><span class="pub-ref">1810.12337</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1699931" target="_blank" rel="noopener">Inflation and Early Dark Energy with a Stage II Hydrogen Intensity Mapping experiment</a>
+      <p class="pub-meta"><span class="pub-authors">Cosmic Visions 21 cm Collaboration</span><span class="pub-ref">1810.09572</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1684691" target="_blank" rel="noopener">Gravity's Islands: Parametrizing Horndeski Stability</a>
+      <p class="pub-meta"><span class="pub-authors">M. Denissenya, E. Linder</span><span class="pub-ref">1808.00013</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1683707" target="_blank" rel="noopener">Dark Energy in light of Multi-Messenger Gravitational-Wave astronomy</a>
+      <p class="pub-meta"><span class="pub-authors">JM Ezquiaga, M. Zumalacárregui</span><span class="pub-ref">1807.09241</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1681027" target="_blank" rel="noopener">Testing Horndeski gravity as dark matter with <code> hi_class</code></a>
+      <p class="pub-meta"><span class="pub-authors">A. Casalino, M. Rinaldi</span><span class="pub-ref">1807.01995</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1666885" target="_blank" rel="noopener">Investigating scalar-tensor-gravity with statistics of the cosmic large-scale structure</a>
+      <p class="pub-meta"><span class="pub-authors">R. Reischke, A. Spurio Mancini, B. Malte Schäfer, P. Merkel</span><span class="pub-ref">1804.02441</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1658468" target="_blank" rel="noopener">Dark energy from &alpha;-attractors: phenomenology and observational constraints</a>
+      <p class="pub-meta"><span class="pub-authors">C. García-García, E. Linder, P. Ruíz-Lapuente, M. Zumalacárregui</span><span class="pub-ref">JCAP 1808 (2018) 022</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1647938" target="_blank" rel="noopener">Testing (modified) gravity with 3D and tomographic cosmic shear</a>
+      <p class="pub-meta"><span class="pub-authors">A. Spurio Mancini, R. Reischke, V. Pettorino, B.M. Schaefer, M. Zumalacarregui</span><span class="pub-ref">MNRAS 480 (2018) 3725</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1628961" target="_blank" rel="noopener">The impact of relativistic effects on cosmological parameter estimation</a>
+      <p class="pub-meta"><span class="pub-authors">C. Lorenz, D. Alonso, P. Ferreira</span><span class="pub-ref">PRD97 (2018) 023537</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1625713" target="_blank" rel="noopener">A comparison of Einstein-Boltzmann solvers for testing General Relativity</a>
+      <p class="pub-meta"><span class="pub-authors">E. Bellini et al.</span><span class="pub-ref">PRD97 (2018) 023520</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2017">
+  <h3 class="pub-year-head">2017 <span class="pub-year-count">4</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1630865" target="_blank" rel="noopener">Dark Energy after GW170817: Dead Ends and the Road Ahead</a>
+      <p class="pub-meta"><span class="pub-authors">J. M. Ezquiaga, M. Zumalacarregui</span><span class="pub-ref">Phys.Rev.Lett. 119 251304</span> <a class="pub-extra" href="https://link.aps.org/doi/10.1103/Physics.10.134" target="_blank" rel="noopener">Physics Viewpoint</a></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1609059" target="_blank" rel="noopener">Galileon Gravity in Light of ISW, CMB, BAO and H0 data</a>
+      <p class="pub-meta"><span class="pub-authors">J. Renk, M. Zumalacarregui, F. Montanari, A. Barreira</span><span class="pub-ref">JCAP 1710 (2017) 020</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1495006" target="_blank" rel="noopener">The Observational Future of Cosmological Scalar-Tensor Theories</a>
+      <p class="pub-meta"><span class="pub-authors">D. Alonso, E. Bellini, P. G. Ferreira, M. Zumalacarregui</span><span class="pub-ref">PRD95 (2017) 063502</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1462237" target="_blank" rel="noopener"><code>hi_class:</code> Horndeski in the Cosmic Linear Anisotropy Solving System</a>
+      <p class="pub-meta"><span class="pub-authors">M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira</span><span class="pub-ref">JCAP 1708 (2017) 019</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2016">
+  <h3 class="pub-year-head">2016 <span class="pub-year-count">5</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1502319" target="_blank" rel="noopener">Hiding neutrino mass in modified gravity cosmologies</a>
+      <p class="pub-meta"><span class="pub-authors">N. Bellomo, E. Bellini, B. Hu, R. Jimenez, C. Pena-Garay</span><span class="pub-ref">1612.02598</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1495513" target="_blank" rel="noopener">Early Cosmology Constrained</a>
+      <p class="pub-meta"><span class="pub-authors">L. Verde, E. Bellini, C. Pigozzo, A. Heavens, R. Jimenez</span><span class="pub-ref">1611.00376</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/literature/1487524" target="_blank" rel="noopener">Initial conditions for the Galileon dark energy</a>
+      <p class="pub-meta"><span class="pub-authors">C. Germani</span><span class="pub-ref">1609.06598</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1445097" target="_blank" rel="noopener">Gravity at the horizon: on relativistic effects, CMB-LSS correlations and ultra-large scales in Horndeski's theory</a>
+      <p class="pub-meta"><span class="pub-authors">J. Renk, M. Zumalacarregui, F. Montanari</span><span class="pub-ref">JCAP 1607 (2016) 040</span></p>
+    </li>
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1394845" target="_blank" rel="noopener">Constraints on deviations from LCDM within Horndeski gravity</a>
+      <p class="pub-meta"><span class="pub-authors">E. Bellini, A. Cuesta, R. Jimenez, L. Verde</span><span class="pub-ref">JCAP 1602 (2016) 053</span></p>
+    </li>
+  </ul>
+</section>
+
+<section class="pub-year" data-year="2015">
+  <h3 class="pub-year-head">2015 <span class="pub-year-count">1</span></h3>
+  <ul class="pub-list">
+    <li class="pub">
+      <a class="pub-title" href="https://inspirehep.net/record/1370110" target="_blank" rel="noopener">Nonlinear evolution of the BAO scale in alternative theories of gravity</a>
+      <p class="pub-meta"><span class="pub-authors">E. Bellini, M. Zumalacarregui</span><span class="pub-ref">PRD92 (2015) 063522</span></p>
+    </li>
+  </ul>
+</section>
+    </div>
+
+    <p class="pub-empty" id="pub-empty">No publications match that search.</p>
+  </div>
+</section>
+
+<!-- ==================== Artwork ==================== -->
+<figure class="artwork">
+  <div class="wrap">
+    <img src="imgs/Black_Dahlias_with_Yellow_Sky_Horndeski_2017_small.JPG" width="800" height="475" loading="lazy"
+         alt="Black Dahlias with Yellow Sky, a 2017 painting by Gregory Horndeski: dark flowers against a vivid yellow sky.">
+    <figcaption>Black Dahlias with Yellow Sky (Gregory Horndeski, 2017)</figcaption>
+  </div>
+</figure>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <p><code>hi_class</code> — Horndeski in the Cosmic Linear Anisotropy Solving System</p>
+    <p>
+      <a href="#resources">Resources</a> ·
+      <a href="#team">Team</a> ·
+      <a href="#contact">Contact</a> ·
+      <a href="https://github.com/miguelzuma/hi_class_public" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="https://groups.google.com/d/forum/hi_class" target="_blank" rel="noopener">Forum</a> ·
+      <a href="https://ascl.net/1808.010" target="_blank" rel="noopener">ascl:1808.010</a>
+    </p>
+    <p class="footer-credit">The <code>hi_class</code> logo was designed by Marcos V&aacute;zquez Pingarr&oacute;n.</p>
+  </div>
+</footer>
+
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+(function () {
+	'use strict';
 
-  gtag('config', 'UA-38788271-3');
+	/* ---- Publication filter ------------------------------------------- */
+	var input  = document.getElementById('pub-filter');
+	var count  = document.getElementById('pub-count');
+	var empty  = document.getElementById('pub-empty');
+	var groups = Array.prototype.slice.call(document.querySelectorAll('.pub-year'));
+
+	// Cache the searchable text of every entry once, up front.
+	var items = [];
+	groups.forEach(function (group) {
+		var entries = Array.prototype.slice.call(group.querySelectorAll('.pub'));
+		entries.forEach(function (el) {
+			items.push({ el: el, text: el.textContent.toLowerCase(), group: group });
+		});
+		group._entries = entries;
+	});
+
+	var total = items.length;
+
+	// Publication totals are derived from the list itself, never hardcoded, so
+	// they stay correct as entries are added.
+	var years = groups.map(function (g) { return +g.dataset.year; }).sort();
+	[['hero-pub-count', total], ['pub-total', total], ['science-pub-count', total],
+	 ['pub-span', years[0] + '–' + years[years.length - 1]]
+	].forEach(function (pair) {
+		var el = document.getElementById(pair[0]);
+		if (el) { el.textContent = pair[1]; }
+	});
+
+	function render(shown) {
+		count.innerHTML = shown === total
+			? '<b>' + total + '</b> publications'
+			: '<b>' + shown + '</b> of ' + total + ' publications';
+		empty.classList.toggle('is-shown', shown === 0);
+	}
+
+	function filter() {
+		var q = input.value.trim().toLowerCase();
+		var shown = 0;
+
+		items.forEach(function (item) {
+			var hit = q === '' || item.text.indexOf(q) !== -1;
+			item.el.hidden = !hit;
+			if (hit) { shown++; }
+		});
+
+		// Hide a year heading once all of its entries are filtered out.
+		groups.forEach(function (group) {
+			var any = group._entries.some(function (el) { return !el.hidden; });
+			group.hidden = !any;
+		});
+
+		render(shown);
+	}
+
+	input.addEventListener('input', filter);
+	render(total);
+
+	/* ---- Highlight the section currently in view ----------------------- */
+	var links = {};
+	Array.prototype.forEach.call(document.querySelectorAll('.nav-links a'), function (a) {
+		links[a.getAttribute('href').slice(1)] = a;
+	});
+
+	var sections = Object.keys(links)
+		.map(function (id) { return document.getElementById(id); })
+		.filter(Boolean);
+
+	if ('IntersectionObserver' in window && sections.length) {
+		var visible = {};
+		var observer = new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				visible[entry.target.id] = entry.isIntersecting;
+			});
+			// The last intersecting section wins: the observation band is only the
+			// top of the viewport, so the deepest section in it is the one being read.
+			var active = sections.filter(function (s) { return visible[s.id]; }).pop();
+			Object.keys(links).forEach(function (id) {
+				links[id].classList.toggle('is-active', !!active && id === active.id);
+			});
+		}, { rootMargin: '-56px 0px -65% 0px' });
+
+		sections.forEach(function (s) { observer.observe(s); });
+	}
+})();
 </script>
 
-<link rel="icon" type="image/png"
- href="hi_class_icon_64x64.png">
-
-</HEAD>
-
-<BODY  text="#000000" />
-
-
-<h1 align="center">
-<font color=#39e600 face="courier" size=6>
-Horndeski in the Cosmic Linear <br> Anisotropy Solving System
-</font>
-</h1>
-
-<center>
- <img src="imgs/hi_class.gif" title="the hi_class code" width="450" HSPACE=25 VSPACE=10>
-</center>
-
-<h6 align="center">
-<font color=#39e600 face="courier" size=4>
-Einstein-Boltzmann solver for dark energy and modified gravity
-</font>
-</h6>
-
-<h4>
-The Science
-</h4>
-
-<p>
-<tt>hi_class</tt> implements Horndeski's theory in the modern <a href="http://class-code.net/"> Cosmic Linear Anisotropy Solving System</a>. It can be used to compute any linear cosmological observable in seconds, including FRW distances, CMB, matter power and number count spectra.
-<tt>hi_class</tt> can be readily interfaced with <a href="http://monte-python.readthedocs.org/en/latest/"> Monte Python</a> to test Gravity and Dark Energy models.
-
-<p>
-Horndeski is the most general scalar-tensor theory described by second-order equations of motion, and contains many well known models, including (but by no means limited to) covariant Galileons, Brans-Dicke, f(R), chameleons, k-essence and quintesssence. <tt>hi_class</tt> relies on a reformulation of the Effective Field Theory for Dark Energy developed by E. Bellini and I. Sawicki (see <a href="<a href="http://inspirehep.net/record/1290333"> JCAP 1407 (2014) 050</a>).
-
-<p> The publicly available version (<a href="https://github.com/miguelzuma/hi_class_public" target ="_blank"><tt>hi_class</tt> v2.0</a>) is presented and described in:
-<ul>
-<li> <i> <tt>hi_class:</tt> Horndeski in the Cosmic Linear Anisotropy Solving System </i>
-<br> M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira <br>
- <a href="http://inspirehep.net/record/1462237" target ="_blank">  JCAP 1708 (2017) no.08, 019 </a>
-</li>
-<li> <i> <tt>hi_class:</tt> Background Evolution, Initial Conditions and Approximation Schemes </i>
-<br> E. Bellini, I. Sawicki, M. Zumalacarregui <br>
- <a href="https://arxiv.org/abs/1909.01828" target ="_blank">  JCAP 2002 (2020) no.02, 008 </a>
-</li>
-</ul>
-
-
-
-<p> <tt>hi_class</tt> has been used to obtain results in a number of publications, including
-<ul>
-<li> <i> Nonlinear evolution of the BAO scale in alternative theories of gravity </i>
- <br> E. Bellini, M. Zumalacarregui
- <a href="http://inspirehep.net/record/1370110" target ="_blank">  PRD92 (2015) 063522 </a>
-</li>
-<li> <i> Constraints on deviations from LCDM within Horndeski gravity </i>
-<br> E. Bellini, A. Cuesta, R. Jimenez, L. Verde
- <a href="http://inspirehep.net/record/1394845" target ="_blank"> JCAP 1602 (2016) 053 </a>
-</li>
-<li> <i> Gravity at the horizon: on relativistic effects, CMB-LSS correlations and ultra-large scales in Horndeski's theory </i>
- J. Renk, M. Zumalacarregui, F. Montanari
- <a href="http://inspirehep.net/record/1445097" target ="_blank"> JCAP 1607 (2016) 040 </a>
-</li>
-<li> <i> The Observational Future of Cosmological Scalar-Tensor Theories </i>
-<br>  D. Alonso, E. Bellini, P. G. Ferreira, M. Zumalacarregui
- <a href="http://inspirehep.net/record/1495006" target ="_blank"> PRD95 (2017) 063502 </a>
-</li>
-<li> <i> Galileon Gravity in Light of ISW, CMB, BAO and H0 data </i>
-<br>  J. Renk, M. Zumalacarregui, F. Montanari, A. Barreira
- <a href="http://inspirehep.net/record/1609059" target ="_blank"> JCAP 1710 (2017) 020 </a>
-</li>
-<li> <i> A comparison of Einstein-Boltzmann solvers for testing General Relativity </i>
-<br>  E. Bellini <it> et al. </it>
- <a href="http://inspirehep.net/record/1625713" target ="_blank"> PRD97 (2018) 023520 </a>
-</li>
-</ul>
-<p>
-See the <a href="http://miguelzuma.github.io/hi_class_public#pubs"> full list below</a> (if your article is not listed, please <a href="http://miguelzuma.github.io/hi_class_public#contact">contact us</a>).
-
-
-<h4>
-The Code
-</h4>
-
-<p> <tt> hi_class</tt> computes the cosmological predictions of alternative theories of gravity. The code solves the linear equations starting deep in the radiation era, and can compute any cosmological observable, including (but not limited to) cosmological distances, the matter power spectrum, Cosmic Microwave Background temperature and polarization, as well as their correlation with the matter distribution. The publicly available version incorporates parameterized models based on the Effective Field Theory of Dark Energy.
-
-<p> <tt> hi_class</tt> has been tested for a range of models against several codes in a dedicated paper
- <a  href="http://inspirehep.net/record/1625713" target ="_blank"> <it> A comparison of Einstein-Boltzmann solvers for testing General Relativity </i> </a>. The codes validated include <a href="http://wwwhome.lorentz.leidenuniv.nl/~hu/codes/"> EFTCAMB </a>, <a href="http://www.cita.utoronto.ca/~zqhuang/coop/"> COOP </a> and the Galileon code developed by <a href="http://inspirehep.net/record/1298787"> Barreira <i> et al.</i></a> (based on CAMB). The results agree within 0.1% for CMB and matter power spectra, as good as for base CLASS/CAMB using default precision parameters (at low multipoles the agreement is within 0.5%, well within cosmic variance). The achieved precision is sufficient for tests of gravity with next-generation surveys.
-<br>
-
-<center>
- <img src="imgs/CAMB_compare_Cl_web_inverse.png" title="hi_class test 1" width="500" HSPACE=25 VSPACE=20 style="text-align:center;">
-</center>
-
-<h4>
-Download
-</h4>
-<p> <tt>hi_class</tt> is freely available to the scientific community. If you use it in a publication/preprint please cite at least the <a href="http://inspirehep.net/record/896300" target ="_blank"> original CLASS paper </a> and
-<ul>
-<li> <i> <tt>hi_class:</tt> Horndeski in the Cosmic Linear Anisotropy Solving System </i>
-<br> M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira <br>
- <a href="https://arxiv.org/abs/1605.06102" target ="_blank">  JCAP 1708 (2017) 019 </a>
- <li> <i> <tt>hi_class:</tt> Background Evolution, Initial Conditions and Approximation Schemes </i>
-<br> E. Bellini, I. Sawicki, M. Zumalacarregui <br>
- <a href="https://arxiv.org/abs/1909.01828" target ="_blank">  1909.01828 </a>
-</li>
-</ul>
-<p> The code can be cloned from <a href="https://github.com/miguelzuma/hi_class_public" target ="_blank"> the GitHub repository </a>
-or <a href="https://github.com/miguelzuma/hi_class_public/archive/hi_class.zip"> downloaded</a> as a compressed file. To get started and find detailed information on the available models and code functionality please read the <tt>hi_class.ini</tt> file.
-
-<h4>
-<a name="resources">Resources</a>
-</h4>
-
-<ul>
-<li> <tt>hi_class</tt> <a href="https://github.com/miguelzuma/hi_class_public/wiki" target ="_blank">
- wiki on GitHub </a>
-<li> <tt>hi_class</tt> <a href="https://groups.google.com/d/forum/hi_class" target="_blank"> forum on Google groups </a>
-
-<li> <tt>hi_class</tt>  <a href="https://www.youtube.com/watch?v=R22XhKUwzX4" target ="_blank">
-Youtube channel </a> and <a href="https://www.youtube.com/watch?v=R22XhKUwzX4" target ="_blank"> introduction to the CLASS code</a>
-
-<li>  Slides from <a href="https://lesgourg.github.io/class-tour-Tokyo.html" target ="_blank"> the official CLASS tour</a>
-
-<li>  Introductory slides for hi_class (<a href="http://miguelzuma.github.io/hi_class/hi_class_course_Corfu.pdf" target ="_blank">Corfu</a>,
-<a href="http://miguelzuma.github.io/hi_class/hi_class_course_IFT.pdf" target ="_blank">IFT Madrid</a>)
-and Montepython (<a href="http://miguelzuma.github.io/hi_class/montepython_course_IFT.pdf" target ="_blank">IFT Madrid</a>)
-
-<li> Materials from the <a href="https://indico.cern.ch/event/688110/timetable/#20180424" target="_blank"> School in Cosmo Tools, Aachen 2018 </a>, including slides, exercises and lecture videos (click on clip icon).
-
-<li> Notes on <a href="hi_class/hc_MP_notes_IFT.pdf" target ="_blank"> CLASS, <tt> hi_class </tt> and Monte Python</a> (from IFT Madrid) and <a href="http://www.iac.es/congreso/cosmo2017/media/montepython.pdf" target ="_blank">Monte Python</a> (from Cosmo in the Canary Islands).
-
-<li> Exercises on <a href="hi_class/hi_class_exercises_IFT.pdf" target ="_blank"> CLASS/<tt>hi_class</tt> </a> and <a href="hi_class/montepython_exercises_IFT.pdf" target ="_blank"> Montepython </a> from <a href="https://workshops.ift.uam-csic.es/cosmotools2017" target="_blank"> IFT Cosmo Tools 17</a> and  <a href="hi_class/montepython_exercises_IFT.pdf" target ="_blank">Montepython</a> from <a href="https://indico.cern.ch/event/688110/timetable/#20180424" target="_blank">Aachen Cosmo Tools 18</a>.
-
-<li> Astrophysics Source Code Library <a href="http://ascl.net/1808.010" target ="_blank"> http://ascl.net/1808.010 </a>
-
-<li> <a href="https://github.com/itrharrison/hi_class" target ="_blank">hi_class wrapper</a> for <a href="https://bitbucket.org/joezuntz/cosmosis/wiki/Home" target ="_blank">CosmoSIS</a>  MCMC sampler
-
-</ul>
-
-<a href="http://ascl.net/1808.010"><img src="https://img.shields.io/badge/ascl-1808.010-blue.svg?colorB=262255" alt="ascl:1808.010" /></a>
-<div class="fb-like" data-href="https://www.facebook.com/hiclasscode/" data-layout="button" data-action="like" data-size="small" data-show-faces="true" data-share="true"></div>
-
-<h4>
-<a name="team">The Team</a>
-</h4>
-
- <img src="hi_class_public/imgs/collaborators/Bellini.jpg" title="Bellini"  height="70" HSPACE=10 VSPACE=10>
- <img src="hi_class_public/imgs/collaborators/Ferreira.jpg" title="Ferreira"  height="70" HSPACE=10 VSPACE=10>
-<img src="hi_class_public/imgs/collaborators/Garcia-Garcia.jpg" title="Garcia-Garcia"  height="70" HSPACE=10 VSPACE=10>
-<img src="hi_class_public/imgs/collaborators/Lesgourgues.png" title="Lesgourgues"  height="70" HSPACE=10 VSPACE=10>
-<img src="hi_class_public/imgs/collaborators/Renk.jpg" title="Renk"  height="70" HSPACE=10 VSPACE=10>
-<img src="hi_class_public/imgs/collaborators/Sawicki.jpg" title="Sawicki"  height="70" HSPACE=10 VSPACE=10>
-<img src="hi_class_public/imgs/collaborators/Traykova.jpg" title="Traykova"  height="70" HSPACE=10 VSPACE=10>
-<img src="hi_class_public/imgs/collaborators/Zumalacarregui.jpg" title="Zumalacarregui"  height="70" HSPACE=10 VSPACE=10>
-
-
-<p>
-<tt> hi_class</tt> is being developed by
-<ul>
-<li> <a href="https://emiliobellini.github.io/" target ="_blank">
-Emilio Bellini </a>
-<li> <a href="http://www.pedroferreira.co.uk/" target ="_blank"> Pedro G. Ferreira </a>
-<li> <a href="https://www2.physics.ox.ac.uk/contacts/people/garcia-garcia" target ="_blank">
-Carlos Garcia-Garcia </a>
-<li> <a href="https://lesgourg.github.io/" target ="_blank"> Julien Lesgourgues </a>
-<li> <a href="https://www.su.se/english/profiles/jrenk-1.288557" target ="_blank"> Janina Renk</a>
-<li> <a href="http://www.ceico.cz/team/researchers/ignacy-sawicki" target ="_blank"> Ignacy Sawicki</a>
-<li> <a href="https://www2.physics.ox.ac.uk/contacts/people/traykovad" target ="_blank">
-Dina Traykova </a>
-<li> <a href="http://www.miguelzumalacarregui.es" target ="_blank"> Miguel Zumalacarregui </a>
-</li>
-</ul>
-<p> We are very grateful to Thomas Tram for his invaluable advice and the many users who have offered suggestions, found bugs and contributed to improve the code.
-
-<h4>
-<a name="contact">Contact</a>
-</h4>
-<p>
-If you are interested in using a beta version or for other inquiries about <tt> hi_class</tt> please contact emilio - bellini -- physics.ox.ac.uk or miguelzuma -- berkeley.edu
-
-<div data-social-share-privacy='true'><div align="center" class="fb-like" data-href="https://www.facebook.com/hiclasscode" data-layout="button" data-action="like" data-show-faces="true" data-share="true"></div></div>
-
-<h4>
-<a name="pubs">Publications using <tt>hi_class</tt> </a>
-</h4>
-
-<p> <tt>hi_class</tt> has been used to obtain results in the following publications:
-<ol type="1">
-<li> <i> Nonlinear evolution of the BAO scale in alternative theories of gravity </i>
- <br> E. Bellini, M. Zumalacarregui
- <a href="http://inspirehep.net/record/1370110" target ="_blank">  PRD92 (2015) 063522 </a>
-</li>
-<li> <i> Constraints on deviations from LCDM within Horndeski gravity </i>
-<br> E. Bellini, A. Cuesta, R. Jimenez, L. Verde
- <a href="http://inspirehep.net/record/1394845" target ="_blank"> JCAP 1602 (2016) 053 </a>
-</li>
-<li> <i> Gravity at the horizon: on relativistic effects, CMB-LSS correlations and ultra-large scales in Horndeski's theory </i>
- J. Renk, M. Zumalacarregui, F. Montanari
- <a href="http://inspirehep.net/record/1445097" target ="_blank"> JCAP 1607 (2016) 040 </a>
-</li>
-<li> <i> <tt>hi_class:</tt> Horndeski in the Cosmic Linear Anisotropy Solving System </i>
-<br> M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira <br>
- <a href="http://inspirehep.net/record/1462237" target ="_blank">  JCAP 1708 (2017) 019 </a>
-<li> <i> Initial conditions for the Galileon dark energy </i>  C. Germani
- <a href="https://inspirehep.net/literature/1487524" target ="_blank"> 1609.06598 </a>
-</li>
-<li> <i> The Observational Future of Cosmological Scalar-Tensor Theories </i>
-<br>  D. Alonso, E. Bellini, P. G. Ferreira, M. Zumalacarregui
- <a href="http://inspirehep.net/record/1495006" target ="_blank"> PRD95 (2017) 063502 </a>
-</li>
-<li> <i> Early Cosmology Constrained </i>  L. Verde, E. Bellini, C. Pigozzo, A. Heavens, R. Jimenez
- <a href="https://inspirehep.net/literature/1495513" target ="_blank"> 1611.00376 </a>
-</li>
-<li> <i> Hiding neutrino mass in modified gravity cosmologies </i>  N. Bellomo, E. Bellini, B. Hu, R. Jimenez, C. Pena-Garay
- <a href="https://inspirehep.net/literature/1502319" target ="_blank"> 1612.02598 </a>
-</li>
-<li> <i> Galileon Gravity in Light of ISW, CMB, BAO and H0 data </i>
-<br>  J. Renk, M. Zumalacarregui, F. Montanari, A. Barreira
- <a href="http://inspirehep.net/record/1609059" target ="_blank"> JCAP 1710 (2017) 020 </a>
-</li>
-<li> <i> A comparison of Einstein-Boltzmann solvers for testing General Relativity </i>
-<br>  E. Bellini <it> et al. </it>
- <a href="http://inspirehep.net/record/1625713" target ="_blank"> PRD97 (2018) 023520 </a>
-</li>
-<li> <i> The impact of relativistic effects on cosmological parameter estimation </i>
-<br>  C. Lorenz, D. Alonso, P. Ferreira
- <a href="http://inspirehep.net/record/1628961" target ="_blank"> PRD97 (2018) 023537  </a>
-</li>
-<li> <i> Dark Energy after GW170817: Dead Ends and the Road Ahead </i>
-<br>  J. M. Ezquiaga, M. Zumalacarregui
- <a href="http://inspirehep.net/record/1630865" target ="_blank"> Phys.Rev.Lett. 119 251304 </a>
-  (see <a href="https://link.aps.org/doi/10.1103/Physics.10.134" target="_blank"> Physics Viewpoint </a>)
-</li>
-<li> <i> Testing (modified) gravity with 3D and tomographic cosmic shear </i>  A. Spurio Mancini, R. Reischke, V. Pettorino, B.M. Schaefer, M. Zumalacarregui
- <a href="http://inspirehep.net/record/1647938" target ="_blank"> MNRAS 480 (2018) 3725 </a>
-</li>
-<li> <i>  Dark energy from &alpha;-attractors: phenomenology and observational constraints </i>  C. García-García, E. Linder, P. Ruíz-Lapuente, M. Zumalacárregui
- <a href="http://inspirehep.net/record/1658468" target ="_blank"> JCAP 1808 (2018) 022 </a>
-</li>
-<li> <i> Investigating scalar-tensor-gravity with statistics of the cosmic large-scale structure </i>  R. Reischke, A. Spurio Mancini, B. Malte Schäfer, P. Merkel
- <a href="http://inspirehep.net/record/1666885" target ="_blank"> 1804.02441 </a>
-</li>
-<li> <i> Testing Horndeski gravity as dark matter with <tt> hi_class</tt> </i>  A. Casalino, M. Rinaldi
- <a href="http://inspirehep.net/record/1681027" target ="_blank"> 1807.01995 </a>
-</li>
-<li> <i> Dark Energy in light of Multi-Messenger Gravitational-Wave astronomy </i>  JM Ezquiaga, M. Zumalacárregui
- <a href="http://inspirehep.net/record/1683707" target ="_blank"> 1807.09241 </a>
-</li>
-<li> <i> Gravity's Islands: Parametrizing Horndeski Stability </i>  M. Denissenya, E. Linder
- <a href="http://inspirehep.net/record/1684691" target ="_blank"> 1808.00013 </a>
-</li>
-<li> <i> Inflation and Early Dark Energy with a Stage II Hydrogen Intensity Mapping experiment </i>  Cosmic Visions 21 cm Collaboration
- <a href="https://inspirehep.net/literature/1699931" target ="_blank"> 1810.09572 </a>
-</li>
-<li> <i> No Slip CMB  </i>  M. Brush, E. Linder, M. Zumalacarregui
- <a href="https://inspirehep.net/record/1701047" target ="_blank"> 1810.12337 </a>
-</li>
-<li> <i> Radiative stability and observational constraints on dark energy and modified gravity  </i>  J. Noller, A. Nicola
- <a href="http://inspirehep.net/record/1702495" target ="_blank"> 1811.03082  </a>
-</li>
-<li> <i> Cosmological parameter constraints for Horndeski scalar-tensor gravity </i>  J. Noller, A. Nicola
- <a href="http://inspirehep.net/record/1706040" target ="_blank"> 1811.12928 </a>
-</li>
-<li> <i> KiDS+GAMA: Constraints on Horndeski gravity from combined large-scale structure probes </i> A Spurio Mancini et al.
- <a href="http://inspirehep.net/record/1713441" target ="_blank"> 1901.03686 </a>
-</li>
-<li> <i> The phenomenology of beyond Horndeski gravity </i>  D. Traykova, E. Bellini, P. Ferreira
- <a href="http://inspirehep.net/record/1722260" target ="_blank"> 1902.10687 </a>
-</li>
-<li> <i> Positivity in the sky </i>  S. Melville J. Noller
- <a href="http://inspirehep.net/record/1729299" target ="_blank"> 1904.05874 </a>
-</li>
-<li> <i> Designing Horndeski and the effective fluid approach </i>  R. Arjona, W. Cardona, S. Nesseris
- <a href="http://inspirehep.net/record/1729556" target ="_blank"> 1904.06294  </a>
-</li>
-<li> <i> Modified Gravity Away from a ΛCDM Background </i>  G. Brando et al.
- <a href="http://inspirehep.net/record/1732298" target ="_blank"> 1904.12903  </a>
-</li>
-<li> <i> Alpha-attractor dark energy in view of next-generation cosmological surveys </i>  C. Garcia-Garcia et al.
- <a href="http://inspirehep.net/record/1734039" target ="_blank"> 1905.03753 </a>
-</li>
-<li> <i> The Shape Dependence of Vainshtein Screening in the Cosmic Matter Bispectrum </i>  C. Burrage, J. Dombrowski, D. Saadeh
- <a href="http://inspirehep.net/record/1735156" target ="_blank"> 1905.06260 </a>
-</li>
-<li> <i> Dark sector evolution in Horndeski models </i>  F. Pace et al.
- <a href="http://inspirehep.net/record/1735272" target ="_blank"> 1905.06795 </a>
-</li>
-<li> <i> Testing modified gravity at cosmological distances with LISA standard sirens </i>  LISA Cosmology Working Group
- <a href="http://inspirehep.net/record/1738351" target ="_blank"> 1906.01593 </a>
-</li>
-<li> <i> <tt>hi_class:</tt> Background Evolution, Initial Conditions and Approximation Schemes </i>
-<br> E. Bellini, I. Sawicki, M. Zumalacarregui <br>
- <a href="https://arxiv.org/abs/1909.01828" target ="_blank">  1909.01828 </a>
-</li>
-<li> <i> Theoretical priors in scalar-tensor cosmologies: Thawing quintessence </i>  C. Garcia-Garcia, E. Bellini, P. Ferreira, D. Traykova, M. Zumalacarregui
- <a href="http://inspirehep.net/record/1763812" target ="_blank"> 1911.02868  </a>
- <li> <i> Cosmological constraints on dark energy in light of gravitational wave bounds </i>  J. Noller
- <a href="http://inspirehep.net/record/1775805" target ="_blank"> 2001.05469 </a>
- <li> <i> Gravity in the Era of Equality: Towards solutions to the Hubble problem without fine-tuned initial conditions </i>  M. Zumalacarregui
- <a href="http://inspirehep.net/record/1785417" target ="_blank"> 2003.06396  </a>
- <li> <i> The H0 tension: ΔG_N vs. ΔN_eff </i>  G. Ballesteros, A. Notari, F. Rompineve <a href="https://inspirehep.net/literature/1790840" target ="_blank"> 2004.05049  </a>
- <li> <i> A larger value for H0 by an evolving gravitational constant </i>  Matteo Braglia et al.
- <a href="https://inspirehep.net/literature/1792446" target ="_blank"> 2004.11161 </a>
- <li> <i> Improvements in cosmological constraints from breaking growth degeneracy </i>  L. Perenon, S. Ilic, R. Maartens, A. de la Cruz-Dombriz
- <a href="https://inspirehep.net/literature/1793879" target ="_blank"> 2005.00418  </a>
-  <li> <i> Information entropy in cosmological inference problems </i>  A. Pinho, R. Reischke, M. Teich, B. Malte Schäfer
- <a href="https://inspirehep.net/literature/1794410" target ="_blank"> 2005.02035 </a>
-  <li> <i> Cross-bispectra Constraints on Modified Gravity Theories from Nancy Grace Roman Space Telescope and Rubin Observatory Legacy Survey of Space and Time </i>  C. Heinrich, O. Doré
- <a href="https://inspirehep.net/literature/1799652" target ="_blank"> 2006.03138  </a>
-   <li> <i> Relativistic Corrections to the Growth of Structure in Modified Gravity </i>  G. Brando, K. Koyama, D. Wands
- <a href="https://inspirehep.net/literature/1802119" target ="_blank"> 2006.11019  </a>
-    <li> <i> Constraining Scalar-Tensor Modified Gravity with Gravitational Waves and Large Scale Structure Surveys </i>  T. Baker, I. Harrison
- <a href="https://inspirehep.net/literature/1809093" target ="_blank"> 2007.13791  </a>
-    <li> <i> Scalar-tensor cosmologies without screening </i> J. Noller, L. Santoni, E. Trincherini, L. Trombetta
- <a href="https://inspirehep.net/literature/1812574" target ="_blank"> 2008.08649  </a>
-     <li> <i> Early modified gravity in light of the $H_0$ tension and LSS data </i> M. Braglia, M. Ballardini, F. Finelli and K. Koyama
- <a href="https://inspirehep.net/literature/1833034" target ="_blank"> 2011.12934  </a>
-    <li> <i> Can Conformally Invariant Modified Gravity Solve The Hubble Tension? </i> T. Abadi and E. Kovetz
- <a href="https://inspirehep.net/literature/1833646" target ="_blank"> 2011.13853  </a>
-  <li> <i> Testing modified (Horndeski) gravity by combining intrinsic galaxy alignments with cosmic shear </i> R. Reischke, V. Bosca, T. Tugendhat, B. Malte Schäfer
- <a href="https://inspirehep.net/literature/1849617" target ="_blank"> 2103.01657  </a>
-   <li> <i> Positivity Bounds on Dark Energy: When Matter Matters </i> C. de Rham, S. Melville and J. Noller
- <a href="https://inspirehep.net/literature/1851169" target ="_blank"> 2103.06855  </a>
- <li> <i> Theoretical priors in scalar-tensor cosmologies: Shift-symmetric Horndeski models </i> D. Traykova, E. Bellini, P. G. Ferreira, C. García-García, J. Noller, M. Zumalacárregui
- <a href="https://inspirehep.net/literature/1852905" target ="_blank"> 2103.11195  </a>
-  <li> <i> Fully relativistic predictions in Horndeski gravity from standard Newtonian N-body simulations </i> G. Brando, K. Koyama, D. Wands, M. Zumalacárregui, I. Sawicki, E. Bellini
- <a href="https://inspirehep.net/literature/1862738" target ="_blank"> 2105.04491  </a>
- <li> <i> On tachyonic stability priors for dark energy </i> R. Gsponer, J. Noller
-<a href="https://inspirehep.net/literature/1875725" target ="_blank"> 2107.01044  </a>
-<li> <i> Positivity bounds from multiple vacua and their cosmological consequences </i> S. Melville, J. Noller
-<a href="https://inspirehep.net/literature/2026624" target ="_blank"> 2202.01222  </a>
-<li> <i> Enabling matter power spectrum emulation in beyond-ΛCDM cosmologies with COLA </i> G. Brando, B. Fiorini, K. Koyama, H. Winther
- <a href="https://inspirehep.net/literature/2055932" target ="_blank"> 2203.11120 </a>
- <li> <i> Neutrino mass and kinetic gravity braiding degeneracies </i> G. Garcia-Arroyo, J. L. Cervantes-Cota, U. Nucamendi
-  <a href="https://inspirehep.net/literature/2080566" target ="_blank"> 2205.05755 </a>
-  <li> <i> A Forecast for Large Scale Structure Constraints on Horndeski Gravity with Line Intensity Mapping </i> B. Scott, K. Karkare, S. Bird,
-  <a href="https://inspirehep.net/literature/2157307" target ="_blank"> 2209.13029 </a>
-   <li> <i> Testing gravity with gravitational wave friction and gravitational slip </i> I. Matos, E. Bellini, M. Calvão, M. Kunz,
-   <a href="https://inspirehep.net/literature/2169669" target ="_blank"> 2210.12174 </a>
-   <li> <i> The Effective Fluid Approach for Modified Gravity and Its Applications </i> S. Nesseris,
-   <a href="https://inspirehep.net/literature/2618245" target ="_blank"> 2212.12768 </a>
-   <li> <i> Testing gravity on cosmological scales: theoretical predictions with the COLA method </i> B. Fiorini (PhD thesis),
-   <a href="https://inspirehep.net/literature/2641565" target ="_blank"> 2303.07121 </a>
-    <li> <i> Revisiting Vainshtein Screening for fast N-body simulations </i> G. Brando, K. Koyama, H. Winther,
-   <a href="https://inspirehep.net/literature/2643086" target ="_blank"> 2303.09549 </a>
-   <li>  <i> Probing Dark Energy and Modifications of Gravity with Ground-Based Millimeter-Wavelength Line Intensity Mapping </i> A. Moradinezhad Dizgah, E. Bellini, G. Keating,
-   <a href="https://inspirehep.net/literature/2651855" target ="_blank"> 2304.08471 </a>
-   <li> <i> Euclid: Constraining linearly scale-independent modifications of gravity with the spectroscopic and photometric primary probes </i> Euclid Collaboration: N. Frusciante, F. Pace, V. F. Cardone et al.
-   <a href="https://inspirehep.net/literature/2670531" target ="_blank"> 2306.12368 </a>
-   <li>  <i> Machine learning unveils the linear matter power spectrum of modified gravity </i> J. B. Orjuela-Quintana, S. Nesseris, D. Sapone,
-   <a href="https://inspirehep.net/literature/2675262" target ="_blank"> 2307.03643 </a>
-   <li> <i> Probing Early Modification of Gravity with Planck, ACT and SPT </i> G. F. Abellán, M. Braglia, M. Ballardini, F. Finelli, V. Poulin,
-   <a href="https://inspirehep.net/literature/2690644" target ="_blank"> 2308.12345 </a>
-   <li> <i> Constraining dark energy with the integrated Sachs-Wolfe effect </i> E. Seraille, J. Noller, B. Sherwin,
-      <a href="https://inspirehep.net/literature/2746325" target ="_blank"> 2401.06221 </a>
-   <li> <i> A simple prediction of the non-linear matter power spectrum in Brans-Dicke gravity from linear theory </i> H. Sletmoen, H. Winther,
-      <a href="https://inspirehep.net/literature/2765832" target ="_blank"> 2403.03786 </a>
-   <li> <i> Modified gravity interpretation of the evolving dark energy in light of DESI data</i> A. Chudaykin, M. Kunz,
-      <a href="https://inspirehep.net/literature/2804242" target ="_blank"> 2407.02558 </a>
-    <li> <i> mochi_class: Modelling Optimisation to Compute Horndeski In class</i> M. Cataneo, E. Bellini,
-      <a href="https://inspirehep.net/literature/2808363" target ="_blank"> 2407.11968 </a>
-   <li> <i> Interpretable and physics-informed emulator for the linear matter power spectrum from machine learning</i> J. B. Orjuela-Quintana, D. Sapone, S. Nesseris
-      <a href="https://inspirehep.net/literature/2810552" target ="_blank"> 2407.16640 </a>
-   <li> <i> Scant evidence for thawing quintessence</i> W. Wolf, C. García-García, D. Bartlett, P. Ferreira
-      <a href="https://inspirehep.net/literature/2823318" target ="_blank"> 2408.17318 </a>
-      <li> <i> Constraints on dark energy and modified gravity from the BOSS Full-Shape and DESI BAO data</i> P. Taule, M. Marinucci, G. Biselli, M. Pietroni, F. Vernizzi
-         <a href="https://inspirehep.net/literature/2828412" target ="_blank"> 2409.08971 </a>
-   <li> <i> Fast radio bursts as a probe of gravity on cosmological scales</i> D. Neumann, R. Reischke, S. Hagstotz, H. Hildebrandt
-         <a href="https://inspirehep.net/literature/2829390" target ="_blank"> 2409.11163 </a>
-   <li> <i> Testing gravity with the full-shape galaxy power spectrum: First constraints on scale-dependent modified gravity</i> A. Aviles
-         <a href="https://inspirehep.net/literature/2832453" target ="_blank"> 2409.15640 </a>
-        <li> <i> Matching current observational constraints with nonminimally coupled dark energy</i> W. Wolf, P. Ferreira, C. Garcia-Garcia
-         <a href="https://inspirehep.net/literature/2833082" target ="_blank"> 2409.17019  </a>
-   <li> <i> Modified gravity constraints from the full shape modeling of clustering measurements from DESI 2024</i> DESI Collaboration: M. Ishak, J. Pan, R. Calderon et al.
-         <a href="https://inspirehep.net/literature/2850039" target ="_blank"> 2411.12026 </a>
-  <li> <i> Exploring cosmological imprints of phantom crossing with dynamical dark energy in Horndeski gravity</i> Y. Tiwari, U. Upadhyay, R. Jain
-         <a href="https://inspirehep.net/literature/2854680" target ="_blank"> 2412.00931 </a>
-      <li> <i> Robustness of Dark Energy Phenomenology Across Different Parameterizations</i> W. Wolf, C. Garcia-Garcia, P. Ferreira
-         <a href="https://inspirehep.net/literature/2877709" target ="_blank"> 2502.04929  </a>
-    <li> <i> Preference for evolving dark energy in light of the galaxy bispectrum</i> Z. Lu, T. Simon, P. Zhang
-   <a href="https://inspirehep.net/literature/2897444" target ="_blank"> 2503.04602  </a>
-    <li> <i> Modified gravity constraints with Planck ISW-lensing bispectrum</i> A. Chudaykin, M. Kunz, J. Carron
-         <a href="https://inspirehep.net/literature/2899840" target ="_blank"> 2503.09893  </a>
-   <li> <i> The Cosmological Evidence for Non-Minimal Coupling</i> W. Wolf, C. Garcia-Garcia, T. Anton, P. Ferreira
-         <a href="https://inspirehep.net/literature/2910498" target ="_blank"> 2504.07679 </a>
-   <li> <i> Nonlinear dynamics in Horndeski gravity: a renormalized approach to effective gravitational coupling</i> L. Amendola, C. Bernal, R. Gannouji
-   <a href="https://inspirehep.net/literature/2919107" target ="_blank"> 2505.03999 </a>
-   <li> <i>Euclid preparation. Constraining parameterised models of modifications of gravity with the spectroscopic and photometric primary probes</i> Euclid Collaboration: I. S. Albuquerque, N. Frusciante, Z. Sakr et al.
-   <a href="https://inspirehep.net/literature/2928753" target ="_blank"> 2506.03008 </a>
-   <li> <i> Monodromic Dark Energy and DESI</i> S. Goldstein, M. Celoria, F. Schmidt
-   <a href="https://inspirehep.net/literature/2953547" target ="_blank"> 2507.16970 </a>
-   <li> <i>  Dark energy constraints in light of theoretical priors</i> N. Shah, K. Koyama, J. Noller
-   <a href="https://inspirehep.net/literature/2954584" target ="_blank"> 2507.19450 </a>
-   <li> <i> Cosmological constraints on Galileon dark energy with broken shift symmetry</i> W. Wolf, P. Ferreira, C. Garcia-Garcia
-   <a href="https://inspirehep.net/literature/2972006" target ="_blank"> 2509.17586 </a>
-   <li> <i> From Dark Radiation to Dark Energy: Unified Cosmological Evolution in K-essence Models</i> E. Moreno, J. De-Santiago
-   <a href="https://inspirehep.net/literature/2974467" target ="_blank"> 2509.25088 </a>
-   <li> <i>KGB-evolution: a relativistic N-body code for kinetic gravity braiding models</i> A. Nouri-Zonoz, F. Hassani, E. Bellini, M. Kunz
-   <a href="https://inspirehep.net/literature/3080519" target ="_blank"> 2511.04676 </a>
-   <li> <i> A Dynamical Scalar Field Model for Dark Energy: Addressing the Hubble Tension and Cosmic Evolution</i> A. Kottur, J. Mahajan, R. Dabhade
-   <a href="https://inspirehep.net/literature/3082861" target ="_blank"> 2511.10317 </a>
-   <li> <i>New multiprobe analysis of modified gravity and evolving dark energy</i> Z. Lu, T. Simon
-   <a href="https://inspirehep.net/literature/3082748" target ="_blank"> 2511.10616 </a>
-   <li> <i>Clustering in dynamical dark energy: observational constraints from DESI, CMB, and supernovae</i> Y. Yang, Q. Wang, X. Ren, E. Saridakis, Y. Cai
-   <a href="https://inspirehep.net/literature/3087667" target ="_blank"> 2511.22478 </a>
-   <li> <i>Euclid preparation. Review of forecast constraints on dark energy and modified gravity</i> Euclid Collaboration: N. Frusciante, M. Martinelli et al.
-   <a href="https://inspirehep.net/arxiv/2512.09748" target ="_blank"> 2512.09748 </a>
-   <li> <i>KiDS-Legacy: Constraints on Horndeski gravity from weak lensing combined with galaxy clustering and CMB</i> B. St&ouml;lzner, R. Reischke, M. Grasso, M. Cataneo, B. Joachimi et al.
-   <a href="https://inspirehep.net/literature/3092589" target ="_blank"> 2512.11039 </a>
-   <li> <i>Non-parametric exploration of minimally coupled gravity with phantom crossing</i> M. Cataneo, K. Koyama
-   <a href="https://inspirehep.net/arxiv/2512.13691" target ="_blank"> 2512.13691 </a>
-   <li> <i>Abundance of cosmic voids in EFT of dark energy</i> T. Takadera, S. Hirano, T. Kobayashi
-   <a href="https://inspirehep.net/arxiv/2512.20171" target ="_blank"> 2512.20171 </a>
-   <li> <i>On the Difficulties with Late-Time Solutions for the Hubble Tension</i> P. Bansal, D. Huterer
-   <a href="https://inspirehep.net/literature/3117390" target ="_blank"> 2602.06293 </a>
-   <li> <i>H-EFTCAMB: A Cobaya-Integrated, Python-Wrapped Extension of EFTCAMB for Covariant Horndeski Gravity</i> G. Ye et al <a href="https://inspirehep.net/literature/3124710" target ="_blank"> 2603.01662 </a>
-   <li> <i>PySCo-EFT and ECOSMOG-EFT: a tandem of N-body simulation codes for the Effective Field Theory of Dark Energy</i> H. Ganjoo, Y. Rasera, E. Bellini, M.-A. Breton et al.
-   <a href="https://inspirehep.net/literature/3146385" target ="_blank"> 2604.15434 </a>
-   <li> <i>cloelib: A Flexible Python Library for Computing Cosmological Observables in the Euclid Era</i> M. Bonici, G. Canas-Herrera, P. Carrilho et al. <a href="https://inspirehep.net/literature/3159112" target ="_blank"> 2605.23839  </a>
-   <li> <i>Dark energy perturbations and the robustness of cosmological neutrino-mass constraints</i> Y.-H. Yang, E. N. Saridakis, Y.-F. Cai, H.-R. Yu
-   <a href="https://inspirehep.net/literature/3174253" target ="_blank"> 2606.28074 </a>
-   <li> <i>Constraining dark energy with complementary probes of large-scale structure</i> N. Shah, K. Koyama, J. Noller, L. Yi
-   <a href="https://inspirehep.net/literature/3175252" target ="_blank"> 2606.31977 </a>
-   <li> <i>The Status of Single Scalar Field Dark Energy</i> C. Garc&iacute;a-Garc&iacute;a, P. G. Ferreira, W. J. Wolf
-   <a href="https://inspirehep.net/literature/3178756" target ="_blank"> 2607.07777 </a>
-</ol>
-
-
-<center>
- <img src="imgs/Black_Dahlias_with_Yellow_Sky_Horndeski_2017_small.JPG" title=" Black Dahlias with Yellow Sky (Horndeski 2017)" width="800" HSPACE=25 VSPACE=20 style="text-align:center;">
-</center>
-
-
-
-</BODY>
+</body>
+</html>
