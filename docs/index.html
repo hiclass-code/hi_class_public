@@ -127,18 +127,32 @@
           Brans-Dicke and &alpha;-attractors — and serve as a template for further implementations.
           <code>hi_class</code> is easy to use and to modify, so new models are straightforward to add.</p>
       </div>
-<pre class="snippet"><code><span class="c"># a covariant Lagrangian: quartic Galileon</span>
+<div class="snippet-pair">
+        <div class="snippet-item">
+          <p class="snippet-label">Covariant theory</p>
+<pre class="snippet"><code><span class="c"># a quartic Galileon Lagrangian</span>
 <span class="c">#   G2 = -X</span>
 <span class="c">#   G3 = c3 X /(H0^2 Mp)</span>
 <span class="c">#   G4 = Mp^2/2 + c4 X^2/(H0^2 Mp)^2</span>
-<span class="k">Omega_smg</span>        = -1
 <span class="k">gravity_model</span>    = galileon
 <span class="k">gravity_submodel</span> = quartic
-
-<span class="c"># ...or the EFT alpha-functions directly</span>
+<span class="c"># xi; the rest follows from the tracker</span>
+<span class="k">parameters_smg</span>   = 2.43
+<span class="k">Omega_smg</span>        = -1</code></pre>
+        </div>
+        <div class="snippet-item">
+          <p class="snippet-label">Effective theory</p>
+<pre class="snippet"><code><span class="c"># the alpha-functions directly, each one</span>
+<span class="c"># proportional to Omega_smg(a)</span>
 <span class="k">gravity_model</span>    = propto_omega
+<span class="c"># x_k, x_b, x_m, x_t, M*^2_ini</span>
 <span class="k">parameters_smg</span>   = 1., 0., 0., 0., 1.
-<span class="k">expansion_model</span>  = lcdm</code></pre>
+<span class="c"># and an expansion history to go with it</span>
+<span class="k">expansion_model</span>  = lcdm
+<span class="k">expansion_smg</span>    = 0.5
+<span class="k">Omega_smg</span>        = -1</code></pre>
+        </div>
+      </div>
     </div>
 
     <h3 class="eyebrow" style="margin-top:44px">Presented and described in</h3>
@@ -417,7 +431,7 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
           Pedro G. Ferreira</a>
       </li>
       <li class="member">
-        <a href="https://www2.physics.ox.ac.uk/contacts/people/garcia-garcia" target="_blank" rel="noopener">
+        <a href="https://github.com/carlosggarcia" target="_blank" rel="noopener">
           <img src="imgs/collaborators/Garcia-Garcia.jpg" width="92" height="92" loading="lazy" alt="">
           Carlos Garcia-Garcia</a>
       </li>
