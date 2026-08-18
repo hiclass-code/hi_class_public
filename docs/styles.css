@@ -60,8 +60,37 @@ body {
 
 img, svg, video { max-width: 100%; height: auto; }
 
-a { color: var(--accent); text-decoration: none; }
-a:hover { color: var(--accent-soft); text-decoration: underline; text-underline-offset: 3px; }
+/* Green is the highlight colour, so it is not also the link colour: links are
+   marked by an underline instead. That keeps the accent meaningful where it is
+   used deliberately (counts, code, labels), and gives links an affordance that
+   survives on touch screens and for readers who cannot separate the hues.
+   Navigation, buttons and title links opt out below - their container already
+   says they are clickable. */
+a {
+	color: var(--heading);
+	text-decoration: underline;
+	text-decoration-color: var(--accent-line);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+}
+a:hover {
+	color: var(--accent);
+	text-decoration-color: currentColor;
+}
+
+/* Links that are their own affordance: a button, a nav item, a card, or a
+   title standing alone on its line. These stay undecorated and reveal the
+   accent on hover, the pattern the reference and publication lists use. */
+.brand,
+.nav-links a,
+.nav-gh,
+.btn,
+a.badge,
+a.card--link,
+.refs a.ref-title,
+a.pub-title {
+	text-decoration: none;
+}
 
 :focus-visible {
 	outline: 2px solid var(--accent);
