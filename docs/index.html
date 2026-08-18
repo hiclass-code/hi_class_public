@@ -416,17 +416,18 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
           and <a href="https://github.com/mcataneo/mochi_class_public" target="_blank" rel="noopener">mochi_class</a>,
           which extends this architecture with stability-by-construction parametrizations.</p>
         <p>A different family — <a href="https://github.com/sfu-cosmo/MGCAMB" target="_blank" rel="noopener">MGCAMB</a>,
-          ISiTGR, MGCLASS II — instead parametrizes the relation between the metric potentials and matter, the
-          &mu;&ndash;&Sigma; approach. That is a modified Poisson equation rather than a scalar field with its own
-          equation of motion, and it answers a different question.</p>
+          <a href="https://github.com/mishakb/ISiTGR" target="_blank" rel="noopener">ISiTGR</a>,
+          <a href="https://gitlab.com/zizgitlab/mgclass--ii" target="_blank" rel="noopener">MGCLASS II</a> —
+          instead parametrizes the relation between the metric potentials and matter: the
+          &mu;&ndash;&Sigma; approach, a modified Poisson equation.</p>
         <p><code>hi_class</code> is a <em>linear</em> code. Screening — the mechanism that hides the fifth force in
           the Solar System, and the reason many of these theories are viable at all — is intrinsically nonlinear
-          and is not modelled here. Its transfer functions can seed a simulation, but sharing an initial spectrum
-          is not the same as sharing a theory: the nonlinear scalar equation and its screening have to match too.
-          For that, see <a href="https://tessabaker.space/hicola.html" target="_blank" rel="noopener">Hi-COLA</a>,
-          which derives background, growth and screened fifth force from a reduced-Horndeski Lagrangian,
-          <a href="https://github.com/nebblu/ACTio-ReACTio" target="_blank" rel="noopener">ReACT</a> for nonlinear
-          reactions, and the ECOSMOG and MG-GADGET families of N-body solvers.</p>
+          and is not modelled here. For non-linear codes see
+          <a href="https://github.com/HAWinther/MG-PICOLA-PUBLIC" target="_blank" rel="noopener">MG-PICOLA</a>
+          and <a href="https://tessabaker.space/hicola.html" target="_blank" rel="noopener">Hi-COLA</a>,
+          <a href="https://github.com/nebblu/ACTio-ReACTio" target="_blank" rel="noopener">ReACT</a>,
+          <a href="https://arxiv.org/abs/2511.04676" target="_blank" rel="noopener">KGB-evolution</a>, and the
+          ECOSMOG and MG-GADGET families of N-body solvers.</p>
       </div>
     </div>
   </div>
