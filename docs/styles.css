@@ -25,6 +25,10 @@
 	--accent-deep:   #1f8a00;
 	--accent-wash:   rgba(57, 230, 0, 0.10);
 	--accent-line:   rgba(57, 230, 0, 0.32);
+	/* Links carry a desaturated green: same family as the accent, but far
+	   enough from it in saturation that a link never reads as a highlight. */
+	--link:          #cdeec4;
+	--link-line:     rgba(57, 230, 0, 0.55);
 
 	/* Type */
 	--sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -67,9 +71,9 @@ img, svg, video { max-width: 100%; height: auto; }
    Navigation, buttons and title links opt out below - their container already
    says they are clickable. */
 a {
-	color: var(--heading);
+	color: var(--link);
 	text-decoration: underline;
-	text-decoration-color: var(--accent-line);
+	text-decoration-color: var(--link-line);
 	text-decoration-thickness: 1px;
 	text-underline-offset: 3px;
 }
@@ -663,7 +667,7 @@ figcaption {
 	line-height: 1.5;
 }
 
-.res-desc a { color: var(--heading); }
+.res-desc a { color: var(--link); }
 
 /* ---- Team -------------------------------------------------------------- */
 
