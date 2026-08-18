@@ -72,7 +72,7 @@
 <section class="band" id="science">
   <div class="wrap">
     <p class="eyebrow">The Science</p>
-    <h2>Linear cosmology for the most general scalar-tensor theory</h2>
+    <h2>Linear cosmology for general scalar-tensor gravity</h2>
 
     <div class="prose">
       <p class="lede"><code>hi_class</code> implements Horndeski's theory in the modern
@@ -82,10 +82,16 @@
         <a href="https://monte-python.readthedocs.io/en/latest/" target="_blank" rel="noopener">Monte Python</a>
         to test gravity and dark energy models.</p>
 
-      <p>Horndeski is the most general scalar-tensor theory described by second-order equations of motion, and
+      <p>Horndeski is the most general scalar-tensor theory whose equations of motion remain second order, and
         contains many well known models, including (but by no means limited to) covariant Galileons, Brans-Dicke,
-        f(R), chameleons, k-essence and quintessence. <code>hi_class</code> relies on a reformulation of the
-        Effective Field Theory for Dark Energy developed by E. Bellini and I. Sawicki (see
+        f(R), chameleons, k-essence and quintessence. It is not, however, the most general healthy scalar-tensor
+        theory: disformal couplings between the scalar field and matter evade Horndeski's theorem, giving
+        higher-order equations of motion that hidden constraints nonetheless keep free of Ostrogradski
+        instabilities (see
+        <a href="https://inspirehep.net/literature/1250251" target="_blank" rel="noopener">PRD 89 (2014) 064046</a>).</p>
+
+      <p><code>hi_class</code> relies on a reformulation of the Effective Field Theory for Dark Energy developed
+        by E. Bellini and I. Sawicki (see
         <a href="https://inspirehep.net/literature/1290333" target="_blank" rel="noopener">JCAP 1407 (2014) 050</a>).</p>
     </div>
 
@@ -474,8 +480,8 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
     <h2>Get in touch</h2>
     <div class="prose">
       <p>If you are interested in using a beta version, or for other inquiries about <code>hi_class</code>,
-        please contact <span class="contact-mail">emilio - bellini -- physics.ox.ac.uk</span> or
-        <span class="contact-mail">miguelzuma -- berkeley.edu</span>.</p>
+        please contact <span class="contact-mail">emilio - bellini -- sissa.it</span> or
+        <span class="contact-mail">miguel - zumalacarregui -- aei.mpg.de</span>.</p>
       <p>Bug reports and feature requests are also welcome on the
         <a href="https://github.com/miguelzuma/hi_class_public/issues" target="_blank" rel="noopener">GitHub issue
         tracker</a> and the
@@ -1005,7 +1011,7 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
       <a href="https://groups.google.com/d/forum/hi_class" target="_blank" rel="noopener">Forum</a> ·
       <a href="https://ascl.net/1808.010" target="_blank" rel="noopener">ascl:1808.010</a>
     </p>
-    <p class="footer-credit">The <code>hi_class</code> logo was designed by Marcos V&aacute;zquez Pingarr&oacute;n.</p>
+    <p class="footer-credit">The <code>hi_class</code> logo was designed by <a href="https://marcosvazquez.me/" target="_blank" rel="noopener">Marcos V&aacute;zquez Pingarr&oacute;n</a>.</p>
   </div>
 </footer>
 

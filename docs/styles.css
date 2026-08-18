@@ -86,7 +86,9 @@ a:hover {
 .nav-gh,
 .btn,
 a.badge,
-a.card--link,
+a.res,
+a.skip-link,
+.member a,
 .refs a.ref-title,
 a.pub-title {
 	text-decoration: none;
@@ -661,7 +663,7 @@ figcaption {
 	line-height: 1.5;
 }
 
-.res-desc a { color: var(--accent); }
+.res-desc a { color: var(--heading); }
 
 /* ---- Team -------------------------------------------------------------- */
 
