@@ -149,7 +149,8 @@ p:last-child { margin-bottom: 0; }
 
 .prose { max-width: var(--prose); }
 
-section[id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
+section[id],
+h3[id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
 
 .band {
 	padding: 68px 0;
