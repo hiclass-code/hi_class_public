@@ -470,9 +470,11 @@ a.badge:hover { border-color: var(--accent-line); color: var(--accent); text-dec
    sequence, and one box with a comment between them read as a single file. */
 .snippet-pair {
 	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 18px;
 	align-content: start;
 	min-width: 0;
+	margin-top: 28px;
 }
 
 .snippet-item { min-width: 0; }
@@ -565,9 +567,6 @@ a.badge:hover { border-color: var(--accent-line); color: var(--accent); text-dec
 
 @media (max-width: 820px) {
 	.feature { grid-template-columns: 1fr; gap: 22px; }
-	/* Stacked feature: the pair has the full width, so run the two boxes side
-	   by side instead of making the reader scroll past two tall listings. */
-	.snippet-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 620px) {

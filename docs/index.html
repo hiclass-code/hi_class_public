@@ -62,7 +62,7 @@
     <p class="badges">
       <a class="badge badge--count" href="#pubs"><b id="hero-pub-count">99</b> papers</a>
       <span class="badge">v2.0</span>
-      <span class="badge">built on CLASS</span>
+      <a class="badge" href="http://class-code.net/" target="_blank" rel="noopener">built on CLASS</a>
       <a class="badge" href="https://ascl.net/1808.010" target="_blank" rel="noopener">ascl:1808.010</a>
     </p>
   </div>
@@ -85,10 +85,12 @@
       <p>Horndeski is the most general scalar-tensor theory whose equations of motion remain second order, and
         contains many well known models, including (but by no means limited to) covariant Galileons, Brans-Dicke,
         f(R), chameleons, k-essence and quintessence. It is not, however, the most general healthy scalar-tensor
-        theory: disformal couplings between the scalar field and matter evade Horndeski's theorem, giving
-        higher-order equations of motion that hidden constraints nonetheless keep free of Ostrogradski
-        instabilities (see
-        <a href="https://inspirehep.net/literature/1250251" target="_blank" rel="noopener">PRD 89 (2014) 064046</a>).</p>
+        theory: general disformal couplings and degenerate theories generalize Horndeski without introducing
+        Ostrogradski instabilities (see
+        <a href="https://inspirehep.net/literature/1250251" target="_blank" rel="noopener">PRD 89 (2014) 064046</a>
+        and <a href="https://inspirehep.net/literature/1484281" target="_blank" rel="noopener">JHEP 12 (2016) 100</a>).
+        <code>hi_class</code> includes GLPV theories beyond Horndeski (see
+        <a href="https://inspirehep.net/literature/1292463" target="_blank" rel="noopener">PRL 114 (2015) 211101</a>).</p>
 
       <p><code>hi_class</code> relies on a reformulation of the Effective Field Theory for Dark Energy developed
         by E. Bellini and I. Sawicki (see
@@ -118,12 +120,12 @@
       </div>
     </div>
 
-    <div class="feature">
+    <div class="feature feature--stack">
       <div class="feature-body">
         <p class="eyebrow">Flexible input</p>
         <h3 class="feature-title">Two ways to test gravity</h3>
         <p>The <em>effective-theory approach</em> consists of providing a parametrization of the
-          &alpha;-functions and the equation of state, independent of any underlying theory, with the aim of
+          &alpha;-functions and the dark-energy equation of state, independent of any underlying theory, with the aim of
           testing for particular physical effects.</p>
         <p>The <em>covariant-theory approach</em> starts from a particular model defined in terms of the
           Horndeski functions G<sub>i</sub>. Upon specifying the initial conditions for the background field
@@ -132,32 +134,6 @@
         <p>Worked-out examples ship with the code — Galileon, nKGB, quintessence (monomial and tracker),
           Brans-Dicke and &alpha;-attractors — and serve as a template for further implementations.
           <code>hi_class</code> is easy to use and to modify, so new models are straightforward to add.</p>
-      </div>
-<div class="snippet-pair">
-        <div class="snippet-item">
-          <p class="snippet-label">Covariant theory</p>
-<pre class="snippet"><code><span class="c"># a quartic Galileon Lagrangian</span>
-<span class="c">#   G2 = -X</span>
-<span class="c">#   G3 = c3 X /(H0^2 Mp)</span>
-<span class="c">#   G4 = Mp^2/2 + c4 X^2/(H0^2 Mp)^2</span>
-<span class="k">gravity_model</span>    = galileon
-<span class="k">gravity_submodel</span> = quartic
-<span class="c"># xi; the rest follows from the tracker</span>
-<span class="k">parameters_smg</span>   = 2.43
-<span class="k">Omega_smg</span>        = -1</code></pre>
-        </div>
-        <div class="snippet-item">
-          <p class="snippet-label">Effective theory</p>
-<pre class="snippet"><code><span class="c"># the alpha-functions directly, each one</span>
-<span class="c"># proportional to Omega_smg(a)</span>
-<span class="k">gravity_model</span>    = propto_omega
-<span class="c"># x_k, x_b, x_m, x_t, M*^2_ini</span>
-<span class="k">parameters_smg</span>   = 1., 0., 0., 0., 1.
-<span class="c"># and an expansion history to go with it</span>
-<span class="k">expansion_model</span>  = lcdm
-<span class="k">expansion_smg</span>    = 0.5
-<span class="k">Omega_smg</span>        = -1</code></pre>
-        </div>
       </div>
     </div>
 
@@ -268,6 +244,11 @@
     <h3 class="eyebrow" style="margin-top:44px">Selected results obtained with hi_class</h3>
     <ul class="refs">
       <li>
+        <a class="ref-title" href="https://www.youtube.com/watch?v=RbXqghcRv0U" target="_blank" rel="noopener">Single Scalar Field Dark Energy: 2026 Status Report</a>
+        <span class="ref-meta">Talk by C. Garc&iacute;a-Garc&iacute;a and W. Wolf ·
+          <span class="mono">video</span></span>
+      </li>
+      <li>
         <a class="ref-title" href="https://inspirehep.net/literature/2910498" target="_blank" rel="noopener">The Cosmological Evidence for Non-Minimal Coupling</a>
         <span class="ref-meta">W. Wolf, C. García-García, T. Anton, P. G. Ferreira ·
           <span class="mono">PRL 135 (2025)</span></span>
@@ -330,47 +311,67 @@
 
     <dl class="qualities">
       <div>
-        <dt>Flexible</dt>
-        <dd>Test gravity two ways: parametrize the &alpha;-functions and the equation of state independently
-          of any underlying theory, or start from a covariant Horndeski Lagrangian and let <code>hi_class</code>
-          determine the background and the &alpha;-functions itself. Worked-out models ship ready to run, and
-          every configuration is screened for ghost and gradient instabilities before it is used.</dd>
-      </div>
-      <div>
-        <dt>Fast</dt>
-        <dd>A full model — background, lensed CMB and matter power spectrum — is computed efficiently, fast
-          enough to sample the parameter space of each model. That is what makes Bayesian parameter
-          estimation practical, and <code>hi_class</code> interfaces directly with Monte Python to do it.</dd>
-      </div>
-      <div>
         <dt>Accurate</dt>
-        <dd>Accuracy was established in a dedicated comparison paper,
+        <dd><code>hi_class</code> lets you balance accuracy against speed through a wide range of precision
+          parameters, and it was the first code to implement self-consistent initial conditions for linear
+          perturbations. Its accuracy was established in a dedicated comparison paper,
           <a href="https://inspirehep.net/literature/1625713" target="_blank" rel="noopener"><i>A comparison of
           Einstein-Boltzmann solvers for testing General Relativity</i></a>, which ran the same models through
-          four independent codes: <code>hi_class</code>,
-          <a href="https://eftcamb.github.io/" target="_blank" rel="noopener">EFTCAMB</a>,
-          <a href="https://www.cita.utoronto.ca/~zqhuang/coop/" target="_blank" rel="noopener">COOP</a> and the
-          CAMB-based Galileon code of
-          <a href="https://inspirehep.net/literature/1298787" target="_blank" rel="noopener">Barreira
-          <i>et al.</i></a> Across that range of models the CMB and matter power spectra agree to
+          four independent codes. Across that range of models the CMB and matter power spectra agree to
           <b class="num">0.1%</b> — as good as base CLASS/CAMB at default precision parameters — and to
           <b class="num">0.5%</b> at low multipoles, comfortably within cosmic variance. That is sufficient
           precision for tests of gravity with next-generation surveys.</dd>
       </div>
+      <div>
+        <dt>Fast</dt>
+        <dd>A full model — background, lensed CMB and matter power spectrum — is computed efficiently, fast
+          enough to sample the parameter space of each model. <code>hi_class</code> also implements the
+          quasi-static approximation, which speeds up computations on small scales. This makes Bayesian
+          parameter estimation practical, and <code>hi_class</code> interfaces directly with Monte Python
+          to do it.</dd>
+      </div>
+      <div>
+        <dt>Flexible</dt>
+        <dd>Test gravity two ways: parametrize the &alpha;-functions and the dark-energy equation of state
+          independently of any underlying theory, or start from a covariant Horndeski Lagrangian and let
+          <code>hi_class</code> determine the background and the &alpha;-functions itself. Worked-out models
+          ship ready to run, and every configuration is screened for ghost and gradient instabilities before
+          it is used.</dd>
+      </div>
     </dl>
 
-    <figure>
-      <img src="imgs/CAMB_compare_Cl_web_inverse.png" width="399" height="397" loading="lazy"
-           alt="Relative difference between the CMB temperature power spectra computed by hi_class and by other Einstein-Boltzmann solvers, shown as a function of multipole.">
-      <figcaption>Relative agreement of the CMB angular power spectra computed by <code>hi_class</code> and the
-        other codes in the comparison paper.</figcaption>
-    </figure>
+<div class="snippet-pair">
+        <div class="snippet-item">
+          <p class="snippet-label">Covariant theory</p>
+<pre class="snippet"><code><span class="c"># a quartic Galileon Lagrangian</span>
+<span class="c">#   G2 = -X</span>
+<span class="c">#   G3 = c3 X /(H0^2 Mp)</span>
+<span class="c">#   G4 = Mp^2/2 + c4 X^2/(H0^2 Mp)^2</span>
+<span class="k">gravity_model</span>    = galileon
+<span class="k">gravity_submodel</span> = quartic
+<span class="c"># xi; the rest follows from the tracker</span>
+<span class="k">parameters_smg</span>   = 2.43
+<span class="k">Omega_smg</span>        = -1</code></pre>
+        </div>
+        <div class="snippet-item">
+          <p class="snippet-label">Effective theory</p>
+<pre class="snippet"><code><span class="c"># the alpha-functions directly, each one</span>
+<span class="c"># proportional to Omega_smg(a)</span>
+<span class="k">gravity_model</span>    = propto_omega
+<span class="c"># x_k, x_b, x_m, x_t, M*^2_ini</span>
+<span class="k">parameters_smg</span>   = 1., 0., 0., 0., 1.
+<span class="c"># and an expansion history to go with it</span>
+<span class="k">expansion_model</span>  = lcdm
+<span class="k">expansion_smg</span>    = 0.5
+<span class="k">Omega_smg</span>        = -1</code></pre>
+        </div>
+      </div>
 
     <div class="feature feature--stack">
       <div class="feature-body">
         <p class="eyebrow">From Python</p>
         <h3 class="feature-title">Drive it from a script or a notebook</h3>
-        <p>Building the code also builds <code>classy</code>, the Python wrapper inherited from CLASS.
+        <p>The code also builds <code>classy</code>, the Python wrapper inherited from CLASS.
           Parameters go in as a dictionary — <code>hi_class</code> options alongside the standard CLASS
           ones — and spectra come back as arrays, ready to plot. Worked examples ship in
           <code>notebooks/</code>.</p>
@@ -1098,7 +1099,7 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
       <a href="#team">Team</a> ·
       <a href="#contact">Contact</a> ·
       <a href="https://github.com/miguelzuma/hi_class_public" target="_blank" rel="noopener">GitHub</a> ·
-      <a href="https://groups.google.com/d/forum/hi_class" target="_blank" rel="noopener">Forum</a> ·
+      <a href="https://github.com/miguelzuma/hi_class_public/wiki" target="_blank" rel="noopener">Wiki</a> ·
       <a href="https://ascl.net/1808.010" target="_blank" rel="noopener">ascl:1808.010</a>
     </p>
     <p class="footer-credit">The <code>hi_class</code> logo was designed by <a href="https://marcosvazquez.me/" target="_blank" rel="noopener">Marcos V&aacute;zquez Pingarr&oacute;n</a>.</p>
