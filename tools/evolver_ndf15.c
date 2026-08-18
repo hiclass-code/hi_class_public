@@ -59,6 +59,17 @@
 //#include "perturbations.h"
 #include "sparse.h"
 
+/* Absolute floor of the per-variable error weights, wt = max(|y|,abstol).
+   Variables smaller than this are only error-controlled in an absolute sense.
+   The background integration of covariant scalar-field models (_smg) lowers
+   this before calling the evolver and restores it afterwards: on tracker
+   solutions the scalar field velocity starts around 1e-43 (phi' ~ a^3 in
+   radiation domination from a_ini=1e-14) and would otherwise be integrated as
+   unresolved noise, randomly kicking the field off the attractor. Do NOT
+   lower it globally: perturbation variables legitimately cross zero, and a
+   tiny floor there makes the step-size control demand impossible precision. */
+double evolver_ndf15_abstol = 1e-15;
+
 int evolver_ndf15(
           int (*derivs)(double x,double * y,double * dy,
                 void * parameters_and_workspace, ErrorMsg error_message),
@@ -87,7 +98,7 @@ int evolver_ndf15(
   double G[5]={1.0,3.0/2.0,11.0/6.0,25.0/12.0,137.0/60.0};
   double alpha[5]={-37.0/200,-1.0/9.0,-8.23e-2,-4.15e-2, 0};
   double invGa[5],erconst[5];
-  double abstol = 1e-15, eps=1e-16, threshold=abstol;
+  double abstol = evolver_ndf15_abstol, eps=1e-16, threshold=abstol;
   int maxit=4, maxk=5;
 
   /* Logicals: */

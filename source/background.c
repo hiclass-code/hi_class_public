@@ -2024,6 +2024,42 @@ int background_solve(
   }
 
   /** - perform the integration */
+
+  /* For dynamical scalar-field models the field velocity on tracker/attractor
+     solutions starts many orders of magnitude below the default ndf15 error
+     weight floor (phi' ~ a^3 in radiation domination gives ~1e-43 at
+     a_ini=1e-14). Lower the floor so phi' is error-controlled relatively from
+     the start, otherwise it is integrated as noise and the field can be
+     randomly kicked off the attractor (Omega_smg then depends discontinuously
+     on the model parameters and the shooting fails). Only done when phi'
+     starts at a nonzero value: for phi'_ini = 0 (e.g. Brans-Dicke) a tiny
+     floor would wreck the numerical Jacobian instead. Restored right after
+     the call: the default floor is required by the perturbation integration. */
+  if (pba->has_smg == _TRUE_ && pba->field_evolution_smg == _TRUE_) {
+    /* characteristic scale of phi': its initial value, or (when starting at
+       rest, e.g. Brans-Dicke) the change it accumulates over one e-fold,
+       obtained from one evaluation of the derivatives at the IC */
+    double * dy_ini;
+    double phi_prime_scale;
+    class_alloc(dy_ini,pba->bi_size*sizeof(double),pba->error_message);
+    class_call_except(background_derivs(loga_ini,pvecback_integration,dy_ini,&bpaw,pba->error_message),
+               pba->error_message,
+               pba->error_message,
+               free(pvecback);free(pvecback_integration);free(used_in_output);free(dy_ini););
+    phi_prime_scale = MAX(1.e-3*fabs(pvecback_integration[pba->index_bi_phi_prime_smg]),
+                          1.e-6*fabs(dy_ini[pba->index_bi_phi_prime_smg]));
+    /* the floor may be LOWERED below the 1e-15 default (tracker models whose
+       phi' starts tiny but nonzero must be resolved relatively) or RAISED
+       above it (models starting at phi'=0, e.g. Brans-Dicke: phi'' carries
+       irreducible rounding noise from near-cancelling terms, and an absolute
+       demand of rtol*1e-15 on phi' can then never be met). The only background
+       variables ever below a raised floor are the early proper and conformal
+       time, whose absolute error at that level is irrelevant. */
+    if (phi_prime_scale > 0.)
+      evolver_ndf15_abstol = MAX(1.e-60, MIN(1.e-6, phi_prime_scale));
+    free(dy_ini);
+  }
+
   class_call_except(generic_evolver(background_derivs,
                              loga_ini,
                              loga_final,
@@ -2042,11 +2078,14 @@ int background_solve(
                              pba->error_message),
              pba->error_message,
              pba->error_message,
+             evolver_ndf15_abstol = 1e-15;
              background_free_noinput(pba);
              free(pvecback);
              free(pvecback_integration);
              free(used_in_output);
              );
+
+  evolver_ndf15_abstol = 1e-15;
 
   /** - recover some quantities today */
   /* -> age in Gyears */

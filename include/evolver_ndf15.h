@@ -91,6 +91,9 @@ extern "C" {
 	     void * parameters_and_workspace_for_derivs, ErrorMsg error_message);
 
 
+/* absolute floor of the ndf15 error weights; see tools/evolver_ndf15.c */
+extern double evolver_ndf15_abstol;
+
 int evolver_ndf15(
 	int (*derivs)(double x,double * y,double * dy,
 		void * parameters_and_workspace, ErrorMsg error_message),

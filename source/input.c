@@ -679,6 +679,7 @@ int input_shooting(struct file_content * pfc,
       class_call_try(input_find_root(&xzero,
                                      &fevals,
                                      ppr->tol_shooting_deltax_rel,
+                                     ppr->tol_shooting_deltaF,
                                      &fzw,
                                      errmsg),
                      errmsg,
@@ -917,6 +918,21 @@ int input_needs_shooting_for_target(struct file_content * pfc,
         *needs_shooting = _FALSE_;
       break;
     case M2_today_smg:
+      {
+        /* M2_today_smg is only a shooting target if M2 tuning was requested:
+           the model blocks read it under the M2_tuning_smg flag, so without
+           it the target would add a useless dimension to the shooting (and
+           e.g. turn a robust 1D root-finding into a fragile 2D Newton). */
+        FileArg string_tmp;
+        int flag_tmp;
+        class_call(parser_read_string(pfc,"M2_tuning_smg",&string_tmp,&flag_tmp,errmsg),
+                   errmsg,
+                   errmsg);
+        if ((flag_tmp == _FALSE_) ||
+            ((strstr(string_tmp,"y") == NULL) && (strstr(string_tmp,"Y") == NULL)))
+          *needs_shooting = _FALSE_;
+      }
+      break;
   default:
     /* Default is no additional checks */
     *needs_shooting = _TRUE_;
@@ -944,6 +960,7 @@ int input_needs_shooting_for_target(struct file_content * pfc,
 int input_find_root(double *xzero,
                     int *fevals,
                     double tol_x_rel,
+                    double tol_F,
                     struct fzerofun_workspace *pfzw,
                     ErrorMsg errmsg){
 
@@ -964,6 +981,18 @@ int input_find_root(double *xzero,
              errmsg);
 
   (*fevals)++;
+
+  /* If the guess already solves the target equation, accept it. This matters
+     for models whose parameters are constructed analytically from the target
+     (e.g. galileon tracker submodels): the residual can be discontinuous in
+     the immediate neighborhood of the root (knife-edge attractors), so trying
+     to bracket it may fail even though the guess itself is exact. Mirrors the
+     |F| < tol_shooting_deltaF criterion of the multidimensional Newton path. */
+  if (fabs(f1) < tol_F) {
+    *xzero = x1;
+    return _SUCCESS_;
+  }
+
   dx = 1.5*f1*dxdy;
   if(fabs(dx) < x1*_EPSILON_){
     /* In this special case, we are very close to the correct location already
@@ -990,6 +1019,11 @@ int input_find_root(double *xzero,
       else {
         class_stop(errmsg,errmsg);
       }
+    }
+    if (fabs(f2) < tol_F) {
+      /* Good enough: accept without bracketing (see comment above) */
+      *xzero = x2;
+      return _SUCCESS_;
     }
     if (f1*f2<0.0){
       /* Root has been bracketed */
