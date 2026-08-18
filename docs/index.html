@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hi_class — Horndeski in the Cosmic Linear Anisotropy Solving System</title>
-<meta name="description" content="hi_class is an Einstein-Boltzmann solver for dark energy and modified gravity. It implements Horndeski's theory in CLASS and computes any linear cosmological observable in seconds.">
+<meta name="description" content="hi_class is an Einstein-Boltzmann solver for dark energy and modified gravity. It implements Horndeski's theory in CLASS and computes any linear cosmological observable.">
 <link rel="canonical" href="https://miguelzuma.github.io/hi_class_public/">
 <meta name="theme-color" content="#07090b">
 
@@ -77,7 +77,7 @@
     <div class="prose">
       <p class="lede"><code>hi_class</code> implements Horndeski's theory in the modern
         <a href="http://class-code.net/" target="_blank" rel="noopener">Cosmic Linear Anisotropy Solving System</a>.
-        It can be used to compute any linear cosmological observable in seconds, including FRW distances, CMB,
+        It can be used to compute any linear cosmological observable, including FRW distances, CMB,
         matter power and number count spectra. <code>hi_class</code> can be readily interfaced with
         <a href="https://monte-python.readthedocs.io/en/latest/" target="_blank" rel="noopener">Monte Python</a>
         to test gravity and dark energy models.</p>
@@ -272,12 +272,12 @@ cosmo.set({
     <span class="k">'output'</span>: 'tCl,pCl,lCl,mPk',
     <span class="k">'lensing'</span>: 'yes',
 
-    <span class="c"># Brans-Dicke:  G2 = (omega_BD/phi) X - V0,  G4 = phi Mp^2/2</span>
-    <span class="k">'gravity_model'</span>: 'brans dicke',
-    <span class="c"># V0, omega_BD, phi_ini, phi'_ini</span>
-    <span class="k">'parameters_smg'</span>: '0.7, 15, 1., 0',
-    <span class="k">'M_pl_today_smg'</span>: 1.0,
-    <span class="k">'a_min_stability_test_smg'</span>: 1e-6,
+    <span class="c"># the same quartic Galileon, driven from Python</span>
+    <span class="k">'gravity_model'</span>: 'galileon',
+    <span class="k">'gravity_submodel'</span>: 'quartic',
+    <span class="c"># xi = (H phi')/(a H0^2); the remaining parameters follow</span>
+    <span class="c"># from Omega_smg and the tracker condition</span>
+    <span class="k">'parameters_smg'</span>: 2.43,
 
     <span class="k">'Omega_smg'</span>: -1,  <span class="c"># fixed by the closure equation</span>
     <span class="k">'Omega_Lambda'</span>: 0,
