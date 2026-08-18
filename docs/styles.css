@@ -486,6 +486,55 @@ a.badge:hover { border-color: var(--accent-line); color: var(--accent); text-dec
 	margin: 0 0 8px;
 }
 
+/* ---- Master diagram: the two routes to a prediction ---------------------- */
+
+.diagram { margin: 44px 0 0; }
+
+/* Below ~640px the labels would be unreadable if scaled down, so the diagram
+   scrolls sideways inside its own box rather than shrinking the whole page. */
+.diagram-scroll { overflow-x: auto; }
+
+.dgm {
+	display: block;
+	width: 100%;
+	min-width: 640px;
+	height: auto;
+}
+
+.dgm-box {
+	fill: var(--surface);
+	stroke: var(--border-hi);
+	stroke-width: 1;
+}
+
+.dgm-stage text {
+	font-family: var(--mono);
+	font-size: 12px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	fill: var(--accent);
+}
+
+.dgm-math text { font-size: 17px; fill: var(--heading); }
+.dgm-sym { font-style: italic; font-family: Georgia, "Times New Roman", serif; }
+
+.dgm-note { font-size: 12.5px; fill: var(--text-dim); font-family: var(--sans); }
+.dgm-note text { font-size: 12.5px; fill: var(--text-dim); }
+
+.dgm-flow line { stroke: var(--text-dim); stroke-width: 1.5; }
+.dgm-head { fill: var(--text-dim); }
+
+/* The two approaches are told apart by line style as well as colour, the same
+   rule the links follow: never let hue be the only signal. */
+.dgm-path text { font-family: var(--mono); font-size: 12.5px; }
+.dgm-path--cov line { stroke: var(--accent); stroke-width: 2; }
+.dgm-path--cov text { fill: var(--accent); }
+.dgm-head-cov { fill: var(--accent); }
+
+.dgm-path--eft line { stroke: var(--link); stroke-width: 2; stroke-dasharray: 7 5; }
+.dgm-path--eft text { fill: var(--link); }
+.dgm-head-eft { fill: var(--link); }
+
 /* Config snippet — real hi_class.ini syntax, so it must never wrap silently */
 .snippet {
 	margin: 0;
