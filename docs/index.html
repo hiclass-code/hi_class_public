@@ -82,18 +82,18 @@
         <a href="https://monte-python.readthedocs.io/en/latest/" target="_blank" rel="noopener">Monte Python</a>
         to test gravity and dark energy models.</p>
 
-      <p>Horndeski is the most general scalar-tensor theory whose equations of motion remain second order, and
+      <p><a href="https://inspirehep.net/literature/1189313" target="_blank" rel="noopener">Horndeski</a> is the
+        most general scalar-tensor theory whose equations of motion remain second order, and
         contains many well known models, including (but by no means limited to) covariant Galileons, Brans-Dicke,
         f(R), chameleons, k-essence and quintessence. It is not, however, the most general healthy scalar-tensor
         theory: general disformal couplings and degenerate theories generalize Horndeski without introducing
         Ostrogradski instabilities (see
         <a href="https://inspirehep.net/literature/1250251" target="_blank" rel="noopener">PRD 89 (2014) 064046</a>
         and <a href="https://inspirehep.net/literature/1484281" target="_blank" rel="noopener">JHEP 12 (2016) 100</a>).
-        <code>hi_class</code> includes GLPV theories beyond Horndeski (see
-        <a href="https://inspirehep.net/literature/1292463" target="_blank" rel="noopener">PRL 114 (2015) 211101</a>
-        for the theories and
-        <a href="https://inspirehep.net/literature/1722260" target="_blank" rel="noopener">JCAP 08 (2019) 035</a>
-        for their cosmological phenomenology).</p>
+        <code>hi_class</code> implements GLPV theories beyond Horndeski
+        (<a href="https://inspirehep.net/literature/1292463" target="_blank" rel="noopener">PRL 114 (2015) 211101</a>)
+        in a currently private version, used for example in
+        <a href="https://inspirehep.net/literature/1722260" target="_blank" rel="noopener">JCAP 08 (2019) 035</a>.</p>
 
       <p><code>hi_class</code> relies on a reformulation of the Effective Field Theory for Dark Energy developed
         by E. Bellini and I. Sawicki (see
@@ -328,7 +328,7 @@
       <div>
         <dt>Fast</dt>
         <dd>A full model — background, lensed CMB and matter power spectrum — is computed efficiently, fast
-          enough to sample the parameter space of each model. <code>hi_class</code> also implements the
+          enough to sample the parameter space of each theory. <code>hi_class</code> also implements the
           quasi-static approximation, which speeds up computations on small scales. This makes Bayesian
           parameter estimation practical, and <code>hi_class</code> interfaces directly with Monte Python
           to do it.</dd>
@@ -374,14 +374,18 @@
       <div class="feature-body">
         <p class="eyebrow">From Python</p>
         <h3 class="feature-title">Drive it from a script or a notebook</h3>
-        <p>The code also builds <code>classy</code>, the Python wrapper inherited from CLASS.
-          Parameters go in as a dictionary — <code>hi_class</code> options alongside the standard CLASS
-          ones — and spectra come back as arrays, ready to plot. Worked examples ship in
+        <p>The code also builds a Python wrapper, inherited from CLASS and published on PyPI as
+          <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener"><code>hiclassy</code></a>
+          — <code>pip install hiclassy</code>. Parameters go in as a dictionary — <code>hi_class</code>
+          options alongside the standard CLASS ones — and spectra come back as arrays, ready to plot.
+          It is what
+          <a href="https://github.com/cloe-org/cloelib" target="_blank" rel="noopener">CLOE</a>, the Euclid
+          likelihood library, calls to get modified-gravity predictions. Worked examples ship in
           <code>notebooks/</code>.</p>
       </div>
-<pre class="snippet"><code>from classy import Class
+<pre class="snippet"><code>from hiclassy import HiClass
 
-cosmo = Class()
+cosmo = HiClass()
 cosmo.set({
     <span class="k">'output'</span>: 'tCl,pCl,lCl,mPk',
     <span class="k">'lensing'</span>: 'yes',
