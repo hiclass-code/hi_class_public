@@ -488,6 +488,49 @@ a.badge:hover { border-color: var(--accent-line); color: var(--accent); text-dec
 	margin: 0 0 8px;
 }
 
+/* ---- Interoperability list ----------------------------------------------
+   Each entry states how well it is supported, because "can be made to work"
+   and "we support this" are different promises. */
+.interop {
+	list-style: none;
+	margin: 18px 0 0;
+	padding: 0;
+	max-width: var(--prose);
+}
+
+.interop li {
+	padding: 14px 0;
+	border-top: 1px solid var(--border);
+}
+
+.interop-name {
+	font-weight: 600;
+	color: var(--heading);
+	margin-right: 10px;
+}
+
+.interop-note {
+	display: block;
+	color: var(--text-dim);
+	font-size: 14.5px;
+	margin-top: 5px;
+}
+
+.tag {
+	font-family: var(--mono);
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	padding: 2px 8px;
+	border-radius: 999px;
+	border: 1px solid var(--border-hi);
+	color: var(--text-dim);
+	white-space: nowrap;
+}
+
+.tag--yes { color: var(--accent); border-color: var(--accent-line); background: var(--accent-wash); }
+.tag--pub { color: var(--link); border-color: var(--link-line); }
+
 /* ---- Master diagram: the two routes to a prediction ---------------------- */
 
 .diagram { margin: 44px 0 0; }
