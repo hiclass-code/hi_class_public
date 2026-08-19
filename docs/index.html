@@ -16,7 +16,7 @@
 <meta name="twitter:card" content="summary_large_image">
 
 <link rel="icon" type="image/png" href="imgs/hi_class_icon_64x64.png">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 
 <body>
@@ -229,6 +229,64 @@
         Lagrangian and lets <code>hi_class</code> derive the &#945;-functions; the effective-theory approach
         specifies those functions directly, and never commits to an underlying theory. After
         <a href="https://inspirehep.net/literature/1462237" target="_blank" rel="noopener">JCAP 1708 (2017) 019</a>.</figcaption>
+    </figure>
+
+    <h3 class="eyebrow" style="margin-top:44px">What each route does to an observable</h3>
+    <p>Both animations below hold one Planck&nbsp;2018 cosmology fixed &mdash; including the acoustic
+      angular scale 100&thinsp;&theta;<sub>*</sub>, so H<sub>0</sub> is derived rather than
+      imposed &mdash; and move nothing but the dark-energy sector. Left: the expansion rate.
+      Right: the lensed temperature spectrum. Each sits over its residual against &Lambda;CDM,
+      and the two clips share those residual axes, which is worth knowing because
+      <em>they meet</em>: the cubic Galileon on its tracker is exactly
+      &alpha;<sub>B</sub>&nbsp;=&nbsp;2&Omega;<sub>smg</sub>,
+      &alpha;<sub>K</sub>&nbsp;=&nbsp;6&Omega;<sub>smg</sub>,
+      &alpha;<sub>M</sub>&nbsp;=&nbsp;&alpha;<sub>T</sub>&nbsp;=&nbsp;0, so the first clip ends on
+      the second one's &alpha;-functions &mdash; carried on a &Lambda;CDM background instead of the
+      Galileon's own.</p>
+
+    <figure class="anim">
+      <video autoplay loop muted playsinline preload="metadata" width="1560" height="780"
+             poster="imgs/anim/de_levers_web_dark_still.png"
+             aria-label="Sweeping alpha_M with the expansion history pinned to LambdaCDM, then sweeping w0.">
+        <source src="imgs/anim/de_levers_web_dark.webm" type="video/webm">
+        <source src="imgs/anim/de_levers_web_dark.mp4" type="video/mp4">
+      </video>
+      <img class="anim-poster" src="imgs/anim/de_levers_web_dark_still.png" width="1560" height="780"
+           loading="lazy" alt="Two panels: the expansion rate and the CMB temperature spectrum, each over a residual against LambdaCDM, with sliders for the two swept parameters.">
+      <figcaption><strong>The effective-theory route.</strong> First the braiding
+        &alpha;<sub>B</sub> runs from 0 to 2&Omega;<sub>DE</sub>(a) with <em>w</em><sub>0</sub> =
+        &minus;1: the low-&#8467; spectrum travels from &minus;31&nbsp;% to +32&nbsp;% while H(z)
+        and H<sub>0</sub> do not move at all &mdash; the residual stays flat to two parts in
+        10<sup>7</sup>, which is the shooting tolerance, not an approximation. Braiding is the
+        interesting &alpha; because it is not monotonic: the integrated Sachs-Wolfe effect dips to
+        a minimum near c<sub>B</sub>&nbsp;&#8776;&nbsp;1, turns around, and crosses back through
+        zero near 1.65, so the same observable is reached twice from opposite directions. Then
+        <em>w</em><sub>0</sub> runs to &minus;0.9 and the roles swap: H<sub>0</sub> falls from 67.4
+        to 64.4 while the spectrum barely reacts. Two levers, two destinations, and
+        <code>propto_omega</code> lets you turn them one at a time.</figcaption>
+    </figure>
+
+    <figure class="anim">
+      <video autoplay loop muted playsinline preload="metadata" width="1560" height="780"
+             poster="imgs/anim/galileon_budget_web_dark_still.png"
+             aria-label="Handing the dark-energy budget from Lambda to a cubic Galileon.">
+        <source src="imgs/anim/galileon_budget_web_dark.webm" type="video/webm">
+        <source src="imgs/anim/galileon_budget_web_dark.mp4" type="video/mp4">
+      </video>
+      <img class="anim-poster" src="imgs/anim/galileon_budget_web_dark_still.png" width="1560" height="780"
+           loading="lazy" alt="The same two panels, with a stacked bar splitting the dark-energy budget between Lambda and the Galileon.">
+      <figcaption><strong>The covariant route</strong>, and the contrast. A cubic Galileon on its
+        tracker takes the dark-energy budget over from &Lambda;, and both panels move together
+        under that single number &mdash; there is no second knob that would hold one of them still.
+        <strong>Watch H<sub>0</sub>.</strong> With the angular scale held, the acoustic peaks have
+        to stay where Planck sees them, and as the scalar takes over the expansion history the only
+        way to manage that is a larger H<sub>0</sub>: it climbs from 67.5 to 77.5&nbsp;km/s/Mpc,
+        passing through the local-distance-ladder value near
+        &Omega;<sub>smg</sub>&nbsp;&#8776;&nbsp;0.44. That is why models of this kind keep being
+        brought to the Hubble tension, and here it is a consequence of one slider rather than a
+        claim. Because H<sub>0</sub> rises, &Omega;<sub>m</sub> falls and the dark-energy total is
+        not conserved &mdash; hence a bar showing the whole budget rather than a fixed total split
+        two ways.</figcaption>
     </figure>
 
     <h3 class="eyebrow" id="papers" style="margin-top:44px">Presented and described in</h3>

@@ -1055,6 +1055,34 @@ figcaption {
 	.brand { font-size: 12.5px; }
 }
 
+/* ---- Animations: the two dark-energy clips ------------------------------ */
+
+/* The renders are 1560x780 on #07090b, the same colour as --bg, so the video
+   edge is invisible in the page and the figure needs no frame of its own. */
+.anim { margin: 28px 0 0; }
+
+.anim video,
+.anim .anim-poster {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: var(--radius);
+	background: var(--bg);
+}
+
+/* The poster <img> is a fallback for reduced motion only; the <video> carries
+   its own poster attribute for the loading state. */
+.anim .anim-poster { display: none; }
+
+.anim figcaption {
+	margin-top: 10px;
+	color: var(--text-dim);
+	font-size: 14.5px;
+	line-height: 1.6;
+	max-width: var(--prose);
+}
+.anim figcaption strong { color: var(--text); font-weight: 600; }
+
 /* ---- Motion / print ---------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1064,6 +1092,10 @@ figcaption {
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
 	}
+	/* An autoplaying <video> ignores the rules above - it is not a CSS
+	   animation - so the element itself has to go, and the still takes over. */
+	.anim video { display: none; }
+	.anim .anim-poster { display: block; }
 }
 
 @media print {
