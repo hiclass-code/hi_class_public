@@ -23,8 +23,13 @@ enum gravity_model {propto_omega, propto_scale,
     galileon, nkgb,
     brans_dicke,
     quintessence_monomial, quintessence_tracker,
-    alpha_attractor_canonical
+    alpha_attractor_canonical,
+    cccg_exp
 };
+
+/** model subclasses (_smg), e.g. branches of the conformally coupled cubic galileon */
+
+enum gravity_submodel {unspecified, cccg_exp_normal, cccg_exp_canonical};
 
 /** parameterized expansion, only for non-self consistent Horndeski theories (_smg) */
 
@@ -148,7 +153,7 @@ struct background
   double wede_Omega_e_regularizer_smg; /** regularize adding a tiny Omega_e */
 
   enum gravity_model gravity_model_smg; /** Horndeski model */
-  //   enum gravity_model_subclass gravity_submodel_smg; /** Horndeski model */
+  enum gravity_submodel gravity_submodel_smg; /** Horndeski sub-model (e.g. branch of the model) */
   enum expansion_model expansion_model_smg; /* choice of expansion rate */
 
   short initial_conditions_set_smg; /* whether IC have been established. For printing and information */
