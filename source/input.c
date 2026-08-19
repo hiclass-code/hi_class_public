@@ -1668,12 +1668,47 @@ int input_read_precisions(struct file_content * pfc,
 #include "precisions.h"
 #undef __PARSE_PRECISION_PARAMETER__
 
-  if (pba->has_smg == _TRUE_) {
-    class_call(
-      input_readjust_precision_smg(ppr),
-      errmsg,
-      errmsg
-    );
+  /* (_smg) Modified-gravity precision adjustments.
+
+     They must live HERE, not where the physics parameters are read: precision
+     is deliberately settled once, before the shooting ("No precision parameter
+     should depend on any input parameter" above input_read_from_file). We do
+     depend on one input parameter, but in a way that honors the purpose of
+     that convention: the adjustment is decided from the immutable input file
+     alone, so it is identical on every pass and every shooting trial.
+
+     We CANNOT gate this on pba->has_smg: that flag receives its default in
+     input_default_params (called from input_read_parameters), which runs
+     AFTER this function — here it is still uninitialized memory. Instead we
+     peek at the input directly: smg is enabled iff Omega_smg is given and
+     nonzero, the exact condition under which input_read_parameters will later
+     call input_read_parameters_smg and set has_smg. */
+  {
+    int Nloga; double Omega_smg; int flag_Nloga, flag_smg;
+    class_call(parser_read_double(pfc,"Omega_smg",&Omega_smg,&flag_smg,errmsg),
+               errmsg,errmsg);
+    if ((flag_smg == _TRUE_) && (Omega_smg != 0.)) {
+
+      /* Adjustments that apply unconditionally (currently the ISW sampling) */
+      class_call(
+        input_readjust_precision_smg(ppr),
+        errmsg,
+        errmsg
+      );
+
+      /* Keep the pre-v3.2.1 background table size unless the user sets it
+         explicitly. Upstream CLASS raised background_Nloga from 3000 to 40000
+         (commit 4e1788dd, "could not detect any slowdown"); that is true for
+         LCDM, where the table is filled once with cheap derivatives, but not
+         for smg, where the cost of the background sources is multiplied by
+         every shooting iteration and dominates the run (~10x on the shipped
+         gravity_models). LCDM runs keep the upstream default and so remain
+         directly comparable to class_public. */
+      class_call(parser_read_int(pfc,"background_Nloga",&Nloga,&flag_Nloga,errmsg),
+                 errmsg,errmsg);
+      if (flag_Nloga == _FALSE_)
+        ppr->background_Nloga = 3000;
+    }
   }
 
   /** Now read the relative base path, overwriting possibly the default */

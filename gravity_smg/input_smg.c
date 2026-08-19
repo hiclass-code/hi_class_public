@@ -291,6 +291,11 @@ int input_read_parameters_smg(
  * Sometimes hi_class has higher precision parameters. This is where
  * it is possible to readjust them.
  *
+ * Called from input_read_precisions, which detects modified gravity by
+ * peeking at Omega_smg in the input file (pba->has_smg is not initialized
+ * yet at that stage — see the comment there). Anything added here runs for
+ * every smg model and cannot depend on physics parameters, only on ppr.
+ *
  * @param ppr              Input/Output: pointer to precision structure
  * @return the error status
  */
