@@ -459,7 +459,15 @@ int gravity_models_gravity_properties_smg(
         }
 
         class_read_double("param_shoot_M2_smg",pba->parameters_smg[pba->tuning_index_2_smg]);
-        printf("M2_today_smg = %e, param_shoot_M2_smg = %e \n",pba->M2_today_smg,pba->parameters_smg[pba->tuning_index_2_smg]);
+        {
+          /* debug output only at high verbosity; pba->background_verbose is
+             not assigned yet at this point (that happens later in
+             input_read_parameters), so read it from the input directly */
+          int bg_verbose = 0;
+          class_read_int("background_verbose",bg_verbose);
+          if (bg_verbose > 3)
+            printf("M2_today_smg = %e, param_shoot_M2_smg = %e \n",pba->M2_today_smg,pba->parameters_smg[pba->tuning_index_2_smg]);
+        }
            // printf("updating param = %e to tune M2 \n",pba->parameters_smg[pba->tuning_index_2_smg]);
        }
      }
