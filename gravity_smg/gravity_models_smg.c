@@ -459,7 +459,15 @@ int gravity_models_gravity_properties_smg(
         }
 
         class_read_double("param_shoot_M2_smg",pba->parameters_smg[pba->tuning_index_2_smg]);
-        printf("M2_today_smg = %e, param_shoot_M2_smg = %e \n",pba->M2_today_smg,pba->parameters_smg[pba->tuning_index_2_smg]);
+        {
+          /* debug output only at high verbosity; pba->background_verbose is
+             not assigned yet at this point (that happens later in
+             input_read_parameters), so read it from the input directly */
+          int bg_verbose = 0;
+          class_read_int("background_verbose",bg_verbose);
+          if (bg_verbose > 3)
+            printf("M2_today_smg = %e, param_shoot_M2_smg = %e \n",pba->M2_today_smg,pba->parameters_smg[pba->tuning_index_2_smg]);
+        }
            // printf("updating param = %e to tune M2 \n",pba->parameters_smg[pba->tuning_index_2_smg]);
        }
      }
@@ -1272,11 +1280,25 @@ int gravity_models_initial_conditions_smg(
 
     /* BD IC: note that the field value is basically the planck mass,
      * so its initial value should be around 1
-     * the derivative we take to be zero, but this can be extended
      */
     case brans_dicke:
 			pvecback_integration[pba->index_bi_phi_smg] = pba->parameters_smg[2];
-			pvecback_integration[pba->index_bi_phi_prime_smg] = pba->parameters_smg[3];
+			if (pba->parameters_smg[3] == 0.) {
+				/* start on the radiation-era attractor instead of exactly at rest:
+				 * phi'' + 2aH phi' = 3 a^2 (rho_m - 3p_m)/(3+2w) is sourced by the
+				 * non-relativistic trace, giving the equilibrium (constant in
+				 * conformal time during RD) phi' = 3 a^2 rho_m / (2aH (3+2w)),
+				 * with aH = a sqrt(rho_rad/phi) from the BD Friedmann equation.
+				 * Starting at phi'=0 instead forces the stiff evolver to resolve
+				 * the approach to this attractor at machine-noise level. */
+				double rho_m = (pba->Omega0_b + pba->Omega0_cdm)*pow(pba->H0,2)/pow(a,3);
+				pvecback_integration[pba->index_bi_phi_prime_smg] =
+					3.*a*rho_m*sqrt(pvecback_integration[pba->index_bi_phi_smg])
+					/(2.*sqrt(rho_rad)*(3.+2.*pba->parameters_smg[1]));
+			}
+			else {
+				pvecback_integration[pba->index_bi_phi_prime_smg] = pba->parameters_smg[3];
+			}
 			break;
 
     /* cccg IC: similar to the Galileon, but the field value matters.
