@@ -1091,11 +1091,25 @@ int gravity_models_initial_conditions_smg(
 
     /* BD IC: note that the field value is basically the planck mass,
      * so its initial value should be around 1
-     * the derivative we take to be zero, but this can be extended
      */
     case brans_dicke:
 			pvecback_integration[pba->index_bi_phi_smg] = pba->parameters_smg[2];
-			pvecback_integration[pba->index_bi_phi_prime_smg] = pba->parameters_smg[3];
+			if (pba->parameters_smg[3] == 0.) {
+				/* start on the radiation-era attractor instead of exactly at rest:
+				 * phi'' + 2aH phi' = 3 a^2 (rho_m - 3p_m)/(3+2w) is sourced by the
+				 * non-relativistic trace, giving the equilibrium (constant in
+				 * conformal time during RD) phi' = 3 a^2 rho_m / (2aH (3+2w)),
+				 * with aH = a sqrt(rho_rad/phi) from the BD Friedmann equation.
+				 * Starting at phi'=0 instead forces the stiff evolver to resolve
+				 * the approach to this attractor at machine-noise level. */
+				double rho_m = (pba->Omega0_b + pba->Omega0_cdm)*pow(pba->H0,2)/pow(a,3);
+				pvecback_integration[pba->index_bi_phi_prime_smg] =
+					3.*a*rho_m*sqrt(pvecback_integration[pba->index_bi_phi_smg])
+					/(2.*sqrt(rho_rad)*(3.+2.*pba->parameters_smg[1]));
+			}
+			else {
+				pvecback_integration[pba->index_bi_phi_prime_smg] = pba->parameters_smg[3];
+			}
 			break;
 
 	  case nkgb:

@@ -2427,6 +2427,40 @@ int background_initial_conditions(
              pba->error_message,
              pba->error_message);
 
+  /* (_smg) Brans-Dicke started at rest: place phi' on the radiation-era
+     attractor instead. On the attractor phi' is constant in conformal time,
+     i.e. phi''(a_ini, phi_ini, phi') = 0; solve that condition with a secant
+     iteration on the code's own phi'' (phi'' is almost exactly linear in phi'
+     here, so this converges in 2-3 steps). The analytic estimate set in
+     gravity_models_initial_conditions_smg provides the starting bracket. */
+  if ((pba->has_smg == _TRUE_) && (pba->gravity_model_smg == brans_dicke)
+      && (pba->parameters_smg[3] == 0.)) {
+    double x0 = 0., f0, x1, f1, x2;
+    int it;
+    x1 = pvecback_integration[pba->index_bi_phi_prime_smg];
+    pvecback_integration[pba->index_bi_phi_prime_smg] = x0;
+    class_call(background_functions(pba, a, pvecback_integration, long_info, pvecback),
+               pba->error_message, pba->error_message);
+    f0 = pvecback[pba->index_bg_phi_prime_prime_smg];
+    for (it=0; it<10; it++) {
+      pvecback_integration[pba->index_bi_phi_prime_smg] = x1;
+      class_call(background_functions(pba, a, pvecback_integration, long_info, pvecback),
+                 pba->error_message, pba->error_message);
+      f1 = pvecback[pba->index_bg_phi_prime_prime_smg];
+      if (f1 == f0) break;
+      x2 = x1 - f1*(x1-x0)/(f1-f0);
+      if (!isfinite(x2)) break;
+      x0 = x1; f0 = f1; x1 = x2;
+      if (fabs(x1-x0) <= 1.e-14*fabs(x1)) break;
+    }
+    pvecback_integration[pba->index_bi_phi_prime_smg] = x1;
+    class_call(background_functions(pba, a, pvecback_integration, long_info, pvecback),
+               pba->error_message, pba->error_message);
+    if (pba->background_verbose > 0)
+      printf(" -> BD attractor IC: phi'_ini = %e (phi'' residual %e after %d secant steps)\n",
+             x1, pvecback[pba->index_bg_phi_prime_prime_smg], it+1);
+  }
+
   /* Final step is to set the initial Hubble rate, if it is to be evolved with the H' equation (not only _smg!!) */
   if (pba->hubble_evolution == _TRUE_){
    if (pba->has_smg == _TRUE_) {
