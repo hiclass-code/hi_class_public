@@ -664,6 +664,18 @@ figcaption {
 	padding-left: 16px;
 }
 
+/* The two method papers are not just references, they are the ones to cite when
+   you use the code — the "How to cite" block below points back here. So they get
+   the accent on the rule and a wash behind them, while the results lists keep the
+   neutral rule: the difference in weight is the difference in what they are for. */
+.refs--cite li {
+	border-left-color: var(--accent);
+	border-left-width: 3px;
+	background: var(--accent-wash);
+	padding: 10px 14px 10px 15px;
+	border-radius: 0 var(--radius) var(--radius) 0;
+}
+
 .refs .ref-title {
 	display: block;
 	color: var(--heading);
@@ -1053,6 +1065,77 @@ figcaption {
 	.wrap { padding: 0 12px; }
 	.nav-links a { padding: 5px 5px; font-size: 12px; }
 	.brand { font-size: 12.5px; }
+}
+
+/* ---- News --------------------------------------------------------------
+   Dated one-liners at the top of the page. The date sits in its own column so
+   the list scans as a timeline rather than as prose. Same structure as the
+   news lists on miguelzuma.github.io and the GLoW ERC site. */
+
+.news {
+	list-style: none;
+	padding: 0;
+	margin: 24px 0 0;
+	border-top: 1px solid var(--border);
+}
+
+.news li {
+	display: flex;
+	gap: 14px;
+	padding: 13px 0;
+	border-bottom: 1px solid var(--border);
+}
+
+/* Narrow enough to read as a margin note rather than a column of its own.
+   Tabular figures keep the dates stacked even at an abbreviated width. */
+.news-date {
+	flex: 0 0 68px;
+	color: var(--text-dim);
+	font-size: 13.5px;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	padding-top: 3px;
+}
+
+.news-body { margin: 0; max-width: var(--prose); }
+.news-links { color: var(--text-dim); font-size: 14.5px; }
+
+/* Only items inside the freshness window carry this, and the script removes it
+   once they age out - so the motion always means something. The other two sites
+   cycle between two accent hues; this one has a single green, so the pulse runs
+   on luminance instead, accent -> accent-deep with a halo. Cycling to a
+   borrowed second hue here would read as a different website.
+   Readers who ask for reduced motion get a still flag: the blanket rule in the
+   prefers-reduced-motion block below already stops this animation. */
+.news-flag {
+	display: inline-block;
+	font-size: 11px;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	font-weight: 600;
+	padding: 2px 7px;
+	border-radius: 4px;
+	margin-right: 8px;
+	vertical-align: 1px;
+	color: var(--bg);
+	background: var(--accent);
+	animation: news-pulse 4.5s ease-in-out infinite;
+}
+
+@keyframes news-pulse {
+	0%, 100% {
+		background: var(--accent);
+		box-shadow: 0 0 0 0 rgba(57, 230, 0, 0.5);
+	}
+	50% {
+		background: var(--accent-deep);
+		box-shadow: 0 0 10px 2px rgba(57, 230, 0, 0.4);
+	}
+}
+
+@media (max-width: 620px) {
+	.news li { flex-direction: column; gap: 4px; }
+	.news-date { flex-basis: auto; padding-top: 0; }
 }
 
 /* ---- Animations: the two dark-energy clips ------------------------------ */

@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hi_class — Horndeski in the Cosmic Linear Anisotropy Solving System</title>
 <meta name="description" content="hi_class is an Einstein-Boltzmann solver for dark energy and modified gravity. It implements Horndeski's theory in CLASS and computes any linear cosmological observable.">
-<link rel="canonical" href="https://miguelzuma.github.io/hi_class_public/">
+<link rel="canonical" href="https://hiclass-code.net/">
 <meta name="theme-color" content="#07090b">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="hi_class — Horndeski in the Cosmic Linear Anisotropy Solving System">
 <meta property="og:description" content="Einstein-Boltzmann solver for dark energy and modified gravity.">
-<meta property="og:url" content="https://miguelzuma.github.io/hi_class_public/">
-<meta property="og:image" content="https://miguelzuma.github.io/hi_class_public/imgs/hi_class.gif">
+<meta property="og:url" content="https://hiclass-code.net/">
+<meta property="og:image" content="https://hiclass-code.net/imgs/hi_class.gif">
 <meta name="twitter:card" content="summary_large_image">
 
 <link rel="icon" type="image/png" href="imgs/hi_class_icon_64x64.png">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 
 <body>
@@ -26,6 +26,7 @@
   <div class="wrap nav-inner">
     <a class="brand" href="#top">hi_class</a>
     <div class="nav-links">
+      <a href="#news">News</a>
       <a href="#science">Science</a>
       <a href="#code">Code</a>
       <a href="#download">Download</a>
@@ -61,13 +62,57 @@
 
     <p class="badges">
       <a class="badge badge--count" href="#pubs"><b id="hero-pub-count">99</b> papers</a>
-      <span class="badge">v2.0</span>
+      <span class="badge">v3.0</span>
       <a class="badge" href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener">pip install hiclassy</a>
       <a class="badge" href="http://class-code.net/" target="_blank" rel="noopener">built on CLASS</a>
       <a class="badge" href="https://ascl.net/1808.010" target="_blank" rel="noopener">ascl:1808.010</a>
     </p>
   </div>
 </header>
+
+<!-- ==================== News ====================
+     Dated one-liners, newest first. The "New" flag is NOT written here: the
+     script at the foot of the page adds it to any item whose <time datetime>
+     falls inside the six-month freshness window, and leaves it off otherwise. On the
+     Jekyll sites (miguelzuma.github.io, GLoW ERC) the template does this at
+     build time; this page has no build step, so it happens in the browser.
+     If the script does not run, no flag appears -- which is the right failure,
+     since a blinking flag on a two-year-old item is worse than none. -->
+<section class="band band--soft" id="news">
+  <div class="wrap">
+    <p class="eyebrow">News</p>
+    <h2>Recent developments</h2>
+    <ul class="news">
+      <li>
+        <time class="news-date" datetime="2026-08">Aug 2026</time>
+        <p class="news-body">Single Scalar Field Dark Energy: 2026 Status Report, a review talk on
+          where the field stands, by Carlos Garc&iacute;a-Garc&iacute;a and William Wolf.
+          <span class="news-links">
+            <a href="https://www.youtube.com/watch?v=RbXqghcRv0U" target="_blank" rel="noopener">video</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2025-09">Sep 2025</time>
+        <p class="news-body">DESI put out modified-gravity constraints from the full-shape modelling
+          of its 2024 clustering measurements, computed with <code>hi_class</code>.
+          <span class="news-links">
+            <a href="https://inspirehep.net/literature/2850039" target="_blank" rel="noopener">JCAP 09 (2025)</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2025-08">Aug 2025</time>
+        <p class="news-body">The Cosmological Evidence for Non-Minimal Coupling, whose modified-gravity
+          predictions were computed with <code>hi_class</code>, appeared in Physical Review Letters.
+          <span class="news-links">
+            <a href="https://inspirehep.net/literature/2910498" target="_blank" rel="noopener">PRL 135 (2025)</a>
+          </span>
+        </p>
+      </li>
+    </ul>
+  </div>
+</section>
 
 <!-- ==================== The Science ==================== -->
 <section class="band" id="science">
@@ -290,7 +335,7 @@
     </figure>
 
     <h3 class="eyebrow" id="papers" style="margin-top:44px">Presented and described in</h3>
-    <ul class="refs">
+    <ul class="refs refs--cite">
       <li>
         <a class="ref-title" href="https://inspirehep.net/literature/1462237" target="_blank" rel="noopener">hi_class: Horndeski in the Cosmic Linear Anisotropy Solving System</a>
         <span class="ref-meta">M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira ·
@@ -321,19 +366,9 @@
           <span class="mono">JCAP 09 (2025)</span></span>
       </li>
       <li>
-        <a class="ref-title" href="https://inspirehep.net/literature/1738351" target="_blank" rel="noopener">Testing modified gravity at cosmological distances with LISA standard sirens</a>
-        <span class="ref-meta">LISA Cosmology Working Group ·
-          <span class="mono">JCAP 07 (2019) 024</span></span>
-      </li>
-      <li>
         <a class="ref-title" href="https://inspirehep.net/literature/2670531" target="_blank" rel="noopener">Euclid: Constraining linearly scale-independent modifications of gravity with the spectroscopic and photometric primary probes</a>
         <span class="ref-meta">Euclid Collaboration: N. Frusciante, F. Pace, V. F. Cardone <i>et al.</i> ·
           <span class="mono">A&amp;A 690 (2024)</span></span>
-      </li>
-      <li>
-        <a class="ref-title" href="https://inspirehep.net/literature/2823318" target="_blank" rel="noopener">Scant evidence for thawing quintessence</a>
-        <span class="ref-meta">W. Wolf, C. García-García, D. J. Bartlett, P. G. Ferreira ·
-          <span class="mono">PRD 110 (2024)</span></span>
       </li>
       <li>
         <a class="ref-title" href="https://inspirehep.net/literature/1851169" target="_blank" rel="noopener">Positivity Bounds on Dark Energy: When Matter Matters</a>
@@ -341,14 +376,24 @@
           <span class="mono">JCAP 08 (2021) 018</span></span>
       </li>
       <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/1833034" target="_blank" rel="noopener">Early modified gravity in light of the H<sub>0</sub> tension and LSS data</a>
+        <span class="ref-meta">M. Braglia, M. Ballardini, F. Finelli, K. Koyama ·
+          <span class="mono">PRD 103 (2021)</span></span>
+      </li>
+      <li>
+        <a class="ref-title" href="https://inspirehep.net/literature/1738351" target="_blank" rel="noopener">Testing modified gravity at cosmological distances with LISA standard sirens</a>
+        <span class="ref-meta">LISA Cosmology Working Group ·
+          <span class="mono">JCAP 07 (2019) 024</span></span>
+      </li>
+      <li>
         <a class="ref-title" href="https://inspirehep.net/literature/1713441" target="_blank" rel="noopener">KiDS+GAMA: Constraints on Horndeski gravity from combined large-scale structure probes</a>
         <span class="ref-meta">A. Spurio Mancini <i>et al.</i> ·
           <span class="mono">MNRAS 490 (2019)</span></span>
       </li>
       <li>
-        <a class="ref-title" href="https://inspirehep.net/literature/1833034" target="_blank" rel="noopener">Early modified gravity in light of the H<sub>0</sub> tension and LSS data</a>
-        <span class="ref-meta">M. Braglia, M. Ballardini, F. Finelli, K. Koyama ·
-          <span class="mono">PRD 103 (2021)</span></span>
+        <a class="ref-title" href="https://inspirehep.net/literature/1495006" target="_blank" rel="noopener">Observational future of cosmological scalar-tensor theories</a>
+        <span class="ref-meta">D. Alonso, E. Bellini, P. G. Ferreira, M. Zumalacarregui &middot;
+          <span class="mono">PRD 95 (2017)</span></span>
       </li>
     </ul>
 
@@ -526,8 +571,9 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
     <h3 class="eyebrow" style="margin-top:44px">Versions</h3>
     <div class="prose">
       <p>The branch you clone reports itself as <b class="num">hi_class 3.0</b> and is built on
-        <b class="num">CLASS v3.2.3</b>. The most recent git tag is <code>v2.0</code>, from 2019, and predates it —
-        so prefer the branch over the tags. The Python wrapper is published separately as
+        <b class="num">CLASS v3.2.3</b>. The <code>v3.0</code> tag now points at the tip of the
+        <code>hi_class</code> branch, so the tag and the branch are the same code and it no longer
+        matters which you take. The Python wrapper is published separately as
         <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener"><code>hiclassy</code></a>,
         currently <b class="num">3.3.4.2</b>.</p>
     </div>
@@ -690,11 +736,6 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
         <a href="https://inspirehep.net/authors/1724905" target="_blank" rel="noopener">
           <img src="imgs/collaborators/Traykova.jpg" width="92" height="92" loading="lazy" alt="">
           Dina Traykova</a>
-      </li>
-      <li class="member">
-        <a href="https://inspirehep.net/authors/1969673" target="_blank" rel="noopener">
-          <img src="imgs/collaborators/Wolf.jpg" width="92" height="92" loading="lazy" alt="">
-          William J. Wolf</a>
       </li>
       <li class="member">
         <a href="https://miguelzuma.github.io" target="_blank" rel="noopener">
@@ -1254,6 +1295,37 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
 (function () {
 	'use strict';
 
+	/* ---- News freshness flag -------------------------------------------
+	   The Jekyll sites decide this at build time and simply do not emit the
+	   flag for stale items. This page has no build step, so the same rule runs
+	   here: an item is "new" for FRESH_DAYS after the month in its datetime.
+	   Nothing is written into the markup, so with JS off no flag appears at
+	   all - better than a flag that blinks forever on an old item. */
+	var FRESH_DAYS = 183;                  /* six months */
+
+	(function flagFreshNews() {
+		var items = document.querySelectorAll('#news .news li');
+		if (!items.length) { return; }
+		var cutoff = Date.now() - FRESH_DAYS * 864e5;
+
+		Array.prototype.forEach.call(items, function (li) {
+			var t = li.querySelector('time[datetime]');
+			if (!t) { return; }
+			/* datetime is YYYY-MM; count from the END of that month, so an item
+			   dated to the month it happened is not aged out on day one. */
+			var parts = t.getAttribute('datetime').split('-');
+			var stamp = Date.UTC(+parts[0], +parts[1], 0);
+			if (!(stamp > cutoff)) { return; }
+
+			var body = li.querySelector('.news-body');
+			if (!body || body.querySelector('.news-flag')) { return; }
+			var flag = document.createElement('span');
+			flag.className = 'news-flag';
+			flag.textContent = 'New';
+			body.insertBefore(flag, body.firstChild);
+		});
+	}());
+
 	/* ---- Publication filter ------------------------------------------- */
 	var input  = document.getElementById('pub-filter');
 	var count  = document.getElementById('pub-count');
@@ -1342,17 +1414,18 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
 
 <!-- Analytics: GoatCounter (https://www.goatcounter.com). Cookieless, stores no
      personal data and sets nothing on the visitor's device, so no consent banner
-     is required. To switch it on, replace SITECODE below with the site code from
-     the goatcounter.com account — while it still reads SITECODE nothing is
-     loaded and no requests are made. -->
+     is required. Stats live at https://hiclass.goatcounter.com/.
+     Do Not Track is honoured before the script is even fetched, so a reader who
+     asks not to be counted causes no request at all rather than one that is
+     discarded at the far end. -->
 <script>
 (function () {
 	'use strict';
-	var code = 'SITECODE';
-	if (code === 'SITECODE') { return; }   // not configured yet — stay inert
+	var dnt = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+	if (dnt === '1' || dnt === 'yes') { return; }
 
 	// count.js prefers a data-goatcounter attribute and falls back to this global.
-	window.goatcounter = { endpoint: 'https://' + code + '.goatcounter.com/count' };
+	window.goatcounter = { endpoint: 'https://hiclass.goatcounter.com/count' };
 
 	var s = document.createElement('script');
 	s.async = true;
