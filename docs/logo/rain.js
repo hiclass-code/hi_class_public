@@ -56,6 +56,19 @@
 	var cols = [], W = 0, H = 0, dpr = 1, rows = 0;
 	var wordmark = document.querySelector('.hero-wordmark');
 
+	/* Two options, both off on the site and both there so a talk render can be
+	 * driven from this same file instead of a second copy of it that drifts:
+	 *   data-standalone  the canvas is the whole picture, not a page header --
+	 *                    keep the wordmark gap, drop the clearing that exists
+	 *                    only to protect the hero's text and bottom border.
+	 *   data-loop="T"    make the motion exactly periodic with period T seconds,
+	 *                    so frame 0 and frame T*fps are identical and the clip
+	 *                    loops without a seam. Column speeds are quantised to a
+	 *                    whole number of cycles in T and the symbol churn is
+	 *                    switched off, since random churn can never repeat. */
+	var STANDALONE = canvas.hasAttribute('data-standalone');
+	var LOOP = parseFloat(canvas.getAttribute('data-loop')) || 0;
+
 	function rnd(a, b) { return a + Math.random() * (b - a); }
 	function pick() { return (Math.random() * syms.length) | 0; }
 
@@ -76,15 +89,28 @@
 
 		rows = Math.ceil(H / CELL) + TRAIL + 2;
 		var n = Math.ceil(W / COL) + 1;
+		/* One full trip of a head, from spawning off one edge to clearing the
+		 * other: the period the loop mode has to divide into. */
+		var cycle = rows + TRAIL + 1;
 		cols = [];
 		for (var i = 0; i < n; i++) {
 			var cell = [];
 			for (var r = 0; r < rows; r++) { cell.push(pick()); }
+			var speed = rnd(SPEED[0], SPEED[1]);
+			if (LOOP) {
+				/* Round to the nearest whole number of cycles in LOOP seconds.
+				 * The speeds shift by a few per cent; the spread across columns
+				 * survives, which is all the eye reads. */
+				speed = Math.max(1, Math.round(speed * LOOP / cycle)) * cycle / LOOP;
+			}
 			cols.push({
 				x: i * COL + COL / 2,
 				dir: i % 2 ? -1 : 1,          /* alternate: half rain down, half rise */
 				head: rnd(-TRAIL, rows),
-				speed: rnd(SPEED[0], SPEED[1]),
+				speed: speed,
+				cycle: cycle,
+				phase: Math.random() * cycle,
+				t: 0,
 				cell: cell
 			});
 		}
@@ -159,19 +185,23 @@
 			     w.width * 0.66, w.height * 1.15, 0.55, 1);
 		}
 
-		var t = union(base);
-		if (t) {
-			hole((t.l + t.r) / 2, (t.t + t.b) / 2,
-			     (t.r - t.l) / 2 + 46, (t.b - t.t) / 2 + 34, 0.72, 0.97);
-		}
+		/* Everything below exists to protect the page around the canvas, so a
+		 * standalone render skips it and keeps rain to all four edges. */
+		if (!STANDALONE) {
+			var t = union(base);
+			if (t) {
+				hole((t.l + t.r) / 2, (t.t + t.b) / 2,
+				     (t.r - t.l) / 2 + 46, (t.b - t.t) / 2 + 34, 0.72, 0.97);
+			}
 
-		/* And a light wash over the bottom edge, so columns fade out instead of
-		 * being cut off by the section border below. */
-		var lg = ctx.createLinearGradient(0, H * 0.72, 0, H);
-		lg.addColorStop(0, 'rgba(0,0,0,0)');
-		lg.addColorStop(1, 'rgba(0,0,0,0.85)');
-		ctx.fillStyle = lg;
-		ctx.fillRect(0, H * 0.72, W, H * 0.28);
+			/* And a light wash over the bottom edge, so columns fade out instead
+			 * of being cut off by the section border below. */
+			var lg = ctx.createLinearGradient(0, H * 0.72, 0, H);
+			lg.addColorStop(0, 'rgba(0,0,0,0)');
+			lg.addColorStop(1, 'rgba(0,0,0,0.85)');
+			ctx.fillStyle = lg;
+			ctx.fillRect(0, H * 0.72, W, H * 0.28);
+		}
 		ctx.restore();
 	}
 
@@ -213,6 +243,17 @@
 	function advance(dt) {
 		for (var i = 0; i < cols.length; i++) {
 			var c = cols[i];
+
+			if (LOOP) {
+				/* Position is a pure function of elapsed time, so it repeats
+				 * exactly every LOOP seconds -- no accumulated wrap error, and
+				 * no churn, which could not repeat. */
+				c.t += dt;
+				var u = (c.phase + c.speed * c.t) % c.cycle;
+				c.head = c.dir > 0 ? u - 1 : rows + 1 - u;
+				continue;
+			}
+
 			c.head += c.dir * c.speed * dt;
 			/* Wrap once the whole trail has left the far edge, and re-roll the
 			 * column so the loop never shows the same sequence twice. */

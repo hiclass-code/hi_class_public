@@ -1,0 +1,5 @@
+# Render intermediates: 321 PNGs at 1920x1080, and the encoded clip. The video
+# belongs in the animation store (~/Dropbox/Projects/animations/<repo>/<family>/),
+# never in git -- see ../README.md.
+frames/
+out/
