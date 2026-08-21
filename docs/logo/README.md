@@ -13,6 +13,7 @@ lighter ink.
 | `build_glyphs.py` | typesets the symbol set with LaTeX, emits `glyphs.js`. Run by hand, rarely. |
 | `glyphs.js` | **generated** — 39 symbols sharing 51 outlines. Do not hand-edit. |
 | `rain.js` | the animation. Hand-written. |
+| `talk/` | renders a 1920×1080 clip of the same animation, for slides |
 | `../imgs/hi_class_wordmark.png` | the wordmark, lifted from the GIF (see below) |
 | `../imgs/hi_class.gif` | the original. Still the `og:image` and the no-JS fallback. |
 
@@ -50,6 +51,40 @@ in the crop do not come along. It carries real alpha, so unlike the GIF it needs
 The caret's slot was measured in the source artwork (x 92.54–98.38 %, y 5.84–94.16 %)
 and is positioned in percentages, so it tracks the wordmark at any width. Its blink
 is the 0.8 s on / 0.8 s off of the two GIF frames.
+
+## The talk clip
+
+`talk/render_talk.py` produces a 1920×1080 loop for presentations. It does **not**
+reimplement the rain: `talk/render.html` installs a controllable
+`requestAnimationFrame`, loads this same `rain.js`, composites the wordmark and
+caret over each frame and POSTs it to the server, which writes PNGs. Two attributes
+on the canvas make that possible, and both are absent on the site:
+
+- `data-standalone` — the canvas is the whole picture rather than a page header, so
+  the clearing that exists only to protect the hero's text and bottom border is
+  skipped and the rain reaches all four edges.
+- `data-loop="12.8"` — makes the motion exactly periodic. Column speeds are
+  quantised to a whole number of cycles in the period and the symbol churn is
+  switched off, since random churn can never repeat. Frame 320 then comes back
+  **pixel-identical** to frame 0, so the clip loops with no seam and no crossfade.
+  12.8 s is also a whole number of 0.8 s caret blinks, which is why it is that and
+  not 12 or 13.
+
+```
+python3 docs/logo/talk/render_talk.py serve     # then open the URL it prints, wait
+python3 docs/logo/talk/render_talk.py encode
+```
+
+The page drives itself from the `?frames=` in that URL and counts progress in the
+tab title. Encoding drops the duplicate closing frame, uses one GOP per loop, and
+reuses the codec settings from `application_plots/utils/anim_encode.py`. Outputs go
+to `talk/out/` (gitignored); file them into the animation store at
+`~/Dropbox/Projects/animations/hi_class_public/logo_rain/`, since rendered video does
+not belong in git.
+
+No credit line is burned into the frame. The clip *is* the wordmark, and the design
+is Marcos's — the attribution convention that applies to the physics animations does
+not transfer here.
 
 ## Things worth knowing
 
