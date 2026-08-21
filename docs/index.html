@@ -16,7 +16,7 @@
 <meta name="twitter:card" content="summary_large_image">
 
 <link rel="icon" type="image/png" href="imgs/hi_class_icon_64x64.png">
-<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="styles.css?v=8">
 </head>
 
 <body>
@@ -45,9 +45,18 @@
 
 <!-- ==================== Hero ==================== -->
 <header class="hero" id="top">
+  <canvas class="hero-rain" aria-hidden="true"></canvas>
   <div class="wrap">
-    <img class="hero-logo" src="imgs/hi_class.gif" width="720" height="729"
-         alt="The hi_class logo: the word hi_class in green terminal type, surrounded by falling cosmological symbols">
+    <noscript>
+      <style>.hero-mark { display: none; }</style>
+      <img class="hero-logo" src="imgs/hi_class.gif" width="720" height="729"
+           alt="The hi_class logo: the word hi_class in green terminal type, surrounded by falling cosmological symbols">
+    </noscript>
+    <p class="hero-mark">
+      <img class="hero-wordmark" src="imgs/hi_class_wordmark.png" width="617" height="154"
+           alt="hi_class">
+      <span class="hero-caret" aria-hidden="true"></span>
+    </p>
     <h1>Horndeski in the Cosmic Linear Anisotropy Solving System</h1>
     <p class="hero-tagline">An Einstein-Boltzmann solver for dark energy and modified gravity.</p>
 
@@ -1274,6 +1283,11 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
     <p class="footer-credit">The <code>hi_class</code> logo was designed by <a href="https://marcosvazquez.me/" target="_blank" rel="noopener">Marcos V&aacute;zquez Pingarr&oacute;n</a>.</p>
   </div>
 </footer>
+
+<!-- The animated logo: LaTeX glyph outlines, then the canvas that rains them.
+     Deferred and order-dependent; rain.js exits quietly if either is missing. -->
+<script defer src="logo/glyphs.js"></script>
+<script defer src="logo/rain.js"></script>
 
 <script>
 (function () {

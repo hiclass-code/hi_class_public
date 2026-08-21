@@ -286,6 +286,61 @@ h3[id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
    paints this after the pseudo-element. */
 .hero > .wrap { position: relative; }
 
+/* The rain. Painted by logo/rain.js over the whole hero, behind everything in
+   .wrap; .hero's overflow:hidden clips it. It stays invisible until the script
+   has a first frame up, so a failed build shows nothing rather than a flash of
+   empty box. The script clears the rain behind the wordmark and washes it out
+   over the lower hero, so the heading and buttons keep their contrast. */
+.hero-rain {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	z-index: 0;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.7s ease;
+}
+
+.hero-rain.is-live { opacity: 1; }
+
+/* The wordmark, lifted from the original logo (frame 2, where the caret is
+   hidden) and alpha-keyed, so it needs no blend mode and can sit over moving
+   rain. The caret is a real element again, as it was a GIF frame before. */
+.hero-mark {
+	position: relative;
+	display: block;
+	width: min(360px, 78vw);
+	margin: 0 auto 26px;
+}
+
+.hero-wordmark {
+	display: block;
+	width: 100%;
+	height: auto;
+	filter: drop-shadow(0 0 9px rgba(57, 230, 0, 0.42));
+}
+
+/* Percentages, not pixels: the caret's slot was measured in the source artwork
+   (x 92.54-98.38%, y 5.84-94.16%) so it tracks the wordmark at any width. */
+.hero-caret {
+	position: absolute;
+	left: 92.54%;
+	top: 5.84%;
+	width: 5.84%;
+	height: 88.32%;
+	background: #00cc33;
+	box-shadow: 0 0 12px rgba(57, 230, 0, 0.7);
+	animation: caret-blink 1.6s steps(1) infinite;
+}
+
+/* 0.8s on, 0.8s off - the cadence of the two GIF frames it replaces. */
+@keyframes caret-blink {
+	0%, 50%       { opacity: 1; }
+	50.01%, 100%  { opacity: 0; }
+}
+
 .hero-logo {
 	display: block;
 	width: min(360px, 78vw);
@@ -1179,10 +1234,15 @@ figcaption {
 	   animation - so the element itself has to go, and the still takes over. */
 	.anim video { display: none; }
 	.anim .anim-poster { display: block; }
+	/* Same problem again: a <canvas> driven by requestAnimationFrame is not a
+	   CSS animation either. logo/rain.js checks this query itself and holds a
+	   single painted frame; all this rule does is stop the caret mid-blink so
+	   it rests solid rather than wherever the 0.01ms above left it. */
+	.hero-caret { animation: none; opacity: 1; }
 }
 
 @media print {
-	.nav, .hero::before, .pub-toolbar { display: none; }
+	.nav, .hero::before, .hero-rain, .hero-caret, .pub-toolbar { display: none; }
 	body { background: #fff; color: #000; }
 	a { color: #000; }
 }
