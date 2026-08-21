@@ -14,7 +14,8 @@ lighter ink.
 | `glyphs.js` | **generated** — 39 symbols sharing 51 outlines. Do not hand-edit. |
 | `rain.js` | the animation. Hand-written. |
 | `talk/` | renders a 1920×1080 clip of the same animation, for slides |
-| `../imgs/hi_class_wordmark.png` | the wordmark, lifted from the GIF (see below) |
+| `build_wordmark.py` | lifts the wordmark out of the GIF, emits the PNG. Run by hand, rarely. |
+| `../imgs/hi_class_wordmark.png` | **generated** — the wordmark (see below) |
 | `../imgs/hi_class.gif` | the original. Still the `og:image` and the no-JS fallback. |
 
 ## Why LaTeX outlines
@@ -41,12 +42,19 @@ marks the alpha-functions, which render in `ACCENT` — keep it in sync with `ra
 
 ## The wordmark
 
-Lifted from the GIF's **second** frame, the one where the caret is hidden, so the
-caret could become a real element again. Alpha-keyed off luminance and
-un-premultiplied against black, which keeps the glow's hue instead of letting it go
-grey; then masked to the eight letterform components so the stray rain glyphs caught
-in the crop do not come along. It carries real alpha, so unlike the GIF it needs no
-`mix-blend-mode: screen` and sits over moving rain without a black square.
+Made by `build_wordmark.py` from the GIF's **second** frame, the one where the caret
+is hidden, so the caret could become a real element again. Alpha-keyed off luminance
+and un-premultiplied against black, which keeps the glow's hue instead of letting it
+go grey. It carries real alpha, so unlike the GIF it needs no `mix-blend-mode:
+screen` and sits over moving rain without a black square.
+
+A few rain glyphs fall inside the crop and have to be masked out. What separates them
+from the wordmark is **thickness, not size** — the wordmark is a heavy face with
+~20px strokes, a rain glyph is drawn in 3–4px strokes. So the mask erodes the ink and
+keeps whole components that survived. The first version filtered on bounding-box size
+instead, which silently dropped the dot of the "i" (16×17px, smaller than some of the
+rain glyphs it was trying to reject) and left it lit only by the halo bleeding up from
+the stem. If you change the crop or the palette, check the dot.
 
 The caret's slot was measured in the source artwork (x 92.54–98.38 %, y 5.84–94.16 %)
 and is positioned in percentages, so it tracks the wordmark at any width. Its blink
@@ -71,8 +79,8 @@ on the canvas make that possible, and both are absent on the site:
   not 12 or 13.
 
 ```
-python3 docs/logo/talk/render_talk.py serve     # then open the URL it prints, wait
-python3 docs/logo/talk/render_talk.py encode
+python3 docs/logo/talk/render_talk.py serve             # open the URL it prints, wait
+~/venvs/main/bin/python docs/logo/talk/render_talk.py encode   # needs imageio-ffmpeg
 ```
 
 The page drives itself from the `?frames=` in that URL and counts progress in the

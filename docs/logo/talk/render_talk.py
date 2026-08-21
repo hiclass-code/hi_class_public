@@ -15,9 +15,10 @@ pixel-identical to frame 0 and the clip loops without a seam; 12.8 s also holds
 a whole number of 0.8 s caret blinks. Encoding drops that duplicate closing
 frame and uses one GOP per loop.
 
-Encoding needs ffmpeg; it will use the one imageio-ffmpeg ships if there is no
-system binary. Outputs land in `out/` next to this file -- file them into the
-animation store yourself, as the videos do not belong in git.
+Encoding needs ffmpeg. There is no system binary on this machine, so run the
+encode step with a Python that has imageio-ffmpeg -- `~/venvs/main/bin/python`
+does, the bare `python3` does not. Outputs land in `out/` next to this file;
+file them into the animation store yourself, as videos do not belong in git.
 """
 
 import base64
