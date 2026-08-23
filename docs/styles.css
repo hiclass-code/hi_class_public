@@ -168,7 +168,11 @@ h3[id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
 	margin: 0 0 10px;
 }
 
+/* The h1 belongs to the hero on the front page, but a subpage (news.html) has
+   no hero and its title is the section heading -- so both carry the same size
+   here, and .hero h1 overrides it further down. */
 .band > .wrap > h2,
+.band h1,
 .band h2 {
 	font-size: clamp(24px, 3.4vw, 32px);
 	margin: 0 0 20px;
@@ -1125,7 +1129,10 @@ figcaption {
 /* ---- News --------------------------------------------------------------
    Dated one-liners at the top of the page. The date sits in its own column so
    the list scans as a timeline rather than as prose. Same structure as the
-   news lists on miguelzuma.github.io and the GLoW ERC site. */
+   news lists on miguelzuma.github.io and the GLoW ERC site.
+
+   Two lists use this: the newest few on the front page, and the whole archive
+   on news.html. */
 
 .news {
 	list-style: none;
@@ -1154,6 +1161,14 @@ figcaption {
 
 .news-body { margin: 0; max-width: var(--prose); }
 .news-links { color: var(--text-dim); font-size: 14.5px; }
+
+/* Link out of the list: to the archive from the front page, back to the front
+   page from the archive. Sized with .news-links rather than with body text,
+   because it is an exit from the section and not another item in it. */
+.news-more {
+	margin: 16px 0 0;
+	font-size: 14.5px;
+}
 
 /* Only items inside the freshness window carry this, and the script removes it
    once they age out - so the motion always means something. The other two sites

@@ -16,7 +16,7 @@
 <meta name="twitter:card" content="summary_large_image">
 
 <link rel="icon" type="image/png" href="imgs/hi_class_icon_64x64.png">
-<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="styles.css?v=9">
 </head>
 
 <body>
@@ -80,12 +80,15 @@
 </header>
 
 <!-- ==================== News ====================
-     Dated one-liners, newest first. The "New" flag is NOT written here: the
-     script at the foot of the page adds it to any item whose <time datetime>
-     falls inside the six-month freshness window, and leaves it off otherwise. On the
-     Jekyll sites (miguelzuma.github.io, GLoW ERC) the template does this at
-     build time; this page has no build step, so it happens in the browser.
-     If the script does not run, no flag appears -- which is the right failure,
+     The newest few, mirrored from news.html, which holds the whole archive and
+     is where an item is added first. Keep this block to the top four entries of
+     that list: the section is a sign of life on the front page, not the record.
+
+     The "New" flag is NOT written here. news.js adds it in the browser to any
+     item whose <time datetime> falls inside the six-month freshness window, and
+     leaves it off otherwise. On the Jekyll sites (miguelzuma.github.io, GLoW
+     ERC) the template does this at build time; this page has no build step. If
+     the script does not run, no flag appears -- which is the right failure,
      since a blinking flag on a two-year-old item is worse than none. -->
 <section class="band band--soft" id="news">
   <div class="wrap">
@@ -102,6 +105,25 @@
         </p>
       </li>
       <li>
+        <time class="news-date" datetime="2026-08">Aug 2026</time>
+        <p class="news-body">This site was rebuilt. The code and these pages now live in the
+          <code>hiclass-code</code> organisation on GitHub; <code>hiclass-code.net</code> is unchanged
+          and still the place to find them.
+          <span class="news-links">
+            <a href="https://github.com/hiclass-code/hi_class_public" target="_blank" rel="noopener">repository</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2026-02">Feb 2026</time>
+        <p class="news-body">The Python wrapper was published on PyPI as <code>hiclassy</code>, so
+          <code>pip install hiclassy</code> is all it takes to drive <code>hi_class</code> from a script.
+          <span class="news-links">
+            <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener">PyPI</a>
+          </span>
+        </p>
+      </li>
+      <li>
         <time class="news-date" datetime="2025-09">Sep 2025</time>
         <p class="news-body">DESI put out modified-gravity constraints from the full-shape modelling
           of its 2024 clustering measurements, computed with <code>hi_class</code>.
@@ -110,16 +132,8 @@
           </span>
         </p>
       </li>
-      <li>
-        <time class="news-date" datetime="2025-08">Aug 2025</time>
-        <p class="news-body">The Cosmological Evidence for Non-Minimal Coupling, whose modified-gravity
-          predictions were computed with <code>hi_class</code>, appeared in Physical Review Letters.
-          <span class="news-links">
-            <a href="https://inspirehep.net/literature/2910498" target="_blank" rel="noopener">PRL 135 (2025)</a>
-          </span>
-        </p>
-      </li>
     </ul>
+    <p class="news-more"><a href="news.html">All news</a></p>
   </div>
 </section>
 
@@ -1273,6 +1287,7 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
   <div class="wrap footer-inner">
     <p><code>hi_class</code> — Horndeski in the Cosmic Linear Anisotropy Solving System</p>
     <p>
+      <a href="news.html">News</a> ·
       <a href="#resources">Resources</a> ·
       <a href="#team">Team</a> ·
       <a href="#contact">Contact</a> ·
@@ -1289,40 +1304,12 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
 <script defer src="logo/glyphs.js"></script>
 <script defer src="logo/rain.js"></script>
 
+<!-- The "New" flag on the news list, shared with the archive page. -->
+<script defer src="news.js"></script>
+
 <script>
 (function () {
 	'use strict';
-
-	/* ---- News freshness flag -------------------------------------------
-	   The Jekyll sites decide this at build time and simply do not emit the
-	   flag for stale items. This page has no build step, so the same rule runs
-	   here: an item is "new" for FRESH_DAYS after the month in its datetime.
-	   Nothing is written into the markup, so with JS off no flag appears at
-	   all - better than a flag that blinks forever on an old item. */
-	var FRESH_DAYS = 183;                  /* six months */
-
-	(function flagFreshNews() {
-		var items = document.querySelectorAll('#news .news li');
-		if (!items.length) { return; }
-		var cutoff = Date.now() - FRESH_DAYS * 864e5;
-
-		Array.prototype.forEach.call(items, function (li) {
-			var t = li.querySelector('time[datetime]');
-			if (!t) { return; }
-			/* datetime is YYYY-MM; count from the END of that month, so an item
-			   dated to the month it happened is not aged out on day one. */
-			var parts = t.getAttribute('datetime').split('-');
-			var stamp = Date.UTC(+parts[0], +parts[1], 0);
-			if (!(stamp > cutoff)) { return; }
-
-			var body = li.querySelector('.news-body');
-			if (!body || body.querySelector('.news-flag')) { return; }
-			var flag = document.createElement('span');
-			flag.className = 'news-flag';
-			flag.textContent = 'New';
-			body.insertBefore(flag, body.firstChild);
-		});
-	}());
 
 	/* ---- Publication filter ------------------------------------------- */
 	var input  = document.getElementById('pub-filter');
