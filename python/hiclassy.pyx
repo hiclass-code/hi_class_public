@@ -1,11 +1,11 @@
 """
-.. module:: classy
+.. module:: hiclassy
     :synopsis: Python wrapper around CLASS
 .. moduleauthor:: Karim Benabed <benabed@iap.fr>
 .. moduleauthor:: Benjamin Audren <benjamin.audren@epfl.ch>
 .. moduleauthor:: Julien Lesgourgues <lesgourg@cern.ch>
 
-This module defines a class called Class. It is used with Monte Python to
+This module defines a class called HiClass. It is used with Monte Python to
 extract cosmological parameters.
 
 # JL 14.06.2017: TODO: check whether we should free somewhere the allocated fc.filename and titles, data (4 times)
@@ -36,14 +36,14 @@ def viewdictitems(d):
 ctypedef np.float64_t DTYPE_t
 ctypedef np.int32_t DTYPE_i
 
-# A little utility function to ensure backwards compatibility. This allows classy to define properties that you can also call at the same time
+# A little utility function to ensure backwards compatibility. This allows hiclassy to define properties that you can also call at the same time
 class CallableFloat(float):
   def __call__(self):
     return self
 
 
 # Import the .pxd containing definitions
-from cclassy cimport *
+from chiclassy cimport *
 
 DEF _MAXTITLESTRINGLENGTH_ = 8000
 
@@ -65,7 +65,7 @@ class CosmoError(Exception):
 
 class CosmoSevereError(CosmoError):
     """
-    Raised when Class failed to understand one or more input parameters.
+    Raised when HiClass failed to understand one or more input parameters.
 
     This case would not raise any problem in Class default behaviour. However,
     for parameter extraction, one has to be sure that all input parameters were
@@ -76,7 +76,7 @@ class CosmoSevereError(CosmoError):
 
 class CosmoComputationError(CosmoError):
     """
-    Raised when Class could not compute the cosmology at this point.
+    Raised when HiClass could not compute the cosmology at this point.
 
     This will be caught by the parameter extraction code to give an extremely
     unlikely value to this point
@@ -84,13 +84,13 @@ class CosmoComputationError(CosmoError):
     pass
 
 
-cdef class Class:
+cdef class HiClass:
     """
-    Class wrapping, creates the glue between C and python
+    HiClass wrapping, creates the glue between C and python
 
-    The actual Class wrapping, the only class we will call from MontePython
+    The actual HiClass wrapping, the only class we will call from MontePython
     (indeed the only one we will import, with the command:
-    from classy import Class
+    from hiclassy import HiClass
 
     """
     # List of used structures, defined in the header file. They have to be
@@ -108,8 +108,8 @@ cdef class Class:
     cdef distortions sd
     cdef file_content fc
 
-    cdef int computed # Flag to see if classy has already computed with the given pars
-    cdef int allocated # Flag to see if classy structs are allocated already
+    cdef int computed # Flag to see if hiclassy has already computed with the given pars
+    cdef int allocated # Flag to see if hiclassy structs are allocated already
     cdef object _pars # Dictionary of the parameters
     cdef object ncp   # Keeps track of the structures initialized, in view of cleaning.
 
@@ -325,7 +325,7 @@ cdef class Class:
       return True
 
     ###############################################################
-    # Now we can start with the actual code describing the classy #
+    # Now we can start with the actual code describing the hiclassy #
     ###############################################################
 
     def set_default(self):
@@ -347,7 +347,7 @@ cdef class Class:
         if default: self.set_default()
         try:
           import importlib.resources
-          resource_path = abspath(importlib.resources.files('classy'))
+          resource_path = abspath(importlib.resources.files('hiclassy'))
         except ImportError as ie:
           resource_path = dirname(abspath(__file__))
         path_to_this_as_bytes = resource_path.encode()
@@ -508,7 +508,7 @@ cdef class Class:
         compute(level=["distortions"])
 
         Main function, execute all the _init methods for all desired modules.
-        This is called in MontePython, and this ensures that the Class instance
+        This is called in MontePython, and this ensures that the HiClass instance
         of this class contains all the relevant quantities. Then, one can deduce
         Pk, Cl, etc...
 
@@ -577,7 +577,7 @@ cdef class Class:
                     problematic_parameters.append(self.fc.name[i].decode())
             if problem_flag:
                 raise CosmoSevereError(
-                    "Class did not read input parameter(s): %s\n" % ', '.join(
+                    "HiClass did not read input parameter(s): %s\n" % ', '.join(
                     problematic_parameters))
 
         # The following list of computation is straightforward. If the "_init"
@@ -1729,10 +1729,10 @@ cdef class Class:
         # consistency checks
 
         if self.fo.has_pk_matter == False:
-            raise CosmoSevereError("You ask classy to return an array of P(k,z) values, but the input parameters sent to CLASS did not require any P(k,z) calculations; add 'mPk' in 'output'")
+            raise CosmoSevereError("You ask hiclassy to return an array of P(k,z) values, but the input parameters sent to CLASS did not require any P(k,z) calculations; add 'mPk' in 'output'")
 
         if nonlinear == True and self.fo.method == nl_none:
-            raise CosmoSevereError("You ask classy to return an array of nonlinear P(k,z) values, but the input parameters sent to CLASS did not require any non-linear P(k,z) calculations; add e.g. 'halofit' or 'HMcode' in 'nonlinear'")
+            raise CosmoSevereError("You ask hiclassy to return an array of nonlinear P(k,z) values, but the input parameters sent to CLASS did not require any non-linear P(k,z) calculations; add e.g. 'halofit' or 'HMcode' in 'nonlinear'")
 
         # check wich type of P(k) to return (total or clustering only, i.e. without massive neutrino contribution)
         if (only_clustering_species == True):
@@ -1745,7 +1745,7 @@ cdef class Class:
         # For nonlinear, we have to additionally cut out the linear values
 
         if self.fo.ln_tau_size == 1:
-            raise CosmoSevereError("You ask classy to return an array of P(k,z) values, but the input parameters sent to CLASS did not require any P(k,z) calculations for z>0; pass either a list of z in 'z_pk' or one non-zero value in 'z_max_pk'")
+            raise CosmoSevereError("You ask hiclassy to return an array of P(k,z) values, but the input parameters sent to CLASS did not require any P(k,z) calculations for z>0; pass either a list of z in 'z_pk' or one non-zero value in 'z_max_pk'")
         else:
             for index_tau in range(self.fo.ln_tau_size):
                 if index_tau == self.fo.ln_tau_size-1:
@@ -1832,7 +1832,7 @@ cdef class Class:
 
         # consistency checks
         if (self.pt.has_density_transfers == False) and (self.pt.has_velocity_transfers == False):
-            raise CosmoSevereError("You ask classy to return transfer functions, but the input parameters sent to CLASS did not require any T(k,z) calculations; add 'dTk' and/or 'vTk' in 'output'")
+            raise CosmoSevereError("You ask hiclassy to return transfer functions, but the input parameters sent to CLASS did not require any T(k,z) calculations; add 'dTk' and/or 'vTk' in 'output'")
 
         index_md = self.pt.index_md_scalars;
 
@@ -1865,7 +1865,7 @@ cdef class Class:
         # the ln(times) of interest are stored in self.fo.ln_tau[index_tau]
 
         if self.pt.ln_tau_size == 1:
-            raise CosmoSevereError("You ask classy to return an array of T_x(k,z) values, but the input parameters sent to CLASS did not require any transfer function calculations for z>0; pass either a list of z in 'z_pk' or one non-zero value in 'z_max_pk'")
+            raise CosmoSevereError("You ask hiclassy to return an array of T_x(k,z) values, but the input parameters sent to CLASS did not require any transfer function calculations for z>0; pass either a list of z in 'z_pk' or one non-zero value in 'z_max_pk'")
         else:
             for index_tau in range(self.pt.ln_tau_size):
                 if index_tau == self.pt.ln_tau_size-1:

@@ -12,7 +12,7 @@
 
 
 # import necessary modules
-from classy import Class
+from hiclassy import HiClass
 from math import pi
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib
@@ -39,7 +39,7 @@ common_settings = {# LambdaCDM parameters (Planck 18 + lensing + BAO bestfit)
 #
 # Initiate a CLASS instance
 #
-M = Class()
+M = HiClass()
 #
 ###############
 #

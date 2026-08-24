@@ -40,7 +40,7 @@ if b"mvec" not in MVEC_STRING:
 
 # define absolute paths
 include_folder = os.path.join(root_folder, "include")
-classy_folder = os.path.join(root_folder, "python")
+hiclassy_folder = os.path.join(root_folder, "python")
 heat_folder = os.path.join(os.path.join(root_folder, "external"),"heating")
 recfast_folder = os.path.join(os.path.join(root_folder, "external"),"RecfastCLASS")
 hyrec_folder = os.path.join(os.path.join(root_folder, "external"),"HyRec2020")
@@ -51,20 +51,20 @@ with open(os.path.join(include_folder, 'common.h'), 'r') as v_file:
     for line in v_file:
         if line.find("_VERSION_") != -1:
             # get rid of the " and the v
-            VERSION = line.split()[-1][2:-1]+".0" # Always set a sub-version number here for subsequent uploads (!)
+            VERSION = line.split()[-1][2:-1]+".3" # Always set a sub-version number here for subsequent uploads (!)
             break
 
 # Define cython extension and fix Python version
-classy_ext = Extension("classy._classy", [os.path.join("python", "classy.pyx")],
+hiclassy_ext = Extension("hiclassy._hiclassy", [os.path.join("python", "hiclassy.pyx")],
                        include_dirs=[np.get_include(), include_folder, heat_folder, recfast_folder, hyrec_folder, hiclass_folder],
                        libraries=liblist,
                        library_dirs=[root_folder, GCCPATH],
                        language="c++",
                        extra_compile_args=["-std=c++11"],
-                       depends=["libclass.a","python/cclassy.pxd"]
+                       depends=["libclass.a","python/chiclassy.pxd"]
                        )
 
-classy_ext.cython_directives = {'language_level': "3" if sys.version_info.major>=3 else "2"}
+hiclassy_ext.cython_directives = {'language_level': "3" if sys.version_info.major>=3 else "2"}
 
 
 
@@ -73,7 +73,7 @@ classy_ext.cython_directives = {'language_level': "3" if sys.version_info.major>
 def package_files(directory):
     paths = []
     direcs = []
-    wanted_paths = {os.path.join(directory, d) for d in ["tools", "source", "main", "python", "include"]}
+    wanted_paths = {os.path.join(directory, d) for d in ["tools", "source", "main", "python", "include", "gravity_smg", "gravity_smg/include"]}
     for (path, directories, filenames) in os.walk(directory):
         # Only include those directories that we actually want
         if (path in wanted_paths or
@@ -90,7 +90,7 @@ print("Included files : ", pck_files)
 
 
 # Make a custom builder in order to compile the C code as well, using the makefile
-class classy_builder(build_ext):
+class hiclassy_builder(build_ext):
 
     def build_extension(self, ext):
       # Make sure to put the current python version into the 'PYTHON' variable
@@ -115,15 +115,15 @@ class classy_builder(build_ext):
 
 # Finally, perform the actual setup
 setup(
-    name='classy',
+    name='hiclassy',
     version=VERSION,
     description='Python interface to the Cosmological Boltzmann code CLASS',
     url='http://www.class-code.net',
-    cmdclass={'build_ext': classy_builder},
-    ext_modules=[classy_ext],
-    packages = ["classy"],
-    package_dir={"classy":"."},
-    package_data={'classy': pck_files},
+    cmdclass={'build_ext': hiclassy_builder},
+    ext_modules=[hiclassy_ext],
+    packages = ["hiclassy"],
+    package_dir={"hiclassy":"."},
+    package_data={'hiclassy': pck_files},
     include_package_data=True,
     zip_safe=False
 )

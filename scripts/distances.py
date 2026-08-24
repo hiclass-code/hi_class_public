@@ -12,18 +12,18 @@
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from classy import Class
+from hiclassy import HiClass
 
 
 # Create an instance of CLASS for the LambdaCDM model
-LCDM = Class()
+LCDM = HiClass()
 # Keep the default LCDM parameters but overwrite Omega_cdm, Omega_b; their sum is 0.3 such that Omega_Lambda=0.7
 LCDM.set({'Omega_cdm':0.25,'Omega_b':0.05})
 
 
 # Create an instance of CLASS for an Einstein-de Sitter model with the same parameters excepted
 # Omega_cdm, Omega_b, now set such that their sum is 1, and thus Omega_Lambda=0
-CDM = Class()
+CDM = HiClass()
 CDM.set({'Omega_cdm':0.95,'Omega_b':0.05})
 
 # Just to cross-check that Omega_Lambda is negligible

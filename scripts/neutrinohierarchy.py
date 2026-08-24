@@ -10,7 +10,7 @@
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from classy import Class
+from hiclassy import HiClass
 from scipy.optimize import fsolve
 
 
@@ -57,7 +57,7 @@ commonsettings = {'Neff':3.044, # Let's fix Neff to the usual value here
                   'P_k_max_1/Mpc':3.0,
                   # The next line should be uncommented for higher precision (but significantly slower running)
                   'ncdm_fluid_approximation':3,
-                  # You may uncomment this line to get more info on the ncdm sector from Class:
+                  # You may uncomment this line to get more info on the ncdm sector from HiClass:
                   #'background_verbose':1
                  }
 
@@ -70,13 +70,13 @@ legarray = []
 for sum_masses in [0.1, 0.115, 0.13]:
     # normal hierarchy
     [m1, m2, m3] = get_masses(2.45e-3,7.50e-5, sum_masses, 'NH')
-    NH = Class()
+    NH = HiClass()
     NH.set(commonsettings)
     NH.set({'m_ncdm':str(m1)+','+str(m2)+','+str(m3)})
     pkNH = NH.get_pk_all(kvec,0.)
     # inverted hierarchy
     [m1, m2, m3] = get_masses(2.45e-3,7.50e-5, sum_masses, 'IH')
-    IH = Class()
+    IH = HiClass()
     IH.set(commonsettings)
     IH.set({'m_ncdm':str(m1)+','+str(m2)+','+str(m3)})
     pkIH = IH.get_pk_all(kvec,0.)

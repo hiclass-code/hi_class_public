@@ -5,12 +5,12 @@
 # of temperature, polarisation and lensing potential, as well as the matter power spectrum
 
 
-# import classy module
-from classy import Class
+# import hiclassy module
+from hiclassy import HiClass
 
 
 # create an instance of CLASS
-LambdaCDM = Class()
+LambdaCDM = HiClass()
 
 ####################################################
 #
@@ -41,10 +41,10 @@ LambdaCDM.set(input)
 # LambdaCDM.set_baseline('p18lb')
 # Here 'p18lb' is a short-cut for Planck18 + lensing + BAO bestfit
 # other options are 'p18l' and 'p18'
-# These pre-settings are defined in the classy function .set_baseline()
+# These pre-settings are defined in the hiclassy function .set_baseline()
 
-# In older versions of classy one needed to execute CLASS with .compute()
-# This is no longer necessary, the code execution happens directly when calling classy functions
+# In older versions of hiclassy one needed to execute CLASS with .compute()
+# This is no longer necessary, the code execution happens directly when calling hiclassy functions
 
 
 # get lesned C_l spectra

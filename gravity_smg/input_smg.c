@@ -13,7 +13,7 @@
  * -# all the functions end with "_smg" to make them easily
  *    recognizable
  * -# all the functions starting with "input_" are
- *    directly called by input.c or the classy wrapper
+ *    directly called by input.c or the hiclassy wrapper
  * -# all the functions that do not start with "input_"
  *    are only used internally in input_smg.c
  */

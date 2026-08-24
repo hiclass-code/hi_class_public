@@ -12,7 +12,7 @@
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from classy import Class
+from hiclassy import HiClass
 from scipy.optimize import fsolve
 
 
@@ -62,7 +62,7 @@ fig_EE, ax_EE = plt.subplots()
 fig_PP, ax_PP = plt.subplots()
 #
 # create an instance of CLASS
-M = Class()
+M = HiClass()
 #
 # loop over varying parameter values
 #

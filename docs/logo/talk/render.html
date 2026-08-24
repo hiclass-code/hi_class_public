@@ -1,0 +1,111 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>hi_class logo - talk render</title>
+<style>
+  html, body { margin: 0; background: #222; }
+  #stage { position: relative; width: 1920px; height: 1080px; background: #000; overflow: hidden; }
+  .hero-rain { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .hero-wordmark { position: absolute; display: block; }
+</style>
+
+<div id="stage">
+  <canvas class="hero-rain" data-standalone data-loop="12.8"></canvas>
+  <img class="hero-wordmark" src="/imgs/hi_class_wordmark.png">
+</div>
+
+<script>
+/* Drive the site's own rain.js frame by frame instead of on a clock, so the
+ * render is the same code the page runs. Everything below must be in place
+ * BEFORE rain.js loads. */
+window.__pending = [];
+window.requestAnimationFrame = function (cb) { window.__pending.push(cb); return window.__pending.length; };
+window.cancelAnimationFrame = function () {};
+Object.defineProperty(document, 'hidden', { get: function () { return false; }, configurable: true });
+Object.defineProperty(document, 'visibilityState', { get: function () { return 'visible'; }, configurable: true });
+var _mm = window.matchMedia.bind(window);
+window.matchMedia = function (q) {
+  return /prefers-reduced-motion/.test(q)
+    ? { matches: false, addEventListener: function () {}, addListener: function () {} } : _mm(q);
+};
+/* Always "on screen": a background tab may never fire the real observer. */
+window.IntersectionObserver = function (cb) {
+  this.observe = function (el) { cb([{ isIntersecting: true, target: el }]); };
+  this.disconnect = function () {};
+};
+window.ResizeObserver = null;      /* geometry is fixed; no rebuild mid-render */
+
+/* Layout of the mark inside the 1920x1080 frame. The caret slot was measured in
+ * the source artwork, as fractions of the wordmark image. */
+var FRAME_W = 1920, FRAME_H = 1080, FPS = 25;
+var WM_W = 880, WM_H = WM_W * 154 / 617;
+var WM_X = (FRAME_W - WM_W) / 2, WM_Y = (FRAME_H - WM_H) / 2;
+var CARET = { x: 0.9254, y: 0.0584, w: 0.0584, h: 0.8832 };
+var BLINK_FRAMES = Math.round(0.8 * FPS);          /* 0.8s on, 0.8s off */
+
+var wm = document.querySelector('.hero-wordmark');
+wm.style.left = WM_X + 'px';
+wm.style.top = WM_Y + 'px';
+wm.style.width = WM_W + 'px';
+wm.style.height = WM_H + 'px';
+
+window.__status = { ready: false, done: 0, total: 0, error: null };
+
+window.__drive = async function (total) {
+  var rain = document.querySelector('.hero-rain');
+  var out = document.createElement('canvas');
+  out.width = FRAME_W; out.height = FRAME_H;
+  var o = out.getContext('2d');
+  window.__status = { ready: true, done: 0, total: total, error: null };
+  var base = performance.now();
+  try {
+    for (var i = 0; i < total; i++) {
+      /* One synthetic frame at exactly 1/FPS, so dt is constant and the motion
+       * is reproducible rather than wall-clock dependent. */
+      var cbs = window.__pending; window.__pending = [];
+      for (var k = 0; k < cbs.length; k++) { cbs[k](base + (i + 1) * (1000 / FPS)); }
+
+      o.fillStyle = '#000';
+      o.fillRect(0, 0, FRAME_W, FRAME_H);
+      o.drawImage(rain, 0, 0, FRAME_W, FRAME_H);
+
+      o.save();
+      o.shadowColor = 'rgba(57,230,0,0.42)';
+      o.shadowBlur = 26;
+      o.drawImage(wm, WM_X, WM_Y, WM_W, WM_H);
+      if (Math.floor(i / BLINK_FRAMES) % 2 === 0) {
+        o.shadowColor = 'rgba(57,230,0,0.7)';
+        o.shadowBlur = 30;
+        o.fillStyle = '#00cc33';
+        o.fillRect(WM_X + CARET.x * WM_W, WM_Y + CARET.y * WM_H,
+                   CARET.w * WM_W, CARET.h * WM_H);
+      }
+      o.restore();
+
+      await fetch('/frame/' + i, { method: 'POST', body: out.toDataURL('image/png') });
+      window.__status.done = i + 1;
+    }
+  } catch (e) {
+    window.__status.error = String(e);
+  }
+  return window.__status.done;
+};
+
+/* Self-driving: opening the page with ?frames=321 renders and posts the lot, so
+ * the recipe is "start the server, open the URL, wait" with nothing to drive it
+ * by hand. A progress line goes to the console and to the title bar. */
+var _n = parseInt((location.search.match(/frames=(\d+)/) || [])[1], 10);
+if (_n > 0) {
+  window.addEventListener('load', function () {
+    var t = setInterval(function () {
+      document.title = window.__status.done + '/' + _n + ' frames';
+    }, 500);
+    window.__drive(_n).then(function (done) {
+      clearInterval(t);
+      document.title = 'done ' + done + '/' + _n;
+      console.log('render complete:', done, 'frames', window.__status.error || '');
+    });
+  });
+}
+</script>
+<script src="/logo/glyphs.js"></script>
+<script src="/logo/rain.js"></script>

@@ -8,7 +8,7 @@
 
 
 # import necessary modules
-from classy import Class
+from hiclassy import HiClass
 from math import pi
 #get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib
@@ -43,7 +43,7 @@ l_max_tensors = 600
 #
 ###############
 #
-M = Class()
+M = HiClass()
 M.set(common_settings)
 M.set({'output':'tCl,pCl','modes':'s','lensing':'no','n_s':0.9660499,
        'l_max_scalars':l_max_scalars})

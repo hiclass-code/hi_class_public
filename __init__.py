@@ -1,6 +1,6 @@
-from ._classy import (
+from ._hiclassy import (
     __version__,
-    Class,
+    HiClass,
     CosmoSevereError,
     CosmoComputationError
 )

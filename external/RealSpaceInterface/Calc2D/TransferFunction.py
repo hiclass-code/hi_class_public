@@ -6,7 +6,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline, RectBivariateSpline
 import sys
 import logging
 
-from classy import Class
+from hiclassy import HiClass
 
 import Calc2D.Database as Database
 import config
@@ -21,7 +21,7 @@ def ComputeTransferData(settings, redshift):
     if database_key in database:
         return database[database_key], redshift
     else:
-        cosmo = Class()
+        cosmo = HiClass()
         cosmo.set(settings)
         cosmo.compute()
 

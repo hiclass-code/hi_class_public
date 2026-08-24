@@ -13,7 +13,7 @@
  * -# all the functions end with "_smg" to make them easily
  *    recognizable
  * -# all the functions starting with "hmcode_" are
- *    directly called by hmcode.c or the classy wrapper
+ *    directly called by hmcode.c or the hiclassy wrapper
  * -# all the functions that do not start with "hmcode_"
  *    are only used internally in hmcode_smg.c
  */
