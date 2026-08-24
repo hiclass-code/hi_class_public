@@ -1,0 +1,8 @@
+# This file exists to keep output/ in the repository.
+#
+# The shipped .ini files write their products here (root = output/...), and
+# hi_class does not create the directory: without it every run fails in
+# input_write_info while writing <root>_parameters.ini, *after* the physics
+# has already succeeded, so the real error scrolls past unnoticed.
+#
+# The run products themselves stay ignored (see the rules in ../.gitignore).
