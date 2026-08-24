@@ -1,37 +1,31 @@
-
+#!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# The goal of this script is to show the impact of the dark matter annihilation parameter p_ann
+# on the various observables: CMB spectrum of temperature (C_l^TT) and polarisation (C_l^EE),
+# matter power spectrum P(k,z), and CMB lensing spectrum C_l^phiphi
+# (the latter two are actually not be affected by p_ann)
+
 
 # import necessary modules
 # uncomment to get plots displayed in notebook
-#%matplotlib inline
-import matplotlib
+#get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from classy import Class
+from hiclassy import HiClass
 from scipy.optimize import fsolve
-import math
 
-
-# In[ ]:
-
-# esthetic definitions for the plots
-font = {'size'   : 16, 'family':'STIXGeneral'}
-axislabelfontsize='large'
-matplotlib.rc('font', **font)
-matplotlib.mathtext.rcParams['legend.fontsize']='medium'
-plt.rcParams["figure.figsize"] = [8.0,6.0]
-
-
-# In[ ]:
 
 ############################################
 #
 # Varying parameter (others fixed to default)
 #
-var_name = 'annihilation'
-var_array = np.linspace(0,1.e-5,5)
+# With the input syntax of class <= 2.9 we used: annihilation = 1.e-5 m^3/s/Kg
+# With the new syntax this is equivalent to DM_annihilation_efficiency = 1.11e-22 m^3/s/J
+# (the ratio is a factor (c/[1 m/s])**2 = 9.e16)
+#
+var_name = 'DM_annihilation_efficiency'
+var_array = np.linspace(0,1.11e-22,5)
 var_num = len(var_array)
 var_legend = r'$p_\mathrm{ann}$'
 var_figname = 'pann'
@@ -40,27 +34,25 @@ var_figname = 'pann'
 #
 # Fixed settings
 #
-common_settings = {'output':'tCl,pCl,lCl,mPk',
+common_settings = {# LambdaCDM parameters (Planck 18 + lensing + BAO bestfit)
+                   'omega_b':2.255065e-02,
+                   'omega_cdm':1.193524e-01,
+                   'H0':6.776953e+01,
+                   'A_s':2.123257e-09,
+                   'n_s':9.686025e-01,
+                   'z_reio':8.227371e+00,
+                   # output and precision parameters
+                   'output':'tCl,pCl,lCl,mPk',
                    'lensing':'yes',
-                   # LambdaCDM parameters
-                   'h':0.67556,
-                   'omega_b':0.022032,
-                   'omega_cdm':0.12038,
-                   'A_s':2.215e-9,
-                   'n_s':0.9619,
-                   'tau_reio':0.0925,
-                   # Take fixed value for primordial Helium (instead of automatic BBN adjustment)
-                   'YHe':0.246,
-                   # other output and precision parameters
                    'P_k_max_1/Mpc':3.0,
-                   'l_switch_limber':9}
-                   #'background_verbose':1}
+                   'l_switch_limber':9
+                   }
 #
-# arrays for output
+# array of k values in 1/Mpc
 #
-kvec = np.logspace(-4,np.log10(3),1000)
+kvec = np.geomspace(1e-4,3,num=1000)
 legarray = []
-twopi = 2.*math.pi
+twopi = 2.*np.pi
 #
 # Create figures
 #
@@ -69,11 +61,14 @@ fig_TT, ax_TT = plt.subplots()
 fig_EE, ax_EE = plt.subplots()
 fig_PP, ax_PP = plt.subplots()
 #
+# create an instance of CLASS
+M = HiClass()
+#
 # loop over varying parameter values
 #
 for i,var in enumerate(var_array):
     #
-    print ' * Compute with %s=%e'%(var_name,var)
+    print (' * Compute with %s=%e'%(var_name,var))
     #
     # deal with colors and legends
     #
@@ -87,12 +82,10 @@ for i,var in enumerate(var_array):
     if i == var_num-1:
         legarray.append(var_legend)
     #
-    # call CLASS
+    # fix input parameters in CLASS
     #
-    M = Class()
     M.set(common_settings)
     M.set({var_name:var})
-    M.compute()
     #
     # get Cls
     #
@@ -102,41 +95,41 @@ for i,var in enumerate(var_array):
     clEE = clM['ee'][2:]
     clPP = clM['pp'][2:]
     #
-    # get P(k) for common k values
+    # get P(k) for common k values (k in 1/Mpc, P(k) in Mpc^3)
     #
-    pkM = []
-    for k in kvec:
-        pkM.append(M.pk(k,0.))
+    pkM = M.get_pk_all(kvec,0.)
     #
-    # plot P(k)
+    # get reduced Hubble h for unit conversion
+    h = M.h()
     #
-    ax_Pk.loglog(kvec,np.array(pkM),color=var_color,alpha=var_alpha,linestyle='-')
+    # plot P(k) with k in h/Mpc and P(k) in (Mpc/h)^3
+    #
+    ax_Pk.loglog(kvec/h,np.array(pkM)*h*h*h,color=var_color,alpha=var_alpha,linestyle='-')
     #
     # plot C_l^TT
     #
     ax_TT.semilogx(ll,clTT*ll*(ll+1)/twopi,color=var_color,alpha=var_alpha,linestyle='-')
     #
-    # plot Cl EE
+    # plot C_l^EE
     #
     ax_EE.loglog(ll,clEE*ll*(ll+1)/twopi,color=var_color,alpha=var_alpha,linestyle='-')
     #
-    # plot Cl phiphi
+    # plot C_l^phiphi
     #
     ax_PP.loglog(ll,clPP*ll*(ll+1)*ll*(ll+1)/twopi,color=var_color,alpha=var_alpha,linestyle='-')
     #
     # reset CLASS
     #
-    M.struct_cleanup()
     M.empty()
 #
 # output of P(k) figure
 #
-ax_Pk.set_xlim([1.e-4,3.])
+ax_Pk.set_xlim([1e-4,3.])
 ax_Pk.set_xlabel(r'$k \,\,\,\, [h/\mathrm{Mpc}]$')
 ax_Pk.set_ylabel(r'$P(k) \,\,\,\, [\mathrm{Mpc}/h]^3$')
 ax_Pk.legend(legarray)
 fig_Pk.tight_layout()
-fig_Pk.savefig('spectra_%s_Pk.pdf' % var_figname)
+fig_Pk.savefig('varying_%s_Pk.pdf' % var_figname)
 #
 # output of C_l^TT figure
 #
@@ -145,7 +138,7 @@ ax_TT.set_xlabel(r'$\ell$')
 ax_TT.set_ylabel(r'$[\ell(\ell+1)/2\pi]  C_\ell^\mathrm{TT}$')
 ax_TT.legend(legarray)
 fig_TT.tight_layout()
-fig_TT.savefig('spectra_%s_cltt.pdf' % var_figname)
+fig_TT.savefig('varying_%s_cltt.pdf' % var_figname)
 #
 # output of C_l^EE figure
 #
@@ -154,7 +147,7 @@ ax_EE.set_xlabel(r'$\ell$')
 ax_EE.set_ylabel(r'$[\ell(\ell+1)/2\pi]  C_\ell^\mathrm{EE}$')
 ax_EE.legend(legarray)
 fig_EE.tight_layout()
-fig_EE.savefig('spectra_%s_clee.pdf' % var_figname)
+fig_EE.savefig('varying_%s_clee.pdf' % var_figname)
 #
 # output of C_l^pp figure
 #
@@ -163,12 +156,4 @@ ax_PP.set_xlabel(r'$\ell$')
 ax_PP.set_ylabel(r'$[\ell^2(\ell+1)^2/2\pi]  C_\ell^\mathrm{\phi \phi}$')
 ax_PP.legend(legarray)
 fig_PP.tight_layout()
-fig_PP.savefig('spectra_%s_clpp.pdf' % var_figname)
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
+fig_PP.savefig('varying_%s_clpp.pdf' % var_figname)

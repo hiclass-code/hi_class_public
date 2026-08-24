@@ -7,13 +7,9 @@ Author: Julien Lesgourgues
 * __For what the code can actually compute__: all possible input parameters, all coded cosmological models, all functionalities, all observables, etc.: read the file `explanatory.ini` in the main `CLASS` directory: it is THE reference file where we keep track of all possible input and the definition of all input parameters. For that reason we recommend to leave it always unchanged and to work with copies of it, or with short input files written from scratch.
 
 
-* __For the structure, style, and concrete aspects of the code__: this documentation, especially the `CLASS overview` chapter (the extensive automatically-generated part of this documentation is more for advanced users); plus the slides of our `CLASS` lectures, for instance those from Tokyo 2014 available at
+* __For the structure, style, and concrete aspects of the code__: this documentation, especially the `CLASS overview` chapter (the extensive automatically-generated part of this documentation is more for advanced users); plus the slides of our `CLASS` lectures, for instance those from New York 2019 available at
 
-    `http://lesgourg.github.io/class-tour-Tokyo.html`
-
-    or the more recent and concise summary from the Narbonne 2016 lecture available at
-
-    `http://lesgourg.github.io/class-tour/Narbonne.pdf`
+    `https://lesgourg.github.io/class-tour-NewYork.html`
 
     An updated overview of available `CLASS` lecture slides is always available at
 
@@ -22,11 +18,9 @@ Author: Julien Lesgourgues
     in the section `Courses on numerical tools`.
 
 
-* __For the python wrapper of `CLASS`__: at the moment, the best are the last slides (pages 75-96) of the Narbonne 2016 lectures
+* __For the python wrapper of `CLASS`__: at the moment, the best are the "Usage I" and "Usage II" slides of the New York 2019 course,
 
-    `http://lesgourg.github.io/class-tour/Narbonne.pdf`
-
-     Later we will expand the wrapper documentation with a dedicated chapter here.
+    `https://lesgourg.github.io/class-tour-NewYork.html`
 
 * __For the physics and equations used in the code__: mainly, the following papers:
     - *Cosmological perturbation theory in the synchronous and conformal Newtonian gauges*
@@ -89,7 +83,23 @@ Author: Julien Lesgourgues
 
      JCAP __1311__, 044 (2013)
 
-    plus also some latex notes on specific sectors:
+    - *The synergy between CMB spectral distortions and anisotropies*
+
+     M. Lucca, N. Schöneberg, D. C. Hooper, J. Lesgourgues, J. Chluba.
+
+     http://arxiv.org/abs/1910.04619 [astro-ph.CO]
+
+     JCAP 02 (2020) 026
+
+    - *Optimal Boltzmann hierarchies with nonvanishing spatial curvature*
+
+     C. Pitrou, T. S. Pereira, J. Lesgourgues,
+
+     http://arxiv.org/abs/2005.12119 [astro-ph.CO]
+
+     Phys.Rev.D 102 (2020) 2, 023511
+
+    Plus also some latex notes on specific sectors:
 
     - *Equations for perturbed recombination*
 
@@ -106,3 +116,23 @@ Author: Julien Lesgourgues
      T. Tram.
 
      http://lesgourg.github.io/class_public/PPF_formalism.pdf
+
+    Interactions between idm and idr are modelled by the ETHOS formalism of Cyr-Racine et al. [1512.05344]. This was introduced in Class v2.9 with a parametrisation described in
+
+    - *Constraining Dark Matter-Dark Radiation interactions with CMB, BAO, and Lyman-alpha*
+
+     M. Archidiacono, D. C. Hooper, R. Murgia, S. Bohr, J. Lesgourgues, M. Viel
+
+     http://arxiv.org/abs/1907.01496 [astro-ph.CO]
+
+     JCAP 10 (2019) 055
+
+    In Class v3.2, this sector has been generalised to multi-interacting dark matter with three interaction channels (dark radiation, baryons, photons) and a parametrisation described in
+
+    - *Cosmological constraints on multi-interacting dark matter*
+
+     N. Becker, D. C. Hooper,F. Kahlhoefer, J. Lesgourgues, N. Schöneberg
+
+     http://arxiv.org/abs/2010.04074 [astro-ph.CO]
+
+     JCAP 02 (2021) 019

@@ -1,0 +1,19 @@
+[project]
+name = "hiclassy"
+readme = "README.md"
+dynamic=["version"]
+description="Python interface to the Cosmological Boltzmann code hi_class"
+authors = [
+  {name = "Emilio Bellini"},
+  {name = "Ignacy Sawicki"},
+  {name = "Miguel Zumalacarregui"},
+  {name = "... and many more (see webpage)"}
+]
+
+[project.urls]
+Homepage = "http://www.hiclass-code.net"
+# Documentation = https://readthdocs.org/hiclassy # TBD
+
+[build-system]
+requires = ['setuptools','wheel','numpy','cython']
+build-backend = "setuptools.build_meta"

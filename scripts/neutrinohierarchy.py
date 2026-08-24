@@ -1,28 +1,18 @@
-
+#!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# The goal of this script is to compare the matter power spectrum of two models with the same total neutrino mass,
+# but a mass splitting fixed according to either normal or inverted hierarchy
+
 
 # import necessary modules
 # uncomment to get plots displayed in notebook
-#%matplotlib inline
-import matplotlib
+#get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 import numpy as np
-from classy import Class
+from hiclassy import HiClass
 from scipy.optimize import fsolve
 
-
-# In[2]:
-
-# esthetic definitions for the plots
-font = {'size'   : 16, 'family':'STIXGeneral'}
-axislabelfontsize='large'
-matplotlib.rc('font', **font)
-matplotlib.mathtext.rcParams['legend.fontsize']='medium'
-
-
-# In[3]:
 
 # a function returning the three masses given the Delta m^2, the total mass, and the hierarchy (e.g. 'IN' or 'IH')
 # taken from a piece of MontePython written by Thejs Brinckmann
@@ -53,66 +43,51 @@ def get_masses(delta_m_squared_atm, delta_m_squared_sol, sum_masses, hierarchy):
         return m1,m2,m3
 
 
-# In[4]:
-
 # test of this function, returning the 3 masses for total mass of 0.1eV
 m1,m2,m3 = get_masses(2.45e-3,7.50e-5,0.1,'NH')
-print 'NH:',m1,m2,m3,m1+m2+m3
+print ('NH:',m1,m2,m3,m1+m2+m3)
 m1,m2,m3 = get_masses(2.45e-3,7.50e-5,0.1,'IH')
-print 'IH:',m1,m2,m3,m1+m2+m3
+print ('IH:',m1,m2,m3,m1+m2+m3)
 
-
-# In[5]:
 
 # The goal of this cell is to compute the ratio of P(k) for NH and IH with the same total mass
-commonsettings = {'N_ur':0,
+commonsettings = {'Neff':3.044, # Let's fix Neff to the usual value here
                   'N_ncdm':3,
                   'output':'mPk',
                   'P_k_max_1/Mpc':3.0,
-                  # The next line should be uncommented fgor higher precision (but significantly slower running)
+                  # The next line should be uncommented for higher precision (but significantly slower running)
                   'ncdm_fluid_approximation':3,
-                  # You may uncomment this line to get more info on the ncdm sector from Class:
-                  'background_verbose':1
+                  # You may uncomment this line to get more info on the ncdm sector from HiClass:
+                  #'background_verbose':1
                  }
 
 # array of k values in 1/Mpc
-kvec = np.logspace(-4,np.log10(3),100)
+kvec = np.geomspace(1e-4,3,num=100)
 # array for storing legend
 legarray = []
 
-# loop over total mass values
+# loop over total mass values, and compute normal and inverted hierarchy for each
 for sum_masses in [0.1, 0.115, 0.13]:
     # normal hierarchy
     [m1, m2, m3] = get_masses(2.45e-3,7.50e-5, sum_masses, 'NH')
-    NH = Class()
+    NH = HiClass()
     NH.set(commonsettings)
     NH.set({'m_ncdm':str(m1)+','+str(m2)+','+str(m3)})
-    NH.compute()
+    pkNH = NH.get_pk_all(kvec,0.)
     # inverted hierarchy
     [m1, m2, m3] = get_masses(2.45e-3,7.50e-5, sum_masses, 'IH')
-    IH = Class()
+    IH = HiClass()
     IH.set(commonsettings)
     IH.set({'m_ncdm':str(m1)+','+str(m2)+','+str(m3)})
-    IH.compute()
-    pkNH = []
-    pkIH = []
-    for k in kvec:
-        pkNH.append(NH.pk(k,0.))
-        pkIH.append(IH.pk(k,0.))
-    NH.struct_cleanup()
-    IH.struct_cleanup()
-    # extract h value to convert k from 1/Mpc to h/Mpc
+    pkIH = IH.get_pk_all(kvec,0.)
+
+    # extract h value to convert k from 1/Mpc to h/Mpc for the final plot
     h = NH.h()
     plt.semilogx(kvec/h,1-np.array(pkNH)/np.array(pkIH))
-    legarray.append(r'$\Sigma m_i = '+str(sum_masses)+'$eV')
-
+    legarray.append(r'$\sum m_i = '+str(sum_masses)+'$eV')
 plt.axhline(0,color='k')
 plt.xlim(kvec[0]/h,kvec[-1]/h)
 plt.xlabel(r'$k [h \mathrm{Mpc}^{-1}]$')
 plt.ylabel(r'$1-P(k)^\mathrm{NH}/P(k)^\mathrm{IH}$')
 plt.legend(legarray)
-
-
-# In[6]:
-
 plt.savefig('neutrinohierarchy.pdf')

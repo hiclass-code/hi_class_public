@@ -1,118 +1,93 @@
-CLASS: Cosmic Linear Anisotropy Solving System  {#mainpage}
-==============================================
+# hi_class: Horndeski in the Cosmic Linear Anisotropy Solving System
 
-Authors: Julien Lesgourgues and Thomas Tram
+<!-- ![hi_class logo](docs/hi_class_logo.gif) -->
+<!-- <img src="docs/hi_class_logo.gif" alt="hi_class logo" width="140" align="right"> -->
+<!-- <img src="docs/hi_class_logo.gif" alt="hi_class logo" width="140"> -->
 
-with several major inputs from other people, especially Benjamin
-Audren, Simon Prunet, Jesus Torrado, Miguel Zumalacarregui, Francesco
-Montanari, etc.
+hi_class extends the CLASS Boltzmann code to cover Horndeski and related scalar-tensor models of dark energy and modified gravity. It is based on CLASS by Julien Lesgourgues, with major inputs from Thomas Tram and others.
 
-For download and information, see http://class-code.net
+- Website: http://hiclass-code.net
+- CLASS website: http://class-code.net
 
+## Authors
 
-Compiling CLASS and getting started
------------------------------------
+- Emilio Bellini
+- Ignacy Sawicki
+- Miguel Zumalacarregui
 
-(the information below can also be found on the webpage, just below
-the download button)
+## Installation
 
-Download the code from the webpage and unpack the archive (tar -zxvf
-class_vx.y.z.tar.gz), or clone it from
-https://github.com/lesgourg/class_public. Go to the class directory
-(cd class/ or class_public/ or class_vx.y.z/) and compile (make clean;
-make class). You can usually speed up compilation with the option -j:
-make -j class. If the first compilation attempt fails, you may need to
-open the Makefile and adapt the name of the compiler (default: gcc),
-of the optimization flag (default: -O4 -ffast-math) and of the OpenMP
-flag (default: -fopenmp; this flag is facultative, you are free to
-compile without OpenMP if you don't want parallel execution; note that
-you need the version 4.2 or higher of gcc to be able to compile with
--fopenmp). Many more details on the CLASS compilation are given on the
-wiki page
+### From PyPI/TestPyPI
 
-https://github.com/lesgourg/class_public/wiki/Installation
+```bash
+pip install hiclassy
+```
 
-(in particular, for compiling on Mac >= 10.9 despite of the clang
-incompatibility with OpenMP).
+This installs the Python wrapper and builds the C core. You need a working C compiler (e.g. gcc) and, optionally, OpenMP support for parallel execution.
 
-To check that the code runs, type:
+### From source
 
-    ./class explanatory.ini
+```bash
+make clean
+make class
+```
 
-The explanatory.ini file is THE reference input file, containing and
-explaining the use of all possible input parameters. We recommend to
-read it, to keep it unchanged (for future reference), and to create
-for your own purposes some shorter input files, containing only the
-input lines which are useful for you. Input files must have a *.ini
-extension.
+To build the Python wrapper, run:
 
-If you want to play with the precision/speed of the code, you can use
-one of the provided precision files (e.g. cl_permille.pre) or modify
-one of them, and run with two input files, for instance:
+```bash
+make
+```
 
-    ./class test.ini cl_permille.pre
+If compilation fails, check the Makefile for compiler, optimization flags, and OpenMP settings.
 
-The files *.pre are suppposed to specify the precision parameters for
-which you don't want to keep default values. If you find it more
-convenient, you can pass these precision parameter values in your *.ini
-file instead of an additional *.pre file.
+## Quick start
 
-The automatically-generated documentation is located in
+Use the Python interface:
 
-    doc/manual/html/index.html
-    doc/manual/CLASS_manual.pdf
+```python
+from hiclassy import HiClass
+```
 
-On top of that, if you wish to modify the code, you will find lots of
-comments directly in the files.
+The HiClass object is the equivalent of the Class object for standard Class. All methods and attributes, plus additional HiClass specific, are shared between the two. Then, the usage of the two should be equivalent. 
 
-Python
-------
+If you want to use the C executable instead, you can run:
 
-To use CLASS from python, or ipython notebooks, or from the Monte
-Python parameter extraction code, you need to compile not only the
-code, but also its python wrapper. This can be done by typing just
-'make' instead of 'make class' (or for speeding up: 'make -j'). More
-details on the wrapper and its compilation are found on the wiki page
+```bash
+./class explanatory.ini
+```
 
-https://github.com/lesgourg/class_public/wiki
+Parameter documentation and examples are available in `hi_class.ini` and `explanatory.ini`, plus the example files in `gravity_models/`.
 
-Plotting utility
-----------------
+## Citing hi_class
 
-Since version 2.3, the package includes an improved plotting script
-called CPU.py (Class Plotting Utility), written by Benjamin Audren and
-Jesus Torrado. It can plot the Cl's, the P(k) or any other CLASS
-output, for one or several models, as well as their ratio or percentage
-difference. The syntax and list of available options is obtained by
-typing 'pyhton CPU.py -h'. There is a similar script for MATLAB,
-written by Thomas Tram. To use it, once in MATLAB, type 'help
-plot_CLASS_output.m'
+If you use hi_class, please cite:
 
-Developing the code
---------------------
+- M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira, "hi_class: Horndeski in the Cosmic Linear Anisotropy Solving System", JCAP 1708 (2017) no.08, 019, http://arxiv.org/abs/arXiv:1605.06102
+- E. Bellini, I. Sawicki, M. Zumalacarregui, "hi_class: Background Evolution, Initial Conditions and Approximation Schemes", http://arxiv.org/abs/arXiv:1909.01828
 
-If you want to develop the code, we suggest that you download it from
-the github webpage
+Please also cite the relevant CLASS papers, including:
 
-https://github.com/lesgourg/class_public
+- CLASS I: Overview, http://arxiv.org/abs/1104.2932
+- CLASS II: Approximation schemes, http://arxiv.org/abs/1104.2933
 
-rather than from class-code.net. Then you will enjoy all the feature
-of git repositories. You can even develop your own branch and get it
-merged to the public distribution. For related instructions, check
+## Plotting utilities
 
-https://github.com/lesgourg/class_public/wiki/Public-Contributing
+The package includes the Class Plotting Utility `CPU.py` for plotting Cl's, P(k), and related outputs, including model comparisons. Run:
 
-Using the code
---------------
+```bash
+python CPU.py --help
+```
 
-You can use CLASS freely, provided that in your publications, you cite
-at least the paper `CLASS II: Approximation schemes <http://arxiv.org/abs/1104.2933>`. Feel free to cite more CLASS papers!
+A MATLAB helper is available in `plot_CLASS_output.m`.
 
-Support
--------
+## Development
 
-To get support, please open a new issue on the
+We recommend developing from the GitHub repository:
 
-https://github.com/lesgourg/class_public
+https://github.com/emiliobellini/hi_class_public
 
-webpage!
+For hi_class-specific updates, see this repository and the `gravity_models/` examples.
+
+## Support
+
+For support, please open an issue in the repository or refer to the documentation at http://hiclass-code.net.
