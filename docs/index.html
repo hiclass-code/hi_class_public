@@ -71,7 +71,7 @@
 
     <p class="badges">
       <a class="badge badge--count" href="#pubs"><b id="hero-pub-count">99</b> papers</a>
-      <span class="badge">v3.0</span>
+      <span class="badge">v3.3.4.4</span>
       <a class="badge" href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener">pip install hiclassy</a>
       <a class="badge" href="http://class-code.net/" target="_blank" rel="noopener">built on CLASS</a>
       <a class="badge" href="https://ascl.net/1808.010" target="_blank" rel="noopener">ascl:1808.010</a>
@@ -97,6 +97,18 @@
     <ul class="news">
       <li>
         <time class="news-date" datetime="2026-08">Aug 2026</time>
+        <p class="news-body"><code>hi_class</code> v3.3.4.4 was released, rebuilt on
+          <a href="http://class-code.net/" target="_blank" rel="noopener">CLASS</a> v3.3.4 and merged into the
+          repository's default branch. The beyond-Horndeski (GLPV) and conformally coupled Galileon models are
+          now part of the public code, and <code>hiclassy</code> on PyPI carries the same version.
+          <span class="news-links">
+            <a href="https://github.com/hiclass-code/hi_class_public/releases/tag/v3.3.4.4" target="_blank" rel="noopener">v3.3.4.4</a> &middot;
+            <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener">PyPI</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2026-08">Aug 2026</time>
         <p class="news-body">Single Scalar Field Dark Energy: 2026 Status Report, a review talk on
           where the field stands, by Carlos Garc&iacute;a-Garc&iacute;a and William Wolf.
           <span class="news-links">
@@ -120,15 +132,6 @@
           <code>pip install hiclassy</code> is all it takes to drive <code>hi_class</code> from a script.
           <span class="news-links">
             <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener">PyPI</a>
-          </span>
-        </p>
-      </li>
-      <li>
-        <time class="news-date" datetime="2025-09">Sep 2025</time>
-        <p class="news-body">DESI put out modified-gravity constraints from the full-shape modelling
-          of its 2024 clustering measurements, computed with <code>hi_class</code>.
-          <span class="news-links">
-            <a href="https://inspirehep.net/literature/2850039" target="_blank" rel="noopener">JCAP 09 (2025)</a>
           </span>
         </p>
       </li>
@@ -160,9 +163,10 @@
         <a href="https://inspirehep.net/literature/1250251" target="_blank" rel="noopener">PRD 89 (2014) 064046</a>
         and <a href="https://inspirehep.net/literature/1484281" target="_blank" rel="noopener">JHEP 12 (2016) 100</a>).
         <code>hi_class</code> implements GLPV theories beyond Horndeski
-        (<a href="https://inspirehep.net/literature/1292463" target="_blank" rel="noopener">PRL 114 (2015) 211101</a>)
-        in a currently private version, used for example in
-        <a href="https://inspirehep.net/literature/1722260" target="_blank" rel="noopener">JCAP 08 (2019) 035</a>.</p>
+        (<a href="https://inspirehep.net/literature/1292463" target="_blank" rel="noopener">PRL 114 (2015) 211101</a>),
+        used for example in
+        <a href="https://inspirehep.net/literature/1722260" target="_blank" rel="noopener">JCAP 08 (2019) 035</a>;
+        they ship with the code as <code>glpv_galileon</code> and <code>propto_omega_bh</code>.</p>
 
       <p><code>hi_class</code> relies on a reformulation of the Effective Field Theory for Dark Energy developed
         by E. Bellini and I. Sawicki (see
@@ -203,8 +207,9 @@
           Horndeski functions G<sub>i</sub>. Upon specifying the initial conditions for the background field
           and the additional parameters of the theory, <code>hi_class</code> automatically computes the
           cosmological background and the &alpha;-functions are fully determined.</p>
-        <p>Worked-out examples ship with the code — Galileon, nKGB, quintessence (monomial and tracker),
-          Brans-Dicke and &alpha;-attractors — and serve as a template for further implementations.
+        <p>Sixteen worked-out examples ship with the code — Galileon, nKGB, quintessence (monomial and
+          tracker), Brans-Dicke, &alpha;-attractors, the conformally coupled cubic Galileon and the
+          beyond-Horndeski models — and serve as a template for further implementations.
           <code>hi_class</code> is easy to use and to modify, so new models are straightforward to add.</p>
       </div>
     </div>
@@ -568,7 +573,7 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         Clone on GitHub
       </a>
-      <a class="btn" href="https://github.com/hiclass-code/hi_class_public/archive/hi_class.zip">
+      <a class="btn" href="https://github.com/hiclass-code/hi_class_public/archive/refs/tags/v3.3.4.4.zip">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a.75.75 0 01.75.75v7.19l2.22-2.22a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 011.06-1.06l2.22 2.22V1.75A.75.75 0 018 1zM2.75 13a.75.75 0 000 1.5h10.5a.75.75 0 000-1.5H2.75z"/></svg>
         Download .zip
       </a>
@@ -577,12 +582,12 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
 
     <h3 class="eyebrow" style="margin-top:44px">Versions</h3>
     <div class="prose">
-      <p>The branch you clone reports itself as <b class="num">hi_class 3.0</b> and is built on
-        <b class="num">CLASS v3.2.3</b>. The <code>v3.0</code> tag now points at the tip of the
-        <code>hi_class</code> branch, so the tag and the branch are the same code and it no longer
-        matters which you take. The Python wrapper is published separately as
-        <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener"><code>hiclassy</code></a>,
-        currently <b class="num">3.3.4.2</b>.</p>
+      <p>The current release is <b class="num">v3.3.4.4</b>, built on
+        <b class="num">CLASS v3.3.4</b>, and it lives on the default <code>master</code> branch — the
+        separate <code>hi_class</code> branch is gone, so cloning the repository gives you the code.
+        The Python wrapper carries the same number on PyPI:
+        <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener"><code>hiclassy</code></a>
+        <b class="num">3.3.4.4</b>.</p>
     </div>
 
     <h3 class="eyebrow" style="margin-top:44px">Interfaces</h3>
@@ -1280,7 +1285,13 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
   <div class="wrap">
     <img src="imgs/Black_Dahlias_with_Yellow_Sky_Horndeski_2017_small.JPG" width="800" height="475" loading="lazy"
          alt="Black Dahlias with Yellow Sky, a 2017 painting by Gregory Horndeski: dark flowers against a vivid yellow sky.">
-    <figcaption>Black Dahlias with Yellow Sky (Gregory Horndeski, 2017)</figcaption>
+    <figcaption>Black Dahlias with Yellow Sky
+      (<a href="https://en.wikipedia.org/wiki/Gregory_Horndeski" target="_blank" rel="noopener">Gregory Horndeski</a>,
+      2017), from
+      <a href="https://www.horndeskicontemporary.com/" target="_blank" rel="noopener">Horndeski Contemporary</a>.
+      He wrote
+      <a href="https://inspirehep.net/literature/1189313" target="_blank" rel="noopener">Int. J. Theor. Phys. 10 (1974) 363</a>
+      and left physics for painting in 1981.</figcaption>
   </div>
 </figure>
 
