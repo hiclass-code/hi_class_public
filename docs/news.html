@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>News — hi_class</title>
+<meta name="description" content="The full hi_class news archive: releases, papers and results computed with the code, newest first.">
+<link rel="canonical" href="https://hiclass-code.net/news.html">
+<meta name="theme-color" content="#07090b">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="News — hi_class">
+<meta property="og:description" content="Releases, papers and results computed with hi_class, newest first.">
+<meta property="og:url" content="https://hiclass-code.net/news.html">
+<meta property="og:image" content="https://hiclass-code.net/imgs/hi_class.gif">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" type="image/png" href="imgs/hi_class_icon_64x64.png">
+<link rel="stylesheet" href="styles.css?v=9">
+</head>
+
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html">hi_class</a>
+    <div class="nav-links">
+      <a href="news.html" class="is-active">News</a>
+      <a href="index.html#science">Science</a>
+      <a href="index.html#code">Code</a>
+      <a href="index.html#download">Download</a>
+      <a href="index.html#resources" class="nav-secondary">Resources</a>
+      <a href="index.html#team" class="nav-secondary">Team</a>
+      <a href="index.html#pubs"><span class="nav-long">Publications</span><span class="nav-short">Papers</span></a>
+    </div>
+    <a class="nav-gh" href="https://github.com/hiclass-code/hi_class_public" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ==================== The archive ====================
+     The full list, newest first, and the source of truth for it: index.html
+     carries a copy of the newest few items and links here for the rest. When
+     something happens it is added HERE first, then the top of this list is
+     mirrored into the #news block of the home page. Two hand-kept lists is the
+     price of a site with no build step -- the Jekyll sites (miguelzuma.github.io,
+     the GLoW ERC site) share a single _data/news.yml and an include instead.
+
+     The "New" flag is not written into the markup: news.js adds it in the
+     browser to any item whose <time datetime> is inside the freshness window,
+     so a stale item cannot be left blinking by a forgotten edit. -->
+<section class="band" id="news">
+  <div class="wrap">
+    <p class="eyebrow">News</p>
+    <h1>Everything, newest first</h1>
+    <div class="prose">
+      <p class="lede">Releases of the code, the papers describing it, and results computed with it.</p>
+    </div>
+
+    <ul class="news">
+      <li>
+        <time class="news-date" datetime="2026-08">Aug 2026</time>
+        <p class="news-body">Single Scalar Field Dark Energy: 2026 Status Report, a review talk on
+          where the field stands, by Carlos Garc&iacute;a-Garc&iacute;a and William Wolf.
+          <span class="news-links">
+            <a href="https://www.youtube.com/watch?v=RbXqghcRv0U" target="_blank" rel="noopener">video</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2026-08">Aug 2026</time>
+        <p class="news-body">This site was rebuilt. The code and these pages now live in the
+          <code>hiclass-code</code> organisation on GitHub; <code>hiclass-code.net</code> is unchanged
+          and still the place to find them.
+          <span class="news-links">
+            <a href="https://github.com/hiclass-code/hi_class_public" target="_blank" rel="noopener">repository</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2026-02">Feb 2026</time>
+        <p class="news-body">The Python wrapper was published on PyPI as <code>hiclassy</code>, so
+          <code>pip install hiclassy</code> is all it takes to drive <code>hi_class</code> from a script.
+          <span class="news-links">
+            <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener">PyPI</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2025-09">Sep 2025</time>
+        <p class="news-body">DESI put out modified-gravity constraints from the full-shape modelling
+          of its 2024 clustering measurements, computed with <code>hi_class</code>.
+          <span class="news-links">
+            <a href="https://inspirehep.net/literature/2850039" target="_blank" rel="noopener">JCAP 09 (2025)</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2025-08">Aug 2025</time>
+        <p class="news-body">The Cosmological Evidence for Non-Minimal Coupling, whose modified-gravity
+          predictions were computed with <code>hi_class</code>, appeared in Physical Review Letters.
+          <span class="news-links">
+            <a href="https://inspirehep.net/literature/2910498" target="_blank" rel="noopener">PRL 135 (2025)</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2024-05">May 2024</time>
+        <p class="news-body"><code>hi_class</code> 3.0 was released, rebuilt on
+          <a href="http://class-code.net/" target="_blank" rel="noopener">CLASS</a> v3.2.3.
+          <span class="news-links">
+            <a href="https://github.com/hiclass-code/hi_class_public/releases/tag/v3.0" target="_blank" rel="noopener">v3.0</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2020-02">Feb 2020</time>
+        <p class="news-body">The second <code>hi_class</code> paper, on background evolution, initial
+          conditions and approximation schemes, appeared in JCAP 02 (2020) 008.
+          <span class="news-links">
+            <a href="https://arxiv.org/abs/1909.01828" target="_blank" rel="noopener">arXiv:1909.01828</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2019-09">Sep 2019</time>
+        <p class="news-body"><code>hi_class</code> 2.0 was released alongside the preprint documenting
+          how it solves the background, sets initial conditions and switches approximation schemes.
+          <span class="news-links">
+            <a href="https://github.com/hiclass-code/hi_class_public/releases/tag/v2.0" target="_blank" rel="noopener">v2.0</a> &middot;
+            <a href="https://arxiv.org/abs/1909.01828" target="_blank" rel="noopener">arXiv:1909.01828</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2018-08">Aug 2018</time>
+        <p class="news-body"><code>hi_class</code> was registered in the Astrophysics Source Code
+          Library, which is where a citation to the code itself points.
+          <span class="news-links">
+            <a href="https://ascl.net/1808.010" target="_blank" rel="noopener">ascl:1808.010</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2017-12">Dec 2017</time>
+        <p class="news-body">Dark Energy after GW170817: Dead Ends and the Road Ahead, on which theories
+          survive the neutron-star merger's bound on the speed of gravity, appeared in Physical Review Letters.
+          <span class="news-links">
+            <a href="https://inspirehep.net/literature/1630865" target="_blank" rel="noopener">PRL 119 (2017) 251304</a> &middot;
+            <a href="https://link.aps.org/doi/10.1103/Physics.10.134" target="_blank" rel="noopener">Physics Viewpoint</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2017-08">Aug 2017</time>
+        <p class="news-body">The paper introducing the code appeared in JCAP 08 (2017) 019.
+          <span class="news-links">
+            <a href="https://inspirehep.net/literature/1462237" target="_blank" rel="noopener">JCAP 1708 (2017) 019</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2017-05">May 2017</time>
+        <p class="news-body"><code>hi_class</code> 1.1 generalised the parametrizations: the two Planck
+          ones gave way to power-law and exponential forms, in both the &alpha; and the EFT &gamma;
+          bases, including the case used in the
+          <a href="https://inspirehep.net/literature/1625713" target="_blank" rel="noopener">comparison of
+          Einstein-Boltzmann solvers</a>.
+          <span class="news-links">
+            <a href="https://github.com/hiclass-code/hi_class_public/releases/tag/v1.1" target="_blank" rel="noopener">v1.1</a>
+          </span>
+        </p>
+      </li>
+      <li>
+        <time class="news-date" datetime="2016-05">May 2016</time>
+        <p class="news-body">First public release, together with the preprint introducing
+          <code>hi_class</code>: Horndeski's theory in the Cosmic Linear Anisotropy Solving System.
+          <span class="news-links">
+            <a href="https://github.com/hiclass-code/hi_class_public/releases/tag/v1.0" target="_blank" rel="noopener">v1.0</a> &middot;
+            <a href="https://arxiv.org/abs/1605.06102" target="_blank" rel="noopener">arXiv:1605.06102</a>
+          </span>
+        </p>
+      </li>
+    </ul>
+
+    <p class="news-more"><a href="index.html">Back to the front page</a></p>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <p><code>hi_class</code> — Horndeski in the Cosmic Linear Anisotropy Solving System</p>
+    <p>
+      <a href="index.html#resources">Resources</a> ·
+      <a href="index.html#team">Team</a> ·
+      <a href="index.html#contact">Contact</a> ·
+      <a href="https://github.com/hiclass-code/hi_class_public" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="https://github.com/hiclass-code/hi_class_public/wiki" target="_blank" rel="noopener">Wiki</a> ·
+      <a href="https://ascl.net/1808.010" target="_blank" rel="noopener">ascl:1808.010</a>
+    </p>
+    <p class="footer-credit">The <code>hi_class</code> logo was designed by <a href="https://marcosvazquez.me/" target="_blank" rel="noopener">Marcos V&aacute;zquez Pingarr&oacute;n</a>.</p>
+  </div>
+</footer>
+
+<script defer src="news.js"></script>
+
+<!-- Analytics: GoatCounter (https://www.goatcounter.com). Cookieless, stores no
+     personal data and sets nothing on the visitor's device, so no consent banner
+     is required. Stats live at https://hiclass.goatcounter.com/.
+     Do Not Track is honoured before the script is even fetched, so a reader who
+     asks not to be counted causes no request at all rather than one that is
+     discarded at the far end. -->
+<script>
+(function () {
+	'use strict';
+	var dnt = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+	if (dnt === '1' || dnt === 'yes') { return; }
+
+	// count.js prefers a data-goatcounter attribute and falls back to this global.
+	window.goatcounter = { endpoint: 'https://hiclass.goatcounter.com/count' };
+
+	var s = document.createElement('script');
+	s.async = true;
+	s.src = 'https://gc.zgo.at/count.js';
+	document.head.appendChild(s);
+})();
+</script>
+
+</body>
+</html>
