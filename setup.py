@@ -51,7 +51,7 @@ with open(os.path.join(include_folder, 'common.h'), 'r') as v_file:
     for line in v_file:
         if line.find("_VERSION_") != -1:
             # get rid of the " and the v
-            VERSION = line.split()[-1][2:-1]+".0" # Always set a sub-version number here for subsequent uploads (!)
+            VERSION = line.split()[-1][2:-1]+".3" # Always set a sub-version number here for subsequent uploads (!)
             break
 
 # Define cython extension and fix Python version

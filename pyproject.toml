@@ -9,6 +9,8 @@ authors = [
   {name = "Miguel Zumalacarregui"},
   {name = "... and many more (see webpage)"}
 ]
+requires-python = ">=3.9"
+dependencies = ["numpy", "scipy"]
 
 [project.urls]
 Homepage = "http://www.hiclass-code.net"
