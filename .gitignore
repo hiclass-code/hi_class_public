@@ -1,5 +1,6 @@
 init_files/
-output/
+output/*
+!output/.gitignore
 *~
 build/
 class

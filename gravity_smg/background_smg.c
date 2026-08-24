@@ -19,6 +19,23 @@
  */
 
 #include "background_smg.h"
+#include <math.h>
+
+/**
+* Compensated 2x2 determinant a11*a22 - a12*a21 using fused multiply-add.
+* The H'/phi'' linear system P0 phi'' + P1 H' + P2 = 0, R0 phi'' + R1 H' + R2 = 0
+* is solved through such determinants; deep in radiation domination the two
+* products can agree to ~1e-11 relative (e.g. Brans-Dicke at a~1e-14), so the
+* naive difference loses all significant digits and phi'' becomes machine
+* noise, wrecking the evolver's numerical Jacobian. The fma trick recovers the
+* exact rounding error of one product and yields a correctly-rounded result.
+*/
+static double det2x2_smg(double a11, double a12, double a21, double a22) {
+  double w = a12*a21;
+  double e = fma(a12, a21, -w);
+  double f = fma(a11, a22, -w);
+  return f - e;
+}
 
 
 /**
@@ -149,8 +166,12 @@ int background_gravity_functions_smg(
 	       a,pvecback[pba->index_bg_phi_smg],pvecback[pba->index_bg_phi_prime_smg], P1, R0, P0, R1,
 	       pvecback[pba->index_bg_H],E0,E1,E2,E3);
 
-    /* Friedmann space-space equation with friction added */
-    pvecback[pba->index_bg_H_prime] = (R0*P2 - P0*R2)/(P0*R1 - P1*R0);
+    /* Friedmann space-space equation with friction added.
+       The determinants are evaluated in compensated arithmetic (see
+       det2x2_smg): the naive products can cancel to machine precision
+       deep in radiation domination. */
+    double den_PR = det2x2_smg(P0, P1, R0, R1);   /* P0*R1 - P1*R0 */
+    pvecback[pba->index_bg_H_prime] = det2x2_smg(R0, P0, R2, P2)/den_PR;  /* (R0*P2 - P0*R2)/den */
     /* choose sign for friction depending on the derivative */
     if ((2.*E2*H - E1 - 3*E3*H*H)>=0)
       pvecback[pba->index_bg_H_prime] += - a*pba->hubble_friction*(E2*H*H - E0 - E1*H - E3*H*H*H);
@@ -159,7 +180,7 @@ int background_gravity_functions_smg(
     }
 
     /* Field equation */
-    pvecback[pba->index_bg_phi_prime_prime_smg] = (P1*R2 - R1*P2)/(P0*R1 - P1*R0);
+    pvecback[pba->index_bg_phi_prime_prime_smg] = det2x2_smg(P1, R1, P2, R2)/den_PR;  /* (P1*R2 - R1*P2)/den */
 
 		/* get alphas, background density and pressure, shift and current. */
 		class_call(gravity_functions_building_blocks_from_Gs_smg(pba, a, pvecback_B, pvecback, &gf),
@@ -1238,7 +1259,10 @@ int stability_tests_smg(
 	if ((pba->parameters_tuned_smg == _TRUE_) &&
 	    (pba->skip_stability_tests_smg == _FALSE_)){
 
-	  class_test(pba->min_D_smg <= -fabs(pba->D_safe_smg),
+	  /* strict inequality: D can underflow to exactly zero for models whose
+	     kineticity starts arbitrarily small (e.g. quintessence with tiny
+	     phi_prime_ini), which is not a ghost */
+	  class_test(pba->min_D_smg < -fabs(pba->D_safe_smg),
 	      pba->error_message,
 	      "Ghost instability for scalar field perturbations with minimum D=%g at a=%e\n", pba->min_D_smg, pba->a_min_D_smg);
 	  class_test(pba->min_cs2_smg < -fabs(pba->cs2_safe_smg),

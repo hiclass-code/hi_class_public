@@ -54,6 +54,15 @@ int gravity_models_gravity_properties_smg(
      class_read_list_of_doubles("parameters_smg",pba->parameters_2_smg,pba->parameters_2_size_smg);
    }
 
+  if (strcmp(string1,"propto_omega_bh") == 0) {
+     pba->gravity_model_smg = propto_omega_bh;
+     pba->field_evolution_smg = _FALSE_;
+     pba->M2_evolution_smg = _TRUE_;
+     flag2=_TRUE_;
+     pba->parameters_2_size_smg = 6;
+     class_read_list_of_doubles("parameters_smg",pba->parameters_2_smg,pba->parameters_2_size_smg);
+   }
+
   if (strcmp(string1,"propto_scale") == 0) {
      pba->gravity_model_smg = propto_scale;
      pba->field_evolution_smg = _FALSE_;
@@ -419,6 +428,119 @@ int gravity_models_gravity_properties_smg(
    }
   //end of Galileon
 
+  if (strcmp(string1,"glpv_galileon") == 0) {
+     pba->gravity_model_smg = glpv_galileon;
+     pba->field_evolution_smg = _TRUE_;
+     pba->parameters_size_smg = 9;
+     flag2=_TRUE_;
+
+     /* GLPV (beyond Horndeski) covariant Galileon: the Horndeski Galileon
+      * Lagrangian (c_1 ... c_5) supplemented by constant GLPV terms
+      *
+      * F_4 = b_4/(H_0^2 M_p)^2,  F_5 = b_5/(H_0^2 M_p)^3
+      *
+      * see Traykova, Bellini & Ferreira 1902.10687. The tuning b_4 = -c_4
+      * (with c_5 = b_5 = 0) makes alpha_T = 0 exactly (GWs luminal),
+      * cf. Ezquiaga & Zumalacarregui 1710.05901 eq 21.
+      *
+      * Dynamics pulls towards the shift-symmetry attractor n = 0 with
+      *
+      * n/H0 = xi(c2 - 6c3 xi + (18c4+24b4) xi^2 + 5c5 xi^4)
+      *
+      * and xi = \dot\phi H /H0^2
+      *
+      * If attractor_ic_smg => n=0 is set in background_initial_conditions
+      */
+
+     // read submodel: remember flag2 used for test over gravity models
+     class_call(parser_read_string(pfc,"gravity_submodel",&string2,&flag3,errmsg),
+            errmsg,
+            errmsg);
+
+     /*1) base GLPV galileon, user specifies everything!  */
+     if (flag3==_FALSE_) {
+
+       class_read_list_of_doubles("parameters_smg",pba->parameters_smg,pba->parameters_size_smg);
+
+     }
+     else {
+       //a submodel is given
+
+       /*  temporary allocation, will be rewritten latter
+        *  order is xi, c1, c2, c3, c4, c5, b4, b5, phi  */
+       class_alloc(pba->parameters_smg, sizeof(double*)*pba->parameters_size_smg,pba->error_message);
+       double * input_params_gal; //dummy allocation vector
+
+       double xi, c2, c3, c4, c5, b4, b5;
+       double phi0 = 0, c1 = 0;
+
+       /* quartic GLPV Galileon on the attractor with c_g = c:
+        * c_3 = -1 is a field normalization (L3 odd in phi), c_2, c_4 fixed
+        * by Omega_smg and the tracker condition, b_4 = -c_4 tunes alpha_T = 0
+        * (eq 2.7 of 1902.10687)
+        */
+       if (strcmp(string2,"quartic_cg") == 0) {
+
+         class_read_list_of_doubles("parameters_smg",input_params_gal,1);
+
+         xi = input_params_gal[0];
+         c3 = -1.; //field normalization
+         c2 = -(4.*pba->Omega0_smg - 2.*c3*pow(xi,3))/(pow(xi,2));
+         c4 = -(2.*pba->Omega0_smg + 2.*c3*pow(xi,3))/(3.*pow(xi,4));
+         c5 = 0.;
+
+         //tune alpha_T = 0, eq (2.7) of 1902.10687
+         b4 = -c4;
+         b5 = 0.;
+
+       }
+       else {
+             class_test(flag3 == _TRUE_,
+        errmsg,
+        "GLPV_Galileon: you specified a gravity_submodel that could not be identified. \n Options are: quartic_cg");
+       };
+
+       /* Set parameters for submodels */
+       pba->parameters_smg[0] = xi;
+       pba->parameters_smg[1] = c1;
+       pba->parameters_smg[2] = c2;
+       pba->parameters_smg[3] = c3;
+       pba->parameters_smg[4] = c4;
+       pba->parameters_smg[5] = c5;
+       pba->parameters_smg[6] = b4;
+       pba->parameters_smg[7] = b5;
+       pba->parameters_smg[8] = phi0;
+
+     }
+     //end of submodels
+
+     /* default tuning index is 2
+      * Omega(G2) = c2 xi^2/6.
+      * assume xi0 ~ 1
+      */
+     if (has_tuning_index_smg == _FALSE_){
+       pba->tuning_index_smg = 2; //use c2 for default tuning
+       pba->tuning_dxdy_guess_smg = 1./6./pow(1.,2); // d(c2)/d(Omega_smg) = 1/(6xi^2)
+     }
+     class_test(has_dxdy_guess_smg == _TRUE_ && has_tuning_index_smg == _FALSE_,
+                errmsg,
+                "GLPV_Galileon: you gave dxdy_guess_smg but no tuning_index_smg. You need to give both if you want to tune the model yourself");
+
+     class_call(parser_read_string(pfc,"attractor_ic_smg",&string3,&flag3,errmsg),
+          errmsg,
+          errmsg);
+
+     if (flag3 == _TRUE_) {
+       if ((strstr(string3,"y") != NULL) || (strstr(string3,"Y") != NULL)) {
+         pba->attractor_ic_smg = _TRUE_;
+       }
+       else{
+         pba->attractor_ic_smg = _FALSE_;
+       }
+     }
+   }
+  //end of GLPV Galileon
+
   if (strcmp(string1,"brans dicke") == 0 || strcmp(string1,"Brans Dicke") == 0 || strcmp(string1,"brans_dicke") == 0) {
     pba->gravity_model_smg = brans_dicke;
     pba->field_evolution_smg = _TRUE_;
@@ -459,11 +581,174 @@ int gravity_models_gravity_properties_smg(
         }
 
         class_read_double("param_shoot_M2_smg",pba->parameters_smg[pba->tuning_index_2_smg]);
-        printf("M2_today_smg = %e, param_shoot_M2_smg = %e \n",pba->M2_today_smg,pba->parameters_smg[pba->tuning_index_2_smg]);
+        {
+          /* debug output only at high verbosity; pba->background_verbose is
+             not assigned yet at this point (that happens later in
+             input_read_parameters), so read it from the input directly */
+          int bg_verbose = 0;
+          class_read_int("background_verbose",bg_verbose);
+          if (bg_verbose > 3)
+            printf("M2_today_smg = %e, param_shoot_M2_smg = %e \n",pba->M2_today_smg,pba->parameters_smg[pba->tuning_index_2_smg]);
+        }
            // printf("updating param = %e to tune M2 \n",pba->parameters_smg[pba->tuning_index_2_smg]);
        }
      }
    }
+
+  /** Conformally coupled cubic galileon (cccg) with exponential coupling.
+   * See Zumalacarregui, PRD 102 023523 (2020) [arXiv:2003.06396]
+   *
+   * 	G2 = c2 X - 3 V0 H0^2, G3 = -2 c3 X/H0^2, G4 = exp(beta*phi)/2
+   *
+   * Internal parameter order is [Omega_smg_ini, M2_ini, c2, c3, beta, V0],
+   * with Omega_smg_ini the scalar density fraction at z = 10^10 and
+   * M2_ini = exp(beta*phi_ini) the initial effective Planck mass.
+   *
+   * There are two submodels fixing part of the parameters:
+   * 	1) normal_branch: c3 = -1, V0 = 0, tunes Omega_smg with c2
+   * 	2) canonical: c2 = 1, tunes Omega_smg with V0
+   */
+  if (strcmp(string1,"cccg_exp") == 0) {
+    pba->gravity_model_smg = cccg_exp;
+    pba->field_evolution_smg = _TRUE_;
+    flag2=_TRUE_;
+
+    pba->parameters_size_smg = 6;
+    pba->tuning_index_2_smg = 1; /* default secondary tuning of M2 today uses the initial field value */
+
+    // read submodel: remember flag2 used for test over gravity models
+    class_call(parser_read_string(pfc,"gravity_submodel",&string2,&flag3,errmsg),
+           errmsg,
+           errmsg);
+
+    /*1) base model, user specifies all internal parameters */
+    if (flag3==_FALSE_) {
+
+      class_read_list_of_doubles("parameters_smg",pba->parameters_smg,pba->parameters_size_smg);
+
+    }
+    else {
+      //a submodel is given
+
+      /*  input order is beta, M2_ini, log10(Omega_smg_ini) (+ c3 for canonical) */
+      class_alloc(pba->parameters_smg, sizeof(double)*pba->parameters_size_smg,pba->error_message);
+      double * input_params_cccg; //dummy allocation vector
+
+      double c2, c3, beta, M2_ini, V0, Omega_smg_ini;
+
+      /*2) normal branch: anti-canonical kinetic term, no cosmological constant
+        * Omega_smg sourced by the braiding (c3) term, tuned with c2
+        */
+      if (strcmp(string2,"normal_branch") == 0) {
+
+        pba->gravity_submodel_smg = cccg_exp_normal;
+
+        class_read_list_of_doubles("parameters_smg",input_params_cccg,3);
+
+        beta = input_params_cccg[0];
+        M2_ini = input_params_cccg[1];
+        if (beta == 0) {
+          M2_ini = 1.;
+        }
+        //input parameter is log10(Omega_smg_ini)
+        Omega_smg_ini = pow(10.,input_params_cccg[2]);
+
+        V0 = 0.;
+        c3 = -1.;
+        c2 = -pow(216.*pba->Omega0_smg*pow(c3,2),1./3.);
+
+        if (has_tuning_index_smg == _FALSE_){
+          pba->tuning_index_smg = 2; //use c2 for default tuning
+          pba->tuning_dxdy_guess_smg = -72./pow(c2,2);
+          has_tuning_index_smg = _TRUE_;
+        }
+
+      }//end of normal branch
+      /*3) canonical branch: canonical kinetic term plus cosmological constant
+        * Omega_smg tuned with V0
+        */
+      else if (strcmp(string2,"canonical") == 0) {
+
+        pba->gravity_submodel_smg = cccg_exp_canonical;
+
+        class_read_list_of_doubles("parameters_smg",input_params_cccg,4);
+
+        beta = input_params_cccg[0];
+        M2_ini = input_params_cccg[1];
+        if (beta == 0) {
+          M2_ini = 1.;
+        }
+        //input parameter is log10(Omega_smg_ini)
+        Omega_smg_ini = pow(10.,input_params_cccg[2]);
+
+        V0 = 0.;
+        c3 = input_params_cccg[3];
+        c2 = 1.;
+
+        if (has_tuning_index_smg == _FALSE_){
+          V0 = pba->Omega0_smg; //initial guess
+          pba->tuning_index_smg = 5; //use V0 for default tuning
+          pba->tuning_dxdy_guess_smg = 1.; // d(V0)/d(Omega_smg) = 1
+          has_tuning_index_smg = _TRUE_;
+        }
+
+      }//end of canonical branch
+      else {
+        class_test(flag3 == _TRUE_,
+                   errmsg,
+                   "cccg_exp: you specified a gravity_submodel that could not be identified. \n Options are: normal_branch, canonical");
+      };
+
+      /* Set parameters for submodels */
+      pba->parameters_smg[0] = Omega_smg_ini;
+      pba->parameters_smg[1] = M2_ini;
+      pba->parameters_smg[2] = c2;
+      pba->parameters_smg[3] = c3;
+      pba->parameters_smg[4] = beta;
+      pba->parameters_smg[5] = V0;
+
+      class_test(has_dxdy_guess_smg == _TRUE_ && has_tuning_index_smg == _FALSE_,
+                 errmsg,
+                 "cccg_exp: you gave dxdy_guess_smg but no tuning_index_smg. You need to give both if you want to tune the model yourself");
+
+    }
+    //end of submodels
+
+    /** Optional secondary tuning of the effective Planck mass today,
+    *  varying either the initial field value (tuning_index_2_smg = 1)
+    *  or the coupling beta (tuning_index_2_smg = 4)
+    */
+    class_call(parser_read_string(pfc, "M2_tuning_smg", &string3, &flag3, errmsg),
+         errmsg,
+         errmsg);
+
+    if (flag3 == _TRUE_){
+      if((strstr(string3,"y") != NULL) || (strstr(string3,"Y") != NULL)){
+
+        pba->M2_tuning_smg = _TRUE_;
+
+        class_read_double("M2_today_smg",pba->M2_today_smg);
+
+        class_read_int("tuning_index_2_smg",pba->tuning_index_2_smg);
+        class_test(pba->tuning_index_2_smg != 1 && pba->tuning_index_2_smg != 4,
+                   errmsg,
+                   "cccg_exp: secondary tuning index = %i can only be 1 (M2_ini) or 4 (beta)",pba->tuning_index_2_smg);
+
+        //Tuning on beta
+        if (pba->tuning_index_2_smg == 4){
+          class_test(pba->parameters_smg[1] > pba->M2_today_smg,
+                     errmsg,
+                     "cccg_exp: secondary tuning on beta but M2_ini = %g > M2_today = %g requires negative beta, which is unstable!",
+                     pba->parameters_smg[1],pba->M2_today_smg);
+          //educated guess for the initial beta
+          pba->parameters_smg[4] = 0.3*(pba->M2_today_smg-pba->parameters_smg[1])/0.05;
+        }
+
+        class_read_double("param_shoot_M2_smg",pba->parameters_smg[pba->tuning_index_2_smg]);
+      }
+    }
+  }
+  //end of cccg_exp
 
   if (strcmp(string1,"nkgb") == 0 || strcmp(string1,"n-kgb") == 0 || strcmp(string1,"N-KGB") == 0 || strcmp(string1,"nKGB") == 0) {
      // This is self-accelerating KGB with K=-X and G(X)=1/n g^(2n-1)/2 * X^n
@@ -490,7 +775,7 @@ int gravity_models_gravity_properties_smg(
 
   class_test(flag2==_FALSE_,
              errmsg,
-             "could not identify gravity_theory value, check that it is one of 'propto_omega', 'propto_scale', 'constant_alphas', 'eft_alphas_power_law', 'eft_gammas_power_law', 'eft_gammas_exponential', 'brans_dicke', 'galileon', 'nKGB', 'quintessence_monomial', 'quintessence_tracker', 'alpha_attractor_canonical' ...");
+             "could not identify gravity_theory value, check that it is one of 'propto_omega', 'propto_omega_bh', 'propto_scale', 'constant_alphas', 'eft_alphas_power_law', 'eft_gammas_power_law', 'eft_gammas_exponential', 'brans_dicke', 'galileon', 'glpv_galileon', 'cccg_exp', 'nKGB', 'quintessence_monomial', 'quintessence_tracker', 'alpha_attractor_canonical' ...");
 
   return _SUCCESS_;
 }
@@ -662,6 +947,42 @@ int gravity_models_get_Gs_smg(
     pgf->G5_XX = 2.*Lambda5;
   }
 
+  else if(pba->gravity_model_smg == glpv_galileon){
+
+    double M3 = pow(pba->H0,2);
+
+    double Lambda1 = pba->parameters_smg[1]*M3;
+    double Lambda2 = pba->parameters_smg[2];
+    double Lambda3 = pba->parameters_smg[3]/M3;
+    double Lambda4 = pba->parameters_smg[4]*pow(M3,-2);
+    double Lambda5 = pba->parameters_smg[5]*pow(M3,-3);
+
+    double BH_Lambda4 = pba->parameters_smg[6]*pow(M3,-2);
+    double BH_Lambda5 = pba->parameters_smg[7]*pow(M3,-3);
+
+    pgf->G2 = Lambda2*X - 0.5*Lambda1*phi;
+    pgf->G2_X = Lambda2;
+    pgf->G2_phi = - 0.5*Lambda1;
+    /*  pgf->G_3 = -2*Lambda3*X */
+    pgf->G3_X = -2.*Lambda3;
+    /* pgf->G_4 = 1/2 + Lambda4 X^2 */
+    pgf->DG4 = Lambda4*pow(X,2);
+    pgf->G4 = 1/2. + pgf->DG4;
+    pgf->G4_X = 2.*Lambda4*X;
+    pgf->G4_XX = 2.*Lambda4;
+    /* pgf->G_5 = Lambda5*pow(X,2) */
+    pgf->G5_X = 2.*Lambda5*X;
+    pgf->G5_XX = 2.*Lambda5;
+
+    /* GLPV terms: constant F4, F5 -> powers of phi', phi'' as Horndeski Gals
+     * F4 ~ G4_X ~ X (\Box\phi)^2
+     * F5 ~ G5_X ~ X (\Box\phi)^3
+     */
+    pgf->F4 = BH_Lambda4;
+    pgf->F5 = BH_Lambda5;
+
+  }
+
   else if(pba->gravity_model_smg == brans_dicke){
 
     /* Brans-Dicke can't cause acceleration:
@@ -679,6 +1000,32 @@ int gravity_models_get_Gs_smg(
     pgf->DG4 = (phi-1.)/2.;
     pgf->G4 = phi/2.;
     pgf->G4_phi = 1./2.;
+
+  }
+
+  else if(pba->gravity_model_smg == cccg_exp){
+
+    double M3 = pow(pba->H0,2);
+
+    double Lambda2 = pba->parameters_smg[2];
+    double Lambda3 = pba->parameters_smg[3]/M3;
+    double beta = pba->parameters_smg[4];
+    double V0 = pba->parameters_smg[5];
+
+    /* conformal coupling C(phi) = exp(beta*phi) and its derivatives */
+    double Cc = exp(beta*phi);
+    double Cprime = beta*Cc;
+    double Cprime2 = beta*beta*Cc;
+
+    pgf->G2 = Lambda2*X - 3.*V0*pow(pba->H0,2);
+    pgf->G2_X = Lambda2;
+    /* pgf->G_3 = -2*Lambda3*X */
+    pgf->G3_X = -2.*Lambda3;
+    /* pgf->G_4 = C(phi)/2 */
+    pgf->DG4 = (Cc-1.)/2.;
+    pgf->G4 = Cc/2.;
+    pgf->G4_phi = Cprime/2.;
+    pgf->G4_phiphi = Cprime2/2.;
 
   }
 
@@ -844,6 +1191,23 @@ int gravity_models_get_alphas_par_smg(
     pvecback[pba->index_bg_braiding_smg] = c_b*Omega_smg;
     pvecback[pba->index_bg_tensor_excess_smg] = c_t*Omega_smg;
     pvecback[pba->index_bg_M2_running_smg] = c_m*Omega_smg;
+    pvecback[pba->index_bg_delta_M2_smg] = delta_M2; //M2-1
+    pvecback[pba->index_bg_M2_smg] = 1.+delta_M2;
+  }
+
+  else if (pba->gravity_model_smg == propto_omega_bh) {
+
+    double c_k = pba->parameters_2_smg[0];
+    double c_b = pba->parameters_2_smg[1];
+    double c_m = pba->parameters_2_smg[2];
+    double c_t = pba->parameters_2_smg[3];
+    double c_h = pba->parameters_2_smg[4];
+
+    pvecback[pba->index_bg_kineticity_smg] = c_k*Omega_smg;
+    pvecback[pba->index_bg_braiding_smg] = c_b*Omega_smg;
+    pvecback[pba->index_bg_tensor_excess_smg] = c_t*Omega_smg;
+    pvecback[pba->index_bg_M2_running_smg] = c_m*Omega_smg;
+    pvecback[pba->index_bg_beyond_horndeski_smg] = c_h*Omega_smg;
     pvecback[pba->index_bg_delta_M2_smg] = delta_M2; //M2-1
     pvecback[pba->index_bg_M2_smg] = 1.+delta_M2;
   }
@@ -1089,14 +1453,116 @@ int gravity_models_initial_conditions_smg(
 			pvecback_integration[pba->index_bi_phi_smg] = pba->parameters_smg[6];
 			break;
 
+		/* Attractor IC as for the Horndeski Galileon, with the GLPV terms
+		 * entering the tracker condition n = 0 through
+		 *
+		 * n/H0 = xi(c2 - 6c3 xi + (18c4+24b4) xi^2 + 5c5 xi^4)
+		 *
+		 * We pick the nonzero xi closest to the user's given value!
+		 */
+		case glpv_galileon:
+			if(pba->attractor_ic_smg == _TRUE_){
+
+			  double xi = pba->parameters_smg[0];
+			  double c2 = pba->parameters_smg[2];
+			  double c3 = pba->parameters_smg[3];
+			  double c4 = pba->parameters_smg[4];
+			  double c5 = pba->parameters_smg[5];
+			  double b4 = pba->parameters_smg[6];
+			  double b5 = pba->parameters_smg[7];
+
+			  class_test(b5 != 0,
+			             pba->error_message,
+			             "attractor ICs for the quintic GLPV galileon (b5 != 0) not yet implemented!");
+
+			  double x[3];
+			  double Omega_smg;
+			  int complex;
+			  int i;
+			  double mindiff = 1e100;
+
+			  double xi_start = xi;
+
+			  //Don't use poly_3_split, is bad unless c3 tiny!
+			  rf_solve_poly_3(5.*c5,(18.*c4+24.*b4),-6.*c3,1.*c2,x,&complex);
+
+			  if (pba->background_verbose > 2)
+			  {
+			    printf(" glpv galileon attractor \n");
+			    printf(" c5 = %.2e, c4 = %.2e, c3 = %.3e, c2 = %.3e, b4 = %.2e \n ",c5,c4,c3,c2,b4);
+			    printf(" Solutions (complex = %i): \n",complex);
+			  }
+
+			  for (i=0; i<3;i+=1){
+			    Omega_smg = pow(x[i],2)*(c2/6. -2.*c3*x[i] +(15./2.*c4 + 10.*b4)*pow(x[i],2) + 7./3.*c5*pow(x[i],3));
+			    if (x[i]!=0 && fabs(x[i]-xi)<mindiff){
+			      xi_start = x[i];
+			      mindiff = fabs(x[i]-xi);
+			    }
+			    if (pba->background_verbose > 2)
+			      printf("  xi_%i = %e, Omega_* = %.2e \n",i, x[i],Omega_smg);
+			  }
+			  if (pba->background_verbose > 2)
+			    printf(" Dealer's pick: xi = %e (wish = %e) \n",xi_start,xi);
+			  pvecback_integration[pba->index_bi_phi_prime_smg] = a*xi_start*pow(pba->H0,2)/sqrt(rho_rad);
+			}
+			else {
+				/* non attractor ICs */
+			  pvecback_integration[pba->index_bi_phi_prime_smg] = a*pba->parameters_smg[0]*pow(pba->H0,2)/sqrt(rho_rad);
+			}
+			//phi is irrelevant
+			pvecback_integration[pba->index_bi_phi_smg] = pba->parameters_smg[8];
+			break;
+
     /* BD IC: note that the field value is basically the planck mass,
      * so its initial value should be around 1
-     * the derivative we take to be zero, but this can be extended
      */
     case brans_dicke:
 			pvecback_integration[pba->index_bi_phi_smg] = pba->parameters_smg[2];
-			pvecback_integration[pba->index_bi_phi_prime_smg] = pba->parameters_smg[3];
+			if (pba->parameters_smg[3] == 0.) {
+				/* start on the radiation-era attractor instead of exactly at rest:
+				 * phi'' + 2aH phi' = 3 a^2 (rho_m - 3p_m)/(3+2w) is sourced by the
+				 * non-relativistic trace, giving the equilibrium (constant in
+				 * conformal time during RD) phi' = 3 a^2 rho_m / (2aH (3+2w)),
+				 * with aH = a sqrt(rho_rad/phi) from the BD Friedmann equation.
+				 * Starting at phi'=0 instead forces the stiff evolver to resolve
+				 * the approach to this attractor at machine-noise level. */
+				double rho_m = (pba->Omega0_b + pba->Omega0_cdm)*pow(pba->H0,2)/pow(a,3);
+				pvecback_integration[pba->index_bi_phi_prime_smg] =
+					3.*a*rho_m*sqrt(pvecback_integration[pba->index_bi_phi_smg])
+					/(2.*sqrt(rho_rad)*(3.+2.*pba->parameters_smg[1]));
+			}
+			else {
+				pvecback_integration[pba->index_bi_phi_prime_smg] = pba->parameters_smg[3];
+			}
 			break;
+
+    /* cccg IC: similar to the Galileon, but the field value matters.
+     * Off the attractor the initial solution is dominated by the c3 term,
+     * phi = phi_ini + 2/3 phi'/(aH) during radiation domination.
+     * ICs are given in terms of Omega_smg(z=10^10) and M2_ini = exp(beta*phi_ini)
+     */
+    case cccg_exp:
+      {
+        double beta = pba->parameters_smg[4];
+
+        double phi_ini = log(pba->parameters_smg[1]);
+        if (beta != 0) {
+          phi_ini /= beta;
+        }
+
+        /* xi = dot(phi) H/H0^2 obtained from the initial scalar density fraction,
+         * dominated by the braiding term: Omega_smg ~ -2 c3 xi^3 (H0/H)^2 */
+        double xi_ini_3 = pba->parameters_smg[0]/(-2.*pba->parameters_smg[3])*pow(rho_rad/pow(pba->H0,2),2);
+        //NOTE: rescale Omega ~ rho_smg/H^2 ~ a^-3.5/a^-4 from the fiducial z=10^10 to a_ini
+        xi_ini_3 *= pow(1e-10/a,-.5);
+        double xi_ini = cbrt(xi_ini_3);
+
+        pvecback_integration[pba->index_bi_phi_prime_smg] = a*xi_ini*pow(pba->H0,2)/sqrt(rho_rad);
+        pvecback_integration[pba->index_bi_phi_smg] = phi_ini
+          + 2./3.*pvecback_integration[pba->index_bi_phi_prime_smg]/a/sqrt(rho_rad);
+      }
+      break;
 
 	  case nkgb:
 		  {
@@ -1155,6 +1621,10 @@ int gravity_models_initial_conditions_smg(
 
 	  case propto_omega:
 			pvecback_integration[pba->index_bi_delta_M2_smg] = pba->parameters_2_smg[4]-1.;
+			break;
+
+	  case propto_omega_bh:
+			pvecback_integration[pba->index_bi_delta_M2_smg] = pba->parameters_2_smg[5]-1.;
 			break;
 
 	  case propto_scale:
@@ -1243,10 +1713,24 @@ int gravity_models_print_stdout_smg(
 	    pba->parameters_smg[1],pba->parameters_smg[2],pba->parameters_smg[3],pba->parameters_smg[4],pba->parameters_smg[5],pba->parameters_smg[0], pba->xi_0_smg);
     break;
 
+    case glpv_galileon:
+      printf("Modified gravity: GLPV (beyond Horndeski) Galileon with parameters: \n");
+      printf(" -> c_1 = %g, c_2 = %g, c_3 = %g \n    c_4 = %g, c_5 = %g, \n    b_4 = %g, b_5 = %g \n    xi_ini = %g (xi_end = %g) \n",
+	    pba->parameters_smg[1],pba->parameters_smg[2],pba->parameters_smg[3],pba->parameters_smg[4],pba->parameters_smg[5],
+	    pba->parameters_smg[6],pba->parameters_smg[7],pba->parameters_smg[0], pba->xi_0_smg);
+    break;
+
     case brans_dicke:
       printf("Modified gravity: Brans Dicke with parameters: \n");
       printf(" -> Lambda = %g, omega_BD = %g, \n    phi_ini = %g (phi_0 = %g), phi_prime_ini = %g \n",
 	    pba->parameters_smg[0],pba->parameters_smg[1],pba->parameters_smg[2],pba->phi_0_smg,pba->parameters_smg[3]);
+    break;
+
+    case cccg_exp:
+      printf("Modified gravity: cccg_exp (conformally coupled cubic galileon) with parameters: \n");
+      printf(" -> c_2 = %g, c_3 = %g, beta = %g, V0 = %g, \n    M2_ini = %g, Omega_smg_ini = %g (xi_end = %g) \n",
+	    pba->parameters_smg[2],pba->parameters_smg[3],pba->parameters_smg[4],pba->parameters_smg[5],
+	    pba->parameters_smg[1],pba->parameters_smg[0],pba->xi_0_smg);
     break;
 
     case nkgb:
@@ -1260,6 +1744,13 @@ int gravity_models_print_stdout_smg(
       printf(" -> c_K = %g, c_B = %g, c_M = %g, c_T = %g, M_*^2_init = %g \n",
 	      pba->parameters_2_smg[0],pba->parameters_2_smg[1],pba->parameters_2_smg[2],pba->parameters_2_smg[3],
 	     pba->parameters_2_smg[4]);
+    break;
+
+    case propto_omega_bh:
+      printf("Modified gravity: propto_omega_bh with parameters: \n");
+      printf(" -> c_K = %g, c_B = %g, c_M = %g, c_T = %g, c_H = %g, M_*^2_init = %g \n",
+	      pba->parameters_2_smg[0],pba->parameters_2_smg[1],pba->parameters_2_smg[2],pba->parameters_2_smg[3],
+	     pba->parameters_2_smg[4],pba->parameters_2_smg[5]);
     break;
 
     case propto_scale:

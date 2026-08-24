@@ -291,6 +291,11 @@ int input_read_parameters_smg(
  * Sometimes hi_class has higher precision parameters. This is where
  * it is possible to readjust them.
  *
+ * Called from input_read_precisions, which detects modified gravity by
+ * peeking at Omega_smg in the input file (pba->has_smg is not initialized
+ * yet at that stage — see the comment there). Anything added here runs for
+ * every smg model and cannot depend on physics parameters, only on ppr.
+ *
  * @param ppr              Input/Output: pointer to precision structure
  * @return the error status
  */
@@ -323,6 +328,7 @@ int input_default_params_smg(
   /** - background structure */
 
   pba->gravity_model_smg = propto_omega; /* gravitational model */
+  pba->gravity_submodel_smg = unspecified; /* gravity sub-model (e.g. branch of the model) */
   pba->expansion_model_smg = lcdm; /*expansion model (only for parameterizations*/
   pba->Omega0_smg = 0.; /* Scalar field defaults */
   pba->M2_today_smg = 1.; //*Planck mass today*/
