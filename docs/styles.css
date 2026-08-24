@@ -64,6 +64,20 @@ body {
 
 img, svg, video { max-width: 100%; height: auto; }
 
+/* Visible to screen readers only: for meaning that is otherwise carried by
+   colour or shape alone (the main-developer ring in the team list). */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
 /* Green is the highlight colour, so it is not also the link colour: links are
    marked by an underline instead. That keeps the accent meaningful where it is
    used deliberately (counts, code, labels), and gives links an affordance that
@@ -863,6 +877,39 @@ figcaption {
 .member a { display: block; color: var(--heading); font-size: 14.5px; font-weight: 600; }
 .member a:hover { color: var(--accent); text-decoration: none; }
 .member a:hover img { filter: grayscale(0); border-color: var(--accent-line); }
+
+/* The two main developers wear the brand green as a ring. The border sits
+   inside the 92px box (box-sizing: border-box), so the portraits stay on the
+   same grid as the rest; the wash is a box-shadow, which follows the circle.
+   Colour is never the only carrier: the key below the list says what the ring
+   means, and each link repeats it for screen readers. */
+.member--lead img {
+	border: 2px solid var(--accent);
+	box-shadow: 0 0 0 3px var(--accent-wash);
+	filter: grayscale(0);
+}
+
+/* Keep the ring at full strength on hover, where .member a:hover img would
+   otherwise fade the border to --accent-line. */
+.member--lead a:hover img { border-color: var(--accent); }
+
+.team-note {
+	margin: 24px 0 0;
+	color: var(--text-dim);
+	font-size: 14px;
+}
+
+/* A miniature of the ring, so the key shows what it describes. */
+.lead-key {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border: 2px solid var(--accent);
+	border-radius: 50%;
+	box-shadow: 0 0 0 2px var(--accent-wash);
+	margin-right: 10px;
+	vertical-align: 1px;
+}
 
 /* ---- Contact ----------------------------------------------------------- */
 
