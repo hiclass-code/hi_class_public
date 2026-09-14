@@ -68,6 +68,7 @@ static int fourier_weyl_allocate(struct perturbations * ppt,
   class_test(pfo->weyl == NULL, pfo->error_message,
              "Could not allocate Weyl storage.");
   w = pfo->weyl;
+  w->adiabatic_only = ppt->has_ad && ppm->ic_size[md] == 1;
   w->index_md = md;
   w->index_tp = ppt->index_tp_phi_plus_psi;
   w->ic_size = ppm->ic_size[md];
@@ -348,13 +349,13 @@ static int fourier_pk_weyl_interpolate(
   return _SUCCESS_;
 }
 
-/** Low-k scaling for one symmetric IC pair, relative to k_min at the same z.
- * FORMULA REPLACEMENT POINT: currently F_ij(k,k_min,z) = 1 (constant extension).
- * Replace this expression with the derived Weyl prescription. It must match
- * unity at k_min. Primordial spectra and the background are available here;
- * propagate errors if the eventual prescription cannot evaluate a request.
- * Per-pair scaling allows distinct initial-condition asymptotics, and preserves
- * signed cross-spectra. This temporary factor is NOT a physical extrapolation.
+/** Leading-order low-k scaling, matched to k_min at the same redshift.
+ * F(k,k_min) = (k/k_min)^n_s assumes an analytic, single adiabatic primordial
+ * power law without running and a k-independent Weyl source at leading order.
+ * The source's time dependence is already in the boundary power at this z.
+ * This is an asymptotic approximation, not exact evolution of extra modes;
+ * k_min must lie in the regime where the assumed source scaling applies.
+ * Other primordial spectra/ICs remain supported on the native k grid only.
  */
 static int fourier_weyl_lowk_factor(struct background * pba,
                                    struct primordial * ppm,
@@ -362,8 +363,19 @@ static int fourier_weyl_lowk_factor(struct background * pba,
                                    double k, double z, int index_pair,
                                    double * factor) {
   double k_min = pfo->weyl->k[0];
-  (void)pba; (void)ppm; (void)k; (void)z; (void)index_pair; (void)k_min;
-  *factor = 1.; /* TODO: insert the physical Weyl scaling formula here. */
+  (void)pba; (void)z;
+  class_test(!pfo->weyl->adiabatic_only || index_pair != 0,
+             pfo->error_message,
+             "Low-k Weyl extrapolation requires a single adiabatic initial condition.");
+  class_test(ppm->primordial_spec_type != analytic_Pk,
+             pfo->error_message,
+             "Low-k Weyl extrapolation requires an analytic primordial power law.");
+  class_test(ppm->alpha_s != 0. || ppm->beta_s != 0.,
+             pfo->error_message,
+             "Low-k Weyl extrapolation does not support primordial running.");
+  class_test(!isfinite(ppm->n_s), pfo->error_message,
+             "Low-k Weyl extrapolation requires finite n_s.");
+  *factor = pow(k/k_min, ppm->n_s);
   return _SUCCESS_;
 }
 
@@ -415,8 +427,9 @@ static int fourier_pk_weyl_extrapolate(
  * Separate public evaluator for the rescaled Weyl spectrum k^4 P_{(phi+psi)/2}.
  *
  * Linear interpolation is available on the native grid. Below k_min, the
- * working evaluator uses a temporary constant extension of each IC pair.
- * The physical low-k formula remains to be supplied in fourier_weyl_lowk_factor.
+ * evaluator uses (k/k_min)^n_s for a single adiabatic analytic primordial
+ * power law without running, under the leading-order source approximation.
+ * Unsupported primordial setups are rejected only below k_min.
  * No matter-spectrum table is used to supply Weyl power.
  *
  * pba, ppm and pfo must be valid initialized structures. k is in 1/Mpc;

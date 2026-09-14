@@ -28,6 +28,7 @@ enum out_sigmas {out_sigma,out_sigma_prime,out_sigma_disp};
  */
 struct fourier_weyl {
   short ready; /**< true only after power construction and spline preparation */
+  short adiabatic_only; /**< exactly one scalar IC, the adiabatic mode */
   int index_md;
   int index_tp; /**< existing phi+psi source; normalization belongs to builder */
   int ic_size;
@@ -319,8 +320,9 @@ extern "C" {
                             double * out_pk_ic
                             );
 
-  /* Linear Weyl evaluator: native interpolation and temporary constant
-   * low-k extension. No nonlinear or redshift extrapolation support. */
+  /* Linear Weyl evaluator: native interpolation and leading-order low-k
+   * power-law extension for a single adiabatic analytic spectrum without
+   * running. No nonlinear or redshift extrapolation support. */
   int fourier_pk_weyl_at_k_and_z(
                                  struct background * pba,
                                  struct primordial * ppm,

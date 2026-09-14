@@ -1248,6 +1248,46 @@ cdef class HiClass:
 
         return pk_cb
 
+    def pk_weyl(self,double k,double z):
+        """
+        Return the power spectrum of the perturbation [k^2*(phi+psi)/2](k,z)
+
+        Return the Weyl power spectrum [k^2*(phi+psi)/2](k,z) (in Mpc**3) for a given k (in
+        1/Mpc) and z. The function returns the linear power spectrum
+        if the user sets 'non_linear' to 'no', and the non-linear
+        power spectrum otherwise.
+        This function requires that the 'ouput' field contains at least 'wPk'.
+
+        Parameters
+        ----------
+        k : float
+            Wavenumber
+        z : float
+            Redshift
+
+        Returns
+        -------
+        pk : float
+            Weyl power spectrum
+        """
+
+
+        self.compute(["fourier"])
+
+        cdef double pk
+
+        if (self.pt.has_pk_weyl == _FALSE_):
+            raise CosmoSevereError("No power spectrum computed. You must add wPk to the list of outputs.")
+
+        if (self.fo.method == nl_none):
+            if fourier_pk_weyl_at_k_and_z(&self.ba,&self.pm,&self.fo,pk_linear,k,z,&pk,NULL)==_FAILURE_:
+                raise CosmoSevereError(self.fo.error_message)
+        else:
+            if fourier_pk_weyl_at_k_and_z(&self.ba,&self.pm,&self.fo,pk_nonlinear,k,z,&pk,NULL)==_FAILURE_:
+                raise CosmoSevereError(self.fo.error_message)
+
+        return pk
+
     def pk_lin(self,double k,double z):
         """
         Return the linear total matter power spectrum P_m(k,z)

@@ -166,6 +166,7 @@ cdef extern from "class.h":
         short has_velocity_transfers
 
         int has_pk_matter
+        int has_pk_weyl
         int l_lss_max
 
         int store_perturbations
@@ -421,6 +422,7 @@ cdef extern from "class.h":
         short has_pk_matter
         short has_pk_numerical_nowiggle
         short has_pk_analytic_nowiggle
+        short has_pk_weyl
         int method
         int ic_size
         int ic_ic_size
@@ -563,6 +565,16 @@ cdef extern from "class.h":
         double k,
         double z,
         int index_pk,
+        double * out_pk,
+        double * out_pk_ic)
+
+    int fourier_pk_weyl_at_k_and_z(
+        void * pba,
+        void * ppm,
+        void * pfo,
+        int pk_output,
+        double k,
+        double z,
         double * out_pk,
         double * out_pk_ic)
 
