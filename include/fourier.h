@@ -292,6 +292,18 @@ extern "C" {
                             double * out_pk_ic
                             );
 
+  /* Separate Weyl evaluator: scaffold only, currently always fails. */
+  int fourier_pk_weyl_at_k_and_z(
+                                 struct background * pba,
+                                 struct primordial * ppm,
+                                 struct fourier * pfo,
+                                 enum pk_outputs pk_output,
+                                 double k,
+                                 double z,
+                                 double * out_pk,
+                                 double * out_pk_ic
+                                 );
+
   int fourier_pks_at_k_and_z(
                              struct background * pba,
                              struct primordial * ppm,

@@ -16,6 +16,112 @@
 #include "hmcode.h"
 
 /**
+ * Placeholder for evaluation inside the native Weyl k range.
+ *
+ * TODO: construct and store dedicated linear Weyl power tables during
+ * fourier initialization, including initial-condition contributions and
+ * time/k spline derivatives. Release them during fourier_free().
+ * Do not add Weyl to the matter pk_size loops (sigma8, Halofit, HMcode).
+ * The source definition and its perturbations storage are not specified yet.
+ */
+static int fourier_pk_weyl_interpolate(
+                                      struct background * pba,
+                                      struct fourier * pfo,
+                                      double k,
+                                      double z,
+                                      double * out_pk,
+                                      double * out_pk_ic
+                                      ) {
+  (void)pba;
+  (void)k;
+  (void)z;
+  (void)out_pk;
+  (void)out_pk_ic;
+
+  class_stop(pfo->error_message,
+             "Weyl power tables and interpolation are not implemented.");
+}
+
+/**
+ * Placeholder for the low-k Weyl prescription.
+ *
+ * TODO: derive the asymptotic scaling for the chosen Weyl convention,
+ * match to the native Weyl spectrum, and handle supported initial conditions
+ * and curvature explicitly. Do not silently reuse the matter prescription.
+ */
+static int fourier_pk_weyl_extrapolate(
+                                      struct background * pba,
+                                      struct primordial * ppm,
+                                      struct fourier * pfo,
+                                      double k,
+                                      double z,
+                                      double * out_pk,
+                                      double * out_pk_ic
+                                      ) {
+  (void)pba;
+  (void)ppm;
+  (void)k;
+  (void)z;
+  (void)out_pk;
+  (void)out_pk_ic;
+
+  class_stop(pfo->error_message,
+             "Low-k Weyl power extrapolation is not implemented.");
+}
+
+/**
+ * Separate public evaluator for the rescaled Weyl spectrum k^4 P_{(phi+psi)/2}.
+ *
+ * C-only scaffold: this function NEVER returns a successful spectrum yet.
+ * No matter-spectrum table is used to supply Weyl power.
+ *
+ * pba, ppm and pfo must be valid initialized structures. k is in 1/Mpc;
+ * z is redshift. Only pk_linear is reserved for the first implementation.
+ * out_pk is required; out_pk_ic may be NULL, or eventually hold the same
+ * initial-condition decomposition layout as fourier_pk_at_k_and_z().
+ * Outputs are invalid on failure; out_pk is set to NAN where possible.
+ *
+ * The dispatch provisionally assumes the existing Fourier k grid will also
+ * be used for Weyl. Revisit this when adding dedicated Weyl table storage.
+ * Redshift coverage must then be checked against the Weyl time grid.
+ * The k=0 convention is deliberately left undefined at this stage.
+ */
+int fourier_pk_weyl_at_k_and_z(
+                              struct background * pba,
+                              struct primordial * ppm,
+                              struct fourier * pfo,
+                              enum pk_outputs pk_output,
+                              double k,
+                              double z,
+                              double * out_pk,
+                              double * out_pk_ic
+                              ) {
+  class_test(out_pk == NULL, pfo->error_message,
+             "Weyl power requires a non-NULL out_pk pointer.");
+  *out_pk = NAN;
+
+  class_test(pk_output != pk_linear, pfo->error_message,
+             "Only linear Weyl power is planned; other outputs are unsupported.");
+  class_test(!isfinite(k) || k <= 0., pfo->error_message,
+             "Weyl power requires finite k > 0; k=0 is not implemented.");
+  class_test(!isfinite(z), pfo->error_message,
+             "Weyl power requires a finite redshift.");
+  class_test(pfo->k_size < 1 || pfo->ln_k == NULL, pfo->error_message,
+             "Weyl power requires an initialized Fourier k grid.");
+  class_test(k > exp(pfo->ln_k[pfo->k_size-1]), pfo->error_message,
+             "Weyl power: k=%e exceeds the native k_max=%e.",
+             k, exp(pfo->ln_k[pfo->k_size-1]));
+
+  if (k < exp(pfo->ln_k[0])) {
+    return fourier_pk_weyl_extrapolate(pba, ppm, pfo, k, z,
+                                     out_pk, out_pk_ic);
+  }
+
+  return fourier_pk_weyl_interpolate(pba, pfo, k, z, out_pk, out_pk_ic);
+}
+
+
+/**
  * Return the P(k,z) for a given redshift z and pk type (_m, _cb)
  * (linear if pk_output = pk_linear, nonlinear if pk_output = pk_nonlinear,
  * nowiggle linear spectrum if pk_output = pk_numerical_nowiggle,
