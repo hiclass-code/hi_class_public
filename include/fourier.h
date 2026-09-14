@@ -22,6 +22,31 @@ enum hmcode_version {hmcode_version_2015, hmcode_version_2020, hmcode_version_20
 
 enum out_sigmas {out_sigma,out_sigma_prime,out_sigma_disp};
 
+/** Dedicated linear Weyl tables; owned exclusively by fourier.
+ * No aliasing of perturbations or matter tables. All powers are in linear
+ * representation, so signed/zero IC cross-spectra remain representable.
+ */
+struct fourier_weyl {
+  short ready; /**< true only after power construction and spline preparation */
+  int index_md;
+  int index_tp; /**< existing phi+psi source; normalization belongs to builder */
+  int ic_size;
+  int ic_ic_size;
+  int k_size;
+  int tau_size;
+  short * is_non_zero; /**< symmetric primordial IC-pair mask */
+  double * k;
+  double * ln_k;
+  double * ln_tau; /**< allocated also for the single-time z=0 case */
+  double * pk; /**< [index_tau*k_size+index_k], total rescaled Weyl power */
+  double * pk_ic; /**< [(index_tau*k_size+index_k)*ic_ic_size+index_pair];
+                  * symmetric pair contributions, without a factor of two */
+  double * ddpk_k;
+  double * ddpk_ic_k;
+  double * ddpk_tau; /**< NULL when tau_size == 1 */
+  double * ddpk_ic_tau; /**< NULL when tau_size == 1 */
+};
+
 /**
  * Structure containing all information on non-linear spectra.
  *
@@ -113,6 +138,7 @@ struct fourier {
 
   short has_pk_matter; /**< do we need matter Fourier spectrum? */
   short has_pk_weyl; /**< was the independent wPk output requested? */
+  struct fourier_weyl * weyl; /**< NULL unless independent Weyl storage exists */
 
   int k_size;      /**< k_size = total number of k values */
   int k_size_pk;   /**< k_size = number of k values for P(k,z) and T(k,z) output) */

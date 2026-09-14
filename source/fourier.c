@@ -14,15 +14,200 @@
 #include "fourier.h"
 #include "halofit.h"
 #include "hmcode.h"
+#include <limits.h>
+
+
+/** Release complete or partially allocated Weyl storage. Idempotent. */
+static int fourier_weyl_free(struct fourier * pfo) {
+  struct fourier_weyl * w = pfo->weyl;
+  if (w == NULL) return _SUCCESS_;
+  free(w->is_non_zero);
+  free(w->k);
+  free(w->ln_k);
+  free(w->ln_tau);
+  free(w->pk);
+  free(w->pk_ic);
+  free(w->ddpk_k);
+  free(w->ddpk_ic_k);
+  free(w->ddpk_tau);
+  free(w->ddpk_ic_tau);
+  free(w);
+  pfo->weyl = NULL;
+  return _SUCCESS_;
+}
+
+/** Allocate independent native grids and tables; no matter initialization. */
+static int fourier_weyl_allocate(struct perturbations * ppt,
+                                struct primordial * ppm,
+                                struct fourier * pfo) {
+  struct fourier_weyl * w;
+  int md = ppt->index_md_scalars;
+  int ik, it, pair;
+  size_t n, ni, i;
+
+  class_test(pfo->weyl != NULL, pfo->error_message,
+             "Weyl storage already exists; free it before initialization.");
+  class_test(!ppt->has_scalars || !ppt->has_source_phi_plus_psi,
+             pfo->error_message, "Weyl tables require the scalar phi+psi source.");
+  class_test(ppt->k_size[md] < 2 || ppt->ln_tau_size < 1 ||
+             ppt->ln_tau_size > ppt->tau_size ||
+             ppm->ic_size[md] != ppt->ic_size[md] ||
+             ppm->ic_ic_size[md] < 1,
+             pfo->error_message, "Invalid Weyl grid or initial-condition sizes.");
+  /* Array spline routines use int indices/products. */
+  class_test(ppt->k_size[md] > INT_MAX / ppt->ln_tau_size ||
+             ppm->ic_ic_size[md] > INT_MAX /
+             (ppt->k_size[md] * ppt->ln_tau_size),
+             pfo->error_message, "Weyl tables exceed spline indexing limits.");
+  n = (size_t)ppt->k_size[md] * ppt->ln_tau_size;
+  ni = n * ppm->ic_ic_size[md];
+  class_test(ni > (size_t)-1 / sizeof(double), pfo->error_message,
+             "Weyl allocation size overflow.");
+
+  pfo->weyl = calloc(1, sizeof(struct fourier_weyl));
+  class_test(pfo->weyl == NULL, pfo->error_message,
+             "Could not allocate Weyl storage.");
+  w = pfo->weyl;
+  w->index_md = md;
+  w->index_tp = ppt->index_tp_phi_plus_psi;
+  w->ic_size = ppm->ic_size[md];
+  w->ic_ic_size = ppm->ic_ic_size[md];
+  w->k_size = ppt->k_size[md];
+  w->tau_size = ppt->ln_tau_size;
+
+  w->is_non_zero = malloc(w->ic_ic_size * sizeof(short));
+  w->k = malloc(w->k_size * sizeof(double));
+  w->ln_k = malloc(w->k_size * sizeof(double));
+  w->ln_tau = malloc(w->tau_size * sizeof(double));
+  w->pk = malloc(n * sizeof(double));
+  w->pk_ic = malloc(ni * sizeof(double));
+  w->ddpk_k = malloc(n * sizeof(double));
+  w->ddpk_ic_k = malloc(ni * sizeof(double));
+  if (w->tau_size > 1) {
+    w->ddpk_tau = malloc(n * sizeof(double));
+    w->ddpk_ic_tau = malloc(ni * sizeof(double));
+  }
+  if (w->is_non_zero == NULL || w->k == NULL || w->ln_k == NULL ||
+      w->ln_tau == NULL || w->pk == NULL || w->pk_ic == NULL ||
+      w->ddpk_k == NULL || w->ddpk_ic_k == NULL ||
+      (w->tau_size > 1 && (w->ddpk_tau == NULL || w->ddpk_ic_tau == NULL))) {
+    fourier_weyl_free(pfo);
+    class_stop(pfo->error_message, "Could not allocate Weyl grids and tables.");
+  }
+  for (ik = 0; ik < w->k_size; ik++) {
+    w->k[ik] = ppt->k[md][ik];
+    w->ln_k[ik] = log(w->k[ik]);
+    if (!isfinite(w->ln_k[ik]) ||
+        (ik > 0 && w->k[ik] <= w->k[ik-1])) {
+      fourier_weyl_free(pfo);
+      class_stop(pfo->error_message, "Invalid native Weyl k grid.");
+    }
+  }
+  for (it = 0; it < w->tau_size; it++) {
+    w->ln_tau[it] = log(ppt->tau_sampling[ppt->tau_size-w->tau_size+it]);
+    if (!isfinite(w->ln_tau[it]) ||
+        (it > 0 && w->ln_tau[it] <= w->ln_tau[it-1])) {
+      fourier_weyl_free(pfo);
+      class_stop(pfo->error_message, "Invalid native Weyl time grid.");
+    }
+  }
+  for (pair = 0; pair < w->ic_ic_size; pair++)
+    w->is_non_zero[pair] = ppm->is_non_zero[md][pair];
+  /* Unfilled tables must never resemble valid zero-power results. */
+  for (i = 0; i < n; i++) {
+    w->pk[i] = w->ddpk_k[i] = NAN;
+    if (w->tau_size > 1) w->ddpk_tau[i] = NAN;
+  }
+  for (i = 0; i < ni; i++) {
+    w->pk_ic[i] = w->ddpk_ic_k[i] = NAN;
+    if (w->tau_size > 1) w->ddpk_ic_tau[i] = NAN;
+  }
+  return _SUCCESS_;
+}
+
+/** Build one native time slice. Physics intentionally remains unimplemented.
+ * Fill k_size total powers and k_size*ic_ic_size symmetric pair contributions.
+ * Use the phi+psi source at index_tau_sources and primordial auto/cross-spectra;
+ * the rescaling and total cross-term multiplicities belong here.
+ */
+static int fourier_pk_weyl_linear(struct background * pba,
+                                 struct perturbations * ppt,
+                                 struct primordial * ppm,
+                                 struct fourier * pfo,
+                                 int index_tau_sources,
+                                 double * pk,
+                                 double * pk_ic) {
+  (void)pba; (void)ppt; (void)ppm; (void)index_tau_sources;
+  (void)pk; (void)pk_ic;
+  class_stop(pfo->error_message,
+             "Native linear Weyl power construction is not implemented.");
+}
+
+/** Prepare native k/time derivatives only after every table entry is filled. */
+static int fourier_weyl_splines(struct fourier * pfo) {
+  struct fourier_weyl * w = pfo->weyl;
+  int it;
+  size_t i, n = (size_t)w->k_size * w->tau_size;
+  for (i = 0; i < n; i++)
+    class_test(!isfinite(w->pk[i]), pfo->error_message,
+               "Unfilled/nonfinite native Weyl power table.");
+  for (i = 0; i < n * w->ic_ic_size; i++)
+    class_test(!isfinite(w->pk_ic[i]), pfo->error_message,
+               "Unfilled/nonfinite native Weyl IC table.");
+  for (it = 0; it < w->tau_size; it++) {
+    class_call(array_spline_table_columns(w->ln_k, w->k_size,
+                 w->pk + (size_t)it*w->k_size, 1,
+                 w->ddpk_k + (size_t)it*w->k_size,
+                 _SPLINE_NATURAL_, pfo->error_message),
+               pfo->error_message, pfo->error_message);
+    class_call(array_spline_table_lines(w->ln_k, w->k_size,
+                 w->pk_ic + (size_t)it*w->k_size*w->ic_ic_size, w->ic_ic_size,
+                 w->ddpk_ic_k + (size_t)it*w->k_size*w->ic_ic_size,
+                 _SPLINE_NATURAL_, pfo->error_message),
+               pfo->error_message, pfo->error_message);
+  }
+  if (w->tau_size > 1) {
+    class_call(array_spline_table_lines(w->ln_tau, w->tau_size, w->pk,
+                 w->k_size, w->ddpk_tau, _SPLINE_NATURAL_, pfo->error_message),
+               pfo->error_message, pfo->error_message);
+    class_call(array_spline_table_lines(w->ln_tau, w->tau_size, w->pk_ic,
+                 w->k_size*w->ic_ic_size, w->ddpk_ic_tau,
+                 _SPLINE_NATURAL_, pfo->error_message),
+               pfo->error_message, pfo->error_message);
+  }
+  return _SUCCESS_;
+}
+
+/** Independent Weyl lifecycle, including cleanup on any partial failure. */
+static int fourier_weyl_init(struct background * pba,
+                            struct perturbations * ppt,
+                            struct primordial * ppm,
+                            struct fourier * pfo) {
+  struct fourier_weyl * w;
+  int it;
+  class_call(fourier_weyl_allocate(ppt, ppm, pfo),
+             pfo->error_message, pfo->error_message);
+  w = pfo->weyl;
+  for (it = 0; it < w->tau_size; it++) {
+    class_call_except(fourier_pk_weyl_linear(pba, ppt, ppm, pfo,
+                        ppt->tau_size-w->tau_size+it,
+                        w->pk + (size_t)it*w->k_size,
+                        w->pk_ic + (size_t)it*w->k_size*w->ic_ic_size),
+                      pfo->error_message, pfo->error_message,
+                      fourier_weyl_free(pfo));
+  }
+  class_call_except(fourier_weyl_splines(pfo),
+                    pfo->error_message, pfo->error_message,
+                    fourier_weyl_free(pfo));
+  w->ready = _TRUE_;
+  return _SUCCESS_;
+}
 
 /**
  * Placeholder for evaluation inside the native Weyl k range.
  *
- * TODO: construct and store dedicated linear Weyl power tables during
- * fourier initialization, including initial-condition contributions and
- * time/k spline derivatives. Release them during fourier_free().
- * Do not add Weyl to the matter pk_size loops (sigma8, Halofit, HMcode).
- * The source definition and its perturbations storage are not specified yet.
+ * TODO: interpolate the dedicated ready Weyl tables in log(tau) and log(k).
+ * Native power construction is handled separately by fourier_pk_weyl_linear.
  */
 static int fourier_pk_weyl_interpolate(
                                       struct background * pba,
@@ -81,9 +266,8 @@ static int fourier_pk_weyl_extrapolate(
  * initial-condition decomposition layout as fourier_pk_at_k_and_z().
  * Outputs are invalid on failure; out_pk is set to NAN where possible.
  *
- * The dispatch provisionally assumes the existing Fourier k grid will also
- * be used for Weyl. Revisit this when adding dedicated Weyl table storage.
- * Redshift coverage must then be checked against the Weyl time grid.
+ * Dispatch uses the independent Weyl grid. Redshift coverage must be checked
+ * against that grid by the eventual interpolation/extrapolation helpers.
  * The k=0 convention is deliberately left undefined at this stage.
  */
 int fourier_pk_weyl_at_k_and_z(
@@ -109,13 +293,13 @@ int fourier_pk_weyl_at_k_and_z(
              "Weyl power requires finite k > 0; k=0 is not implemented.");
   class_test(!isfinite(z), pfo->error_message,
              "Weyl power requires a finite redshift.");
-  class_test(pfo->k_size < 1 || pfo->ln_k == NULL, pfo->error_message,
-             "Weyl power requires an initialized Fourier k grid.");
-  class_test(k > exp(pfo->ln_k[pfo->k_size-1]), pfo->error_message,
+  class_test(pfo->weyl == NULL || !pfo->weyl->ready, pfo->error_message,
+             "Weyl power tables are not initialized and ready.");
+  class_test(k > pfo->weyl->k[pfo->weyl->k_size-1], pfo->error_message,
              "Weyl power: k=%e exceeds the native k_max=%e.",
-             k, exp(pfo->ln_k[pfo->k_size-1]));
+             k, pfo->weyl->k[pfo->weyl->k_size-1]);
 
-  if (k < exp(pfo->ln_k[0])) {
+  if (k < pfo->weyl->k[0]) {
     return fourier_pk_weyl_extrapolate(pba, ppm, pfo, k, z,
                                      out_pk, out_pk_ic);
   }
@@ -1405,6 +1589,7 @@ int fourier_init(
       from the perturbations structure to the fourier structure */
   pfo->has_pk_matter = ppt->has_pk_matter;
   pfo->has_pk_weyl = ppt->has_pk_weyl;
+  pfo->weyl = NULL;
 
   /** - preliminary tests */
 
@@ -1418,19 +1603,15 @@ int fourier_init(
     return _SUCCESS_;
   }
 
-  /* Independent Weyl initialization hook. Fail explicitly until dedicated
-   * tables exist, rather than silently accepting wPk without computing it.
-   * This precedes the matter-only early return so wPk alone reaches it.
-   * TODO: replace this placeholder with Weyl table initialization and add
-   * matching cleanup, without including Weyl in pk_size/nonlinear loops. */
-  if (pfo->has_pk_weyl == _TRUE_) {
-    class_stop(pfo->error_message,
-               "wPk requested, but Weyl power table initialization is not implemented.");
-  }
-
   /** --> Nothing to be done if we don't want the matter power spectrum */
 
   if ((pfo->has_pk_matter == _FALSE_) && (pfo->method == nl_none)) {
+    if (pfo->has_pk_weyl == _TRUE_) {
+      class_call(fourier_weyl_init(pba, ppt, ppm, pfo),
+                 pfo->error_message, pfo->error_message);
+      pfo->is_allocated = _TRUE_;
+      return _SUCCESS_;
+    }
     if (pfo->fourier_verbose > 0)
       printf("No Fourier spectra nor nonlinear corrections requested. Nonlinear module skipped.\n");
     return _SUCCESS_;
@@ -1928,6 +2109,13 @@ int fourier_init(
                "Your non-linear method variable is set to %d, out of the range defined in fourier.h",pfo->method);
   }
 
+  /* Matter initialization is complete before independent Weyl work starts.
+   * On Weyl failure, release both the completed matter and partial Weyl state. */
+  if (pfo->has_pk_weyl == _TRUE_) {
+    class_call_except(fourier_weyl_init(pba, ppt, ppm, pfo),
+                      pfo->error_message, pfo->error_message,
+                      fourier_free(pfo));
+  }
   pfo->is_allocated = _TRUE_;
   return _SUCCESS_;
 }
@@ -1944,6 +2132,8 @@ int fourier_free(
                  struct fourier *pfo
                  ) {
   int index_pk;
+
+  fourier_weyl_free(pfo);
 
   if ((pfo->has_pk_matter == _TRUE_) || (pfo->method > nl_none)) {
 
