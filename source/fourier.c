@@ -348,12 +348,27 @@ static int fourier_pk_weyl_interpolate(
   return _SUCCESS_;
 }
 
-/**
- * Placeholder for the low-k Weyl prescription.
- *
- * TODO: derive the asymptotic scaling for the chosen Weyl convention,
- * match to the native Weyl spectrum, and handle supported initial conditions
- * and curvature explicitly. Do not silently reuse the matter prescription.
+/** Low-k scaling for one symmetric IC pair, relative to k_min at the same z.
+ * FORMULA REPLACEMENT POINT: currently F_ij(k,k_min,z) = 1 (constant extension).
+ * Replace this expression with the derived Weyl prescription. It must match
+ * unity at k_min. Primordial spectra and the background are available here;
+ * propagate errors if the eventual prescription cannot evaluate a request.
+ * Per-pair scaling allows distinct initial-condition asymptotics, and preserves
+ * signed cross-spectra. This temporary factor is NOT a physical extrapolation.
+ */
+static int fourier_weyl_lowk_factor(struct background * pba,
+                                   struct primordial * ppm,
+                                   struct fourier * pfo,
+                                   double k, double z, int index_pair,
+                                   double * factor) {
+  double k_min = pfo->weyl->k[0];
+  (void)pba; (void)ppm; (void)k; (void)z; (void)index_pair; (void)k_min;
+  *factor = 1.; /* TODO: insert the physical Weyl scaling formula here. */
+  return _SUCCESS_;
+}
+
+/** Extend each IC contribution from k_min, then reconstruct total power.
+ * Redshift interpolation and bounds are exactly those of the native evaluator.
  */
 static int fourier_pk_weyl_extrapolate(
                                       struct background * pba,
@@ -364,22 +379,44 @@ static int fourier_pk_weyl_extrapolate(
                                       double * out_pk,
                                       double * out_pk_ic
                                       ) {
-  (void)pba;
-  (void)ppm;
-  (void)k;
-  (void)z;
-  (void)out_pk;
-  (void)out_pk_ic;
-
-  class_stop(pfo->error_message,
-             "Low-k Weyl power extrapolation is not implemented.");
+  struct fourier_weyl * w = pfo->weyl;
+  double * pairs;
+  double boundary_pk, factor, total = 0.;
+  int ic1, ic2, pair;
+  class_alloc(pairs, w->ic_ic_size*sizeof(double), pfo->error_message);
+  class_call_except(fourier_pk_weyl_interpolate(pba, pfo, w->k[0], z,
+                                                &boundary_pk, pairs),
+                    pfo->error_message, pfo->error_message, free(pairs));
+  for (ic1 = 0; ic1 < w->ic_size; ic1++) {
+    for (ic2 = ic1; ic2 < w->ic_size; ic2++) {
+      pair = index_symmetric_matrix(ic1, ic2, w->ic_size);
+      class_call_except(fourier_weyl_lowk_factor(pba, ppm, pfo, k, z, pair, &factor),
+                        pfo->error_message, pfo->error_message, free(pairs));
+      pairs[pair] *= factor;
+      if (!isfinite(factor) || !isfinite(pairs[pair])) {
+        free(pairs);
+        class_stop(pfo->error_message, "Nonfinite low-k Weyl IC contribution.");
+      }
+      total += (ic1 == ic2 ? 1. : 2.) * pairs[pair];
+    }
+  }
+  if (!isfinite(total)) {
+    free(pairs);
+    class_stop(pfo->error_message, "Nonfinite low-k Weyl total power.");
+  }
+  if (out_pk_ic != NULL)
+    memcpy(out_pk_ic, pairs, w->ic_ic_size*sizeof(double));
+  *out_pk = total;
+  free(pairs);
+  return _SUCCESS_;
 }
 
 /**
  * Separate public evaluator for the rescaled Weyl spectrum k^4 P_{(phi+psi)/2}.
  *
- * Linear interpolation is available on the native grid; low-k extrapolation
- * is still an explicit placeholder.
+ * Linear interpolation is available on the native grid. Below k_min, the
+ * working evaluator uses a temporary constant extension of each IC pair.
+ * The physical low-k formula remains to be supplied in fourier_weyl_lowk_factor.
  * No matter-spectrum table is used to supply Weyl power.
  *
  * pba, ppm and pfo must be valid initialized structures. k is in 1/Mpc;
@@ -410,7 +447,7 @@ int fourier_pk_weyl_at_k_and_z(
              "No Weyl power requested. Add wPk to the list of outputs.");
 
   class_test(pk_output != pk_linear, pfo->error_message,
-             "Only linear Weyl power is planned; other outputs are unsupported.");
+             "Only linear Weyl power is supported; other outputs are unsupported.");
   class_test(!isfinite(k) || k <= 0., pfo->error_message,
              "Weyl power requires finite k > 0; k=0 is not implemented.");
   class_test(!isfinite(z), pfo->error_message,

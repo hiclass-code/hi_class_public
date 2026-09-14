@@ -319,7 +319,8 @@ extern "C" {
                             double * out_pk_ic
                             );
 
-  /* Separate Weyl evaluator: scaffold only, currently always fails. */
+  /* Linear Weyl evaluator: native interpolation and temporary constant
+   * low-k extension. No nonlinear or redshift extrapolation support. */
   int fourier_pk_weyl_at_k_and_z(
                                  struct background * pba,
                                  struct primordial * ppm,
