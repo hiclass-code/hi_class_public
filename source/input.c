@@ -1461,6 +1461,7 @@ int input_try_unknown_parameters(double * unknown_parameter,
       MIN(MAX(pr.k_max_for_pk_sigma8_min, pt.k_max_for_pk),
           pr.k_max_for_pk_sigma8_max);
     pt.has_pk_matter=_TRUE_;
+    pt.has_pk_weyl = _FALSE_; /* No Weyl tables needed during shooting. */
     pt.has_perturbations = _TRUE_;
     pt.has_cl_cmb_temperature = _FALSE_;
     pt.has_cls = _FALSE_;
