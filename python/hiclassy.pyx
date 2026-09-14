@@ -1400,7 +1400,7 @@ cdef class HiClass:
         (alpha_s = beta_s = 0). Other primordial setups remain supported
         within the native k grid.
 
-        Missing 'wPk', unsupported nonlinear or low-k requests, k <= 0,
+        Missing 'wPk', unsupported low-k requests, k <= 0,
         k above the native maximum, and redshifts outside the native time
         grid raise CosmoSevereError. Nonfinite k/z values are rejected.
         With only z=0 stored, positive redshifts require increasing z_max_pk.
@@ -1758,7 +1758,7 @@ cdef class HiClass:
         (alpha_s = beta_s = 0). Other primordial setups remain supported
         within the native k grid.
 
-        Missing 'wPk', unsupported nonlinear or low-k requests, k <= 0,
+        Missing 'wPk', unsupported low-k requests, k <= 0,
         k above the native maximum, and redshifts outside the native time
         grid raise CosmoSevereError. Nonfinite k/z values are rejected.
         With only z=0 stored, positive redshifts require increasing z_max_pk.
