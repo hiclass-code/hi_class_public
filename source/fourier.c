@@ -252,12 +252,56 @@ static int fourier_weyl_init(struct background * pba,
   return _SUCCESS_;
 }
 
-/**
- * Placeholder for evaluation inside the native Weyl k range.
- *
- * TODO: interpolate the dedicated ready Weyl tables in log(tau) and log(k).
- * Native power construction is handled separately by fourier_pk_weyl_linear.
+/** Interpolate linear-valued columns, first in ln(tau), then in ln(k).
+ * IC cross-spectra can be signed, so the dependent variable is never logged.
+ * Rows have layout [(index_tau*k_size+index_k)*n_columns+index_column].
  */
+static int fourier_weyl_interpolate_table(struct fourier * pfo,
+                                         double * table,
+                                         double * ddtable_tau,
+                                         int n_columns,
+                                         double ln_tau,
+                                         double ln_k,
+                                         double * result) {
+  struct fourier_weyl * w = pfo->weyl;
+  double * slice;
+  double * ddslice;
+  int last_index = 0;
+  size_t n = (size_t)w->k_size*n_columns;
+  class_alloc(slice, n*sizeof(double), pfo->error_message);
+  ddslice = malloc(n*sizeof(double));
+  if (ddslice == NULL) {
+    free(slice);
+    class_stop(pfo->error_message, "Could not allocate Weyl spline workspace.");
+  }
+  if (w->tau_size == 1 || ln_tau == w->ln_tau[w->tau_size-1]) {
+    memcpy(slice, table+(size_t)(w->tau_size-1)*n, n*sizeof(double));
+  }
+  else {
+    class_call_except(array_interpolate_spline(w->ln_tau, w->tau_size,
+                        table, ddtable_tau, (int)n, ln_tau, &last_index,
+                        slice, (int)n, pfo->error_message),
+                      pfo->error_message, pfo->error_message,
+                      free(slice); free(ddslice));
+  }
+  /* Recompute the k derivatives of the interpolated slice with the same
+   * natural boundary conditions used for the native tables. */
+  class_call_except(array_spline_table_lines(w->ln_k, w->k_size,
+                      slice, n_columns, ddslice, _SPLINE_NATURAL_,
+                      pfo->error_message),
+                    pfo->error_message, pfo->error_message,
+                    free(slice); free(ddslice));
+  class_call_except(array_interpolate_spline(w->ln_k, w->k_size,
+                      slice, ddslice, n_columns, ln_k, &last_index,
+                      result, n_columns, pfo->error_message),
+                    pfo->error_message, pfo->error_message,
+                    free(slice); free(ddslice));
+  free(slice);
+  free(ddslice);
+  return _SUCCESS_;
+}
+
+/** Evaluate ready native Weyl tables without k or redshift extrapolation. */
 static int fourier_pk_weyl_interpolate(
                                       struct background * pba,
                                       struct fourier * pfo,
@@ -266,14 +310,42 @@ static int fourier_pk_weyl_interpolate(
                                       double * out_pk,
                                       double * out_pk_ic
                                       ) {
-  (void)pba;
-  (void)k;
-  (void)z;
-  (void)out_pk;
-  (void)out_pk_ic;
-
-  class_stop(pfo->error_message,
-             "Weyl power tables and interpolation are not implemented.");
+  struct fourier_weyl * w = pfo->weyl;
+  double tau, ln_tau, pk;
+  int pair;
+  class_test(z < 0., pfo->error_message,
+             "Weyl power requires nonnegative redshift.");
+  if (z == 0.) {
+    ln_tau = w->ln_tau[w->tau_size-1];
+  }
+  else {
+    class_test(w->tau_size == 1, pfo->error_message,
+               "Only z=0 Weyl power is stored; increase z_max_pk.");
+    class_call(background_tau_of_z(pba, z, &tau),
+               pba->error_message, pfo->error_message);
+    ln_tau = log(tau);
+    /* Match CLASS's tolerance for roundoff in the z-to-tau conversion.
+     * Values further outside the native time grid are never extrapolated. */
+    class_test(!isfinite(ln_tau) || ln_tau < w->ln_tau[0]-_EPSILON_ ||
+               ln_tau > w->ln_tau[w->tau_size-1]+_EPSILON_,
+               pfo->error_message, "Requested z=%e is outside the Weyl time grid.", z);
+    ln_tau = MAX(w->ln_tau[0], MIN(ln_tau, w->ln_tau[w->tau_size-1]));
+  }
+  class_call(fourier_weyl_interpolate_table(pfo, w->pk, w->ddpk_tau,
+                                            1, ln_tau, log(k), &pk),
+             pfo->error_message, pfo->error_message);
+  class_test(!isfinite(pk), pfo->error_message,
+             "Nonfinite interpolated Weyl power.");
+  if (out_pk_ic != NULL) {
+    class_call(fourier_weyl_interpolate_table(pfo, w->pk_ic, w->ddpk_ic_tau,
+                                              w->ic_ic_size, ln_tau, log(k), out_pk_ic),
+               pfo->error_message, pfo->error_message);
+    for (pair = 0; pair < w->ic_ic_size; pair++)
+      class_test(!isfinite(out_pk_ic[pair]), pfo->error_message,
+                 "Nonfinite interpolated Weyl IC contribution.");
+  }
+  *out_pk = pk;
+  return _SUCCESS_;
 }
 
 /**
@@ -306,17 +378,18 @@ static int fourier_pk_weyl_extrapolate(
 /**
  * Separate public evaluator for the rescaled Weyl spectrum k^4 P_{(phi+psi)/2}.
  *
- * C-only scaffold: this function NEVER returns a successful spectrum yet.
+ * Linear interpolation is available on the native grid; low-k extrapolation
+ * is still an explicit placeholder.
  * No matter-spectrum table is used to supply Weyl power.
  *
  * pba, ppm and pfo must be valid initialized structures. k is in 1/Mpc;
- * z is redshift. Only pk_linear is reserved for the first implementation.
- * out_pk is required; out_pk_ic may be NULL, or eventually hold the same
+ * z is redshift. Only pk_linear is supported.
+ * out_pk is required; out_pk_ic may be NULL, or hold the same
  * initial-condition decomposition layout as fourier_pk_at_k_and_z().
  * Outputs are invalid on failure; out_pk is set to NAN where possible.
  *
- * Dispatch uses the independent Weyl grid. Redshift coverage must be checked
- * against that grid by the eventual interpolation/extrapolation helpers.
+ * Dispatch uses the independent Weyl grid; interpolation checks native time
+ * coverage and never extrapolates in redshift.
  * The k=0 convention is deliberately left undefined at this stage.
  */
 int fourier_pk_weyl_at_k_and_z(
