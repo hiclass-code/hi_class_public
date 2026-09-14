@@ -112,6 +112,7 @@ struct fourier {
   //@{
 
   short has_pk_matter; /**< do we need matter Fourier spectrum? */
+  short has_pk_weyl; /**< was the independent wPk output requested? */
 
   int k_size;      /**< k_size = total number of k values */
   int k_size_pk;   /**< k_size = number of k values for P(k,z) and T(k,z) output) */

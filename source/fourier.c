@@ -100,6 +100,9 @@ int fourier_pk_weyl_at_k_and_z(
              "Weyl power requires a non-NULL out_pk pointer.");
   *out_pk = NAN;
 
+  class_test(pfo->has_pk_weyl == _FALSE_, pfo->error_message,
+             "No Weyl power requested. Add wPk to the list of outputs.");
+
   class_test(pk_output != pk_linear, pfo->error_message,
              "Only linear Weyl power is planned; other outputs are unsupported.");
   class_test(!isfinite(k) || k <= 0., pfo->error_message,
@@ -1401,6 +1404,7 @@ int fourier_init(
   /** - Do we want to compute P(k,z)? Propagate the flag has_pk_matter
       from the perturbations structure to the fourier structure */
   pfo->has_pk_matter = ppt->has_pk_matter;
+  pfo->has_pk_weyl = ppt->has_pk_weyl;
 
   /** - preliminary tests */
 
@@ -1412,6 +1416,16 @@ int fourier_init(
     if (pfo->fourier_verbose > 0)
       printf("No scalar modes requested. Nonlinear module skipped.\n");
     return _SUCCESS_;
+  }
+
+  /* Independent Weyl initialization hook. Fail explicitly until dedicated
+   * tables exist, rather than silently accepting wPk without computing it.
+   * This precedes the matter-only early return so wPk alone reaches it.
+   * TODO: replace this placeholder with Weyl table initialization and add
+   * matching cleanup, without including Weyl in pk_size/nonlinear loops. */
+  if (pfo->has_pk_weyl == _TRUE_) {
+    class_stop(pfo->error_message,
+               "wPk requested, but Weyl power table initialization is not implemented.");
   }
 
   /** --> Nothing to be done if we don't want the matter power spectrum */
