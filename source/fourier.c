@@ -125,10 +125,12 @@ static int fourier_weyl_allocate(struct perturbations * ppt,
   return _SUCCESS_;
 }
 
-/** Build one native time slice. Physics intentionally remains unimplemented.
- * Fill k_size total powers and k_size*ic_ic_size symmetric pair contributions.
- * Use the phi+psi source at index_tau_sources and primordial auto/cross-spectra;
- * the rescaling and total cross-term multiplicities belong here.
+/** Build one native linear Weyl time slice from the phi+psi source.
+ * With dimensionless primordial pair spectra P_ij and sources S_i=phi_i+psi_i,
+ * k^4 P_{(phi+psi)/2,ij} = (pi^2/2) k P_ij S_i S_j.
+ * Store each symmetric pair once, with its sign, in linear representation.
+ * Only the total includes twice each off-diagonal pair. This avoids division
+ * by delta_m and remains defined at zeros of a density or potential source.
  */
 static int fourier_pk_weyl_linear(struct background * pba,
                                  struct perturbations * ppt,
@@ -137,10 +139,57 @@ static int fourier_pk_weyl_linear(struct background * pba,
                                  int index_tau_sources,
                                  double * pk,
                                  double * pk_ic) {
-  (void)pba; (void)ppt; (void)ppm; (void)index_tau_sources;
-  (void)pk; (void)pk_ic;
-  class_stop(pfo->error_message,
-             "Native linear Weyl power construction is not implemented.");
+  struct fourier_weyl * w = pfo->weyl;
+  double * primordial_pk;
+  int ik, ic1, ic2, pair;
+  double source1, source2, contribution, total, prefactor;
+  (void)pba;
+
+  class_test(w == NULL || pk == NULL || pk_ic == NULL, pfo->error_message,
+             "Native Weyl construction requires allocated tables.");
+  class_test(index_tau_sources < 0 || index_tau_sources >= ppt->tau_size,
+             pfo->error_message, "Native Weyl source time index out of range.");
+  class_alloc(primordial_pk, w->ic_ic_size*sizeof(double), pfo->error_message);
+
+  for (ik = 0; ik < w->k_size; ik++) {
+    class_call_except(primordial_spectrum_at_k(ppm, w->index_md, linear,
+                                              w->k[ik], primordial_pk),
+                      ppm->error_message, pfo->error_message,
+                      free(primordial_pk));
+    prefactor = 0.5 * _PI_ * _PI_ * w->k[ik];
+    total = 0.;
+    for (ic1 = 0; ic1 < w->ic_size; ic1++) {
+      source1 = ppt->sources[w->index_md]
+        [ic1*ppt->tp_size[w->index_md]+w->index_tp]
+        [(size_t)index_tau_sources*w->k_size+ik];
+      for (ic2 = ic1; ic2 < w->ic_size; ic2++) {
+        pair = index_symmetric_matrix(ic1, ic2, w->ic_size);
+        contribution = 0.;
+        if (w->is_non_zero[pair] == _TRUE_) {
+          source2 = ppt->sources[w->index_md]
+            [ic2*ppt->tp_size[w->index_md]+w->index_tp]
+            [(size_t)index_tau_sources*w->k_size+ik];
+          contribution = prefactor * primordial_pk[pair] * source1 * source2;
+        }
+        if (!isfinite(contribution)) {
+          free(primordial_pk);
+          class_stop(pfo->error_message,
+                     "Nonfinite native Weyl IC contribution at k=%e, pair=%d.",
+                     w->k[ik], pair);
+        }
+        pk_ic[(size_t)ik*w->ic_ic_size+pair] = contribution;
+        total += (ic1 == ic2 ? 1. : 2.) * contribution;
+      }
+    }
+    if (!isfinite(total)) {
+      free(primordial_pk);
+      class_stop(pfo->error_message,
+                 "Nonfinite native Weyl total power at k=%e.", w->k[ik]);
+    }
+    pk[ik] = total;
+  }
+  free(primordial_pk);
+  return _SUCCESS_;
 }
 
 /** Prepare native k/time derivatives only after every table entry is filled. */
