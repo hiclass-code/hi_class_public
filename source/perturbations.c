@@ -1283,6 +1283,13 @@ int perturbations_indices(
 
       /** - --> source flags and indices, for sources that are specific to scalars */
 
+      /* Store the existing potential source for the future Weyl tables.
+       * Do not require mPk or enable all density transfer outputs (dTk). */
+      if (ppt->has_pk_weyl == _TRUE_) {
+        ppt->has_lss = _TRUE_;
+        ppt->has_source_phi_plus_psi = _TRUE_;
+      }
+
       if ((ppt->has_cl_cmb_lensing_potential == _TRUE_) || (ppt->has_cl_lensing_potential)) {
         ppt->has_lss = _TRUE_;
         ppt->has_source_phi_plus_psi = _TRUE_;
@@ -2160,7 +2167,7 @@ int perturbations_get_k_list(
 
     /* find k_max: */
 
-    if ((ppt->has_pk_matter == _TRUE_) || (ppt->has_density_transfers == _TRUE_) || (ppt->has_velocity_transfers == _TRUE_))
+    if ((ppt->has_pk_matter == _TRUE_) || (ppt->has_pk_weyl == _TRUE_) || (ppt->has_density_transfers == _TRUE_) || (ppt->has_velocity_transfers == _TRUE_))
       k_max = MAX(k_max,ppt->k_max_for_pk);
 
     if (ppt->has_nl_corrections_based_on_delta_m == _TRUE_)
