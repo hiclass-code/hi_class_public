@@ -1032,14 +1032,21 @@ figcaption {
 .pub-authors { margin-right: 10px; }
 
 .pub-ref,
+.pub-arxiv,
 .pub-extra {
 	font-family: var(--mono);
 	font-size: 12.5px;
 	white-space: nowrap;
 }
 
+/* The primary reference is the journal one where it exists, the arXiv number
+   otherwise, so .pub-ref always carries the accent. The arXiv number then
+   trails behind it, dimmed: still there to cite and still matched by the
+   filter, without competing with the journal line. */
 .pub-ref { color: var(--accent-deep); }
 .pub:hover .pub-ref { color: var(--accent); }
+
+.pub-arxiv { margin-left: 8px; color: var(--text-dim); }
 
 .pub-extra { margin-left: 8px; }
 
