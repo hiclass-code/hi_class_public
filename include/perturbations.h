@@ -152,6 +152,7 @@ struct perturbations
   short has_cl_lensing_potential;     /**< do we need \f$ C_l \f$'s for galaxy lensing potential? */
   short has_cl_number_count;          /**< do we need \f$ C_l \f$'s for density number count? */
   short has_pk_matter;                /**< do we need matter Fourier spectrum? */
+  short has_pk_weyl; /**< was the independent wPk output requested? */
   short has_density_transfers;        /**< do we need to output individual matter density transfer functions? */
   short has_velocity_transfers;       /**< do we need to output individual matter velocity transfer functions? */
   short has_metricpotential_transfers;/**< do we need to output individual transfer functions for scalar metric perturbations? */

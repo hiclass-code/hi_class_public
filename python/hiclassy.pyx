@@ -1248,6 +1248,60 @@ cdef class HiClass:
 
         return pk_cb
 
+    def pk_weyl(self,double k,double z):
+        """
+        Return the linear rescaled Weyl power spectrum.
+
+        The returned quantity is k**4 P_{(phi+psi)/2}, the power spectrum
+        of k**2*(phi+psi)/2, in 1/Mpc. Requires 'wPk' in 'output'.
+        Follows the configured nonlinear setting. Nonlinear Weyl power is not
+        supported and raises CosmoSevereError; use pk_weyl_lin to request
+        linear Weyl power even when nonlinear matter is enabled.
+
+        Parameters
+        ----------
+        k : float
+            Wavenumber in 1/Mpc.
+        z : float
+            Redshift.
+
+        Returns
+        -------
+        pk : float
+            Rescaled Weyl power in 1/Mpc.
+
+        Notes
+        -----
+        For 0 < k < k_min, uses the leading-order approximation
+        P_W(k,z) = (k/k_min)**n_s * P_W(k_min,z). This requires a single
+        adiabatic analytic primordial power law without running
+        (alpha_s = beta_s = 0). Other primordial setups remain supported
+        within the native k grid.
+
+        Missing 'wPk', unsupported nonlinear or low-k requests, k <= 0,
+        k above the native maximum, and redshifts outside the native time
+        grid raise CosmoSevereError. Nonfinite k/z values are rejected.
+        With only z=0 stored, positive redshifts require increasing z_max_pk.
+        No high-k or redshift extrapolation is performed.
+        """
+
+
+        self.compute(["fourier"])
+
+        cdef double pk
+
+        if (self.pt.has_pk_weyl == _FALSE_):
+            raise CosmoSevereError("No power spectrum computed. You must add wPk to the list of outputs.")
+
+        if (self.fo.method == nl_none):
+            if fourier_pk_weyl_at_k_and_z(&self.ba,&self.pm,&self.fo,pk_linear,k,z,&pk,NULL)==_FAILURE_:
+                raise CosmoSevereError(self.fo.error_message)
+        else:
+            if fourier_pk_weyl_at_k_and_z(&self.ba,&self.pm,&self.fo,pk_nonlinear,k,z,&pk,NULL)==_FAILURE_:
+                raise CosmoSevereError(self.fo.error_message)
+
+        return pk
+
     def pk_lin(self,double k,double z):
         """
         Return the linear total matter power spectrum P_m(k,z)
@@ -1316,6 +1370,55 @@ cdef class HiClass:
             raise CosmoSevereError(self.fo.error_message)
 
         return pk_cb_lin
+
+    def pk_weyl_lin(self,double k,double z):
+        """
+        Return the linear rescaled Weyl power spectrum.
+
+        The returned quantity is k**4 P_{(phi+psi)/2}, the power spectrum
+        of k**2*(phi+psi)/2, in 1/Mpc. Requires 'wPk' in 'output'.
+        Always requests linear Weyl power, independently of the configured
+        nonlinear matter calculation.
+
+        Parameters
+        ----------
+        k : float
+            Wavenumber in 1/Mpc.
+        z : float
+            Redshift.
+
+        Returns
+        -------
+        pk : float
+            Rescaled Weyl power in 1/Mpc.
+
+        Notes
+        -----
+        For 0 < k < k_min, uses the leading-order approximation
+        P_W(k,z) = (k/k_min)**n_s * P_W(k_min,z). This requires a single
+        adiabatic analytic primordial power law without running
+        (alpha_s = beta_s = 0). Other primordial setups remain supported
+        within the native k grid.
+
+        Missing 'wPk', unsupported low-k requests, k <= 0,
+        k above the native maximum, and redshifts outside the native time
+        grid raise CosmoSevereError. Nonfinite k/z values are rejected.
+        With only z=0 stored, positive redshifts require increasing z_max_pk.
+        No high-k or redshift extrapolation is performed.
+        """
+
+
+        self.compute(["fourier"])
+
+        cdef double pk
+
+        if (self.pt.has_pk_weyl == _FALSE_):
+            raise CosmoSevereError("No power spectrum computed. You must add wPk to the list of outputs.")
+
+        if fourier_pk_weyl_at_k_and_z(&self.ba,&self.pm,&self.fo,pk_linear,k,z,&pk,NULL)==_FAILURE_:
+            raise CosmoSevereError(self.fo.error_message)
+
+        return pk
 
     def pk_numerical_nw(self,double k,double z):
         """
@@ -1471,6 +1574,61 @@ cdef class HiClass:
                     pk_cb[index_k,index_z,index_mu] = self.pk_cb(k[index_k,index_z,index_mu],z[index_z])
         return pk_cb
 
+    def get_pk_weyl(self, np.ndarray[DTYPE_t,ndim=3] k, np.ndarray[DTYPE_t,ndim=1] z, int k_size, int z_size, int mu_size):
+        """
+        Return an array of linear rescaled Weyl power spectra.
+
+        The returned quantity is k**4 P_{(phi+psi)/2}, the power spectrum
+        of k**2*(phi+psi)/2, in 1/Mpc. Requires 'wPk' in 'output'.
+        Follows the configured nonlinear setting. Nonlinear Weyl power is not
+        supported and raises CosmoSevereError; use get_pk_weyl_lin to request
+        linear Weyl power even when nonlinear matter is enabled.
+
+        Parameters
+        ----------
+        k : numpy.ndarray
+            Float64 array of wavenumbers in 1/Mpc, with shape
+            (k_size, z_size, mu_size).
+        z : numpy.ndarray
+            Float64 redshift array with shape (z_size,).
+        k_size : int
+            Number of wavenumbers for each redshift and angular sample.
+        z_size : int
+            Number of redshift samples.
+        mu_size : int
+            Number of angular samples for each wavenumber and redshift.
+
+        Returns
+        -------
+        pk : numpy.ndarray
+            Rescaled Weyl power in 1/Mpc, with shape
+            (k_size, z_size, mu_size).
+
+        Notes
+        -----
+        For 0 < k < k_min, uses the leading-order approximation
+        P_W(k,z) = (k/k_min)**n_s * P_W(k_min,z). This requires a single
+        adiabatic analytic primordial power law without running
+        (alpha_s = beta_s = 0). Other primordial setups remain supported
+        within the native k grid.
+
+        Missing 'wPk', unsupported nonlinear or low-k requests, k <= 0,
+        k above the native maximum, and redshifts outside the native time
+        grid raise CosmoSevereError. Nonfinite k/z values are rejected.
+        With only z=0 stored, positive redshifts require increasing z_max_pk.
+        No high-k or redshift extrapolation is performed.
+        """
+        self.compute(["fourier"])
+
+        cdef np.ndarray[DTYPE_t, ndim=3] pk = np.zeros((k_size,z_size,mu_size),'float64')
+        cdef int index_k, index_z, index_mu
+
+        for index_k in range(k_size):
+            for index_z in range(z_size):
+                for index_mu in range(mu_size):
+                    pk[index_k,index_z,index_mu] = self.pk_weyl(k[index_k,index_z,index_mu],z[index_z])
+        return pk
+
     def get_pk_lin(self, np.ndarray[DTYPE_t,ndim=3] k, np.ndarray[DTYPE_t,ndim=1] z, int k_size, int z_size, int mu_size):
         """
         Return the linear total matter power spectrum P_m(k,z) for a 3D array of k and a 1D array of z
@@ -1562,6 +1720,60 @@ cdef class HiClass:
                 for index_mu in range(mu_size):
                     pk_cb[index_k,index_z,index_mu] = self.pk_cb_lin(k[index_k,index_z,index_mu],z[index_z])
         return pk_cb
+
+    def get_pk_weyl_lin(self, np.ndarray[DTYPE_t,ndim=3] k, np.ndarray[DTYPE_t,ndim=1] z, int k_size, int z_size, int mu_size):
+        """
+        Return an array of linear rescaled Weyl power spectra.
+
+        The returned quantity is k**4 P_{(phi+psi)/2}, the power spectrum
+        of k**2*(phi+psi)/2, in 1/Mpc. Requires 'wPk' in 'output'.
+        Always requests linear Weyl power, independently of the configured
+        nonlinear matter calculation.
+
+        Parameters
+        ----------
+        k : numpy.ndarray
+            Float64 array of wavenumbers in 1/Mpc, with shape
+            (k_size, z_size, mu_size).
+        z : numpy.ndarray
+            Float64 redshift array with shape (z_size,).
+        k_size : int
+            Number of wavenumbers for each redshift and angular sample.
+        z_size : int
+            Number of redshift samples.
+        mu_size : int
+            Number of angular samples for each wavenumber and redshift.
+
+        Returns
+        -------
+        pk : numpy.ndarray
+            Rescaled Weyl power in 1/Mpc, with shape
+            (k_size, z_size, mu_size).
+
+        Notes
+        -----
+        For 0 < k < k_min, uses the leading-order approximation
+        P_W(k,z) = (k/k_min)**n_s * P_W(k_min,z). This requires a single
+        adiabatic analytic primordial power law without running
+        (alpha_s = beta_s = 0). Other primordial setups remain supported
+        within the native k grid.
+
+        Missing 'wPk', unsupported low-k requests, k <= 0,
+        k above the native maximum, and redshifts outside the native time
+        grid raise CosmoSevereError. Nonfinite k/z values are rejected.
+        With only z=0 stored, positive redshifts require increasing z_max_pk.
+        No high-k or redshift extrapolation is performed.
+        """
+        self.compute(["fourier"])
+
+        cdef np.ndarray[DTYPE_t, ndim=3] pk = np.zeros((k_size,z_size,mu_size),'float64')
+        cdef int index_k, index_z, index_mu
+
+        for index_k in range(k_size):
+            for index_z in range(z_size):
+                for index_mu in range(mu_size):
+                    pk[index_k,index_z,index_mu] = self.pk_weyl_lin(k[index_k,index_z,index_mu],z[index_z])
+        return pk
 
     def get_pk_all(self, k, z, nonlinear = True, cdmbar = False, z_axis_in_k_arr = 0, interpolation_kind='cubic'):
         """
