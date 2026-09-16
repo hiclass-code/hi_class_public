@@ -6,7 +6,8 @@
 
 hi_class extends the CLASS Boltzmann code to cover Horndeski and related scalar-tensor models of dark energy and modified gravity. It is based on CLASS by Julien Lesgourgues, with major inputs from Thomas Tram and others.
 
-- Website: http://hiclass-code.net
+- Website: https://hiclass-code.net
+- Documentation: https://github.com/hiclass-code/hi_class_public/wiki
 - CLASS website: http://class-code.net
 
 ## Authors
@@ -17,18 +18,19 @@ hi_class extends the CLASS Boltzmann code to cover Horndeski and related scalar-
 
 ## Installation
 
-### From PyPI/TestPyPI
+### From PyPI
 
 ```bash
 pip install hiclassy
 ```
 
-This installs the Python wrapper and builds the C core. You need a working C compiler (e.g. gcc) and, optionally, OpenMP support for parallel execution.
+This installs the Python wrapper and builds the C core. You need Python 3.9 or newer, `make`, and C and C++ compilers (e.g. `gcc` and `g++`). Pip installs the Python dependencies and compiles the source package locally.
 
 ### From source
 
 ```bash
-make clean
+git clone https://github.com/hiclass-code/hi_class_public.git
+cd hi_class_public
 make class
 ```
 
@@ -48,7 +50,7 @@ Use the Python interface:
 from hiclassy import HiClass
 ```
 
-The HiClass object is the equivalent of the Class object for standard Class. All methods and attributes, plus additional HiClass specific, are shared between the two. Then, the usage of the two should be equivalent. 
+The `HiClass` object exposes the standard CLASS interface and additional methods for modified gravity. See the [Python wrapper guide](https://github.com/hiclass-code/hi_class_public/wiki/Python-wrapper) for examples and conventions.
 
 If you want to use the C executable instead, you can run:
 
@@ -62,8 +64,8 @@ Parameter documentation and examples are available in `hi_class.ini` and `explan
 
 If you use hi_class, please cite:
 
-- M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira, "hi_class: Horndeski in the Cosmic Linear Anisotropy Solving System", JCAP 1708 (2017) no.08, 019, http://arxiv.org/abs/arXiv:1605.06102
-- E. Bellini, I. Sawicki, M. Zumalacarregui, "hi_class: Background Evolution, Initial Conditions and Approximation Schemes", http://arxiv.org/abs/arXiv:1909.01828
+- M. Zumalacarregui, E. Bellini, I. Sawicki, J. Lesgourgues, P. Ferreira, "hi_class: Horndeski in the Cosmic Linear Anisotropy Solving System", JCAP 1708 (2017) no.08, 019, https://arxiv.org/abs/1605.06102
+- E. Bellini, I. Sawicki, M. Zumalacarregui, "hi_class: Background Evolution, Initial Conditions and Approximation Schemes", https://arxiv.org/abs/1909.01828
 
 Please also cite the relevant CLASS papers, including:
 
@@ -84,13 +86,13 @@ A MATLAB helper is available in `plot_CLASS_output.m`.
 
 We recommend developing from the GitHub repository:
 
-https://github.com/emiliobellini/hi_class_public
+https://github.com/hiclass-code/hi_class_public
 
 For hi_class-specific updates, see this repository and the `gravity_models/` examples.
 
 ## Support
 
-For support, please open an issue in the repository or refer to the documentation at http://hiclass-code.net.
+For support, please open an issue in the repository or refer to the [wiki](https://github.com/hiclass-code/hi_class_public/wiki).
 
 ## Weyl power and growth conventions
 
