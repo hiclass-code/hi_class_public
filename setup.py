@@ -46,13 +46,15 @@ recfast_folder = os.path.join(os.path.join(root_folder, "external"),"RecfastCLAS
 hyrec_folder = os.path.join(os.path.join(root_folder, "external"),"HyRec2020")
 hiclass_folder = os.path.join(os.path.join(root_folder, "gravity_smg"), "include")
 
-# Recover the CLASS version
+# Keep the package version in sync with the C/Python runtime version.
 with open(os.path.join(include_folder, 'common.h'), 'r') as v_file:
-    for line in v_file:
-        if line.find("_VERSION_") != -1:
-            # get rid of the " and the v
-            VERSION = line.split()[-1][2:-1]+".0" # Always set a sub-version number here for subsequent uploads (!)
-            break
+    version_defines = {
+        fields[1]: fields[2].strip('"')
+        for line in v_file
+        if len(fields := line.split()) == 3 and fields[0] == '#define'
+    }
+VERSION = (version_defines['_VERSION_'].removeprefix('v') + '.'
+           + version_defines['_HI_CLASS_REVISION_'])
 
 # Define cython extension and fix Python version
 hiclassy_ext = Extension("hiclassy._hiclassy", [os.path.join("python", "hiclassy.pyx")],

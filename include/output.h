@@ -112,6 +112,12 @@ extern "C" {
                 enum pk_outputs pk_output
                 );
 
+  int output_pk_weyl(struct background * pba,
+                    struct perturbations * ppt,
+                    struct primordial * ppm,
+                    struct fourier * pfo,
+                    struct output * pop);
+
   int output_tk(
                 struct background * pba,
                 struct perturbations * ppt,

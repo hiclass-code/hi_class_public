@@ -47,7 +47,7 @@ from chiclassy cimport *
 
 DEF _MAXTITLESTRINGLENGTH_ = 8000
 
-__version__ = _VERSION_.decode("utf-8")
+__version__ = _HI_CLASS_VERSION_.decode("utf-8").removeprefix("v")
 
 # Implement a specific Exception (this might not be optimally designed, nor
 # even acceptable for python standards. It, however, does the job).

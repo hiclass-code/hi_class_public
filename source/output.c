@@ -123,7 +123,7 @@ int output_init(
 
   /** - check that we really want to output at least one file */
 
-  if ((ppt->has_cls == _FALSE_) && (ppt->has_pk_matter == _FALSE_) && (ppt->has_density_transfers == _FALSE_) && (ppt->has_velocity_transfers == _FALSE_) && (pop->write_background == _FALSE_) && (pop->write_thermodynamics == _FALSE_) && (pop->write_primordial == _FALSE_) && (ppt->has_vector_velocity_transfers == _FALSE_)) {
+  if ((ppt->has_cls == _FALSE_) && (ppt->has_pk_matter == _FALSE_) && (ppt->has_pk_weyl == _FALSE_) && (ppt->has_density_transfers == _FALSE_) && (ppt->has_velocity_transfers == _FALSE_) && (pop->write_background == _FALSE_) && (pop->write_thermodynamics == _FALSE_) && (pop->write_primordial == _FALSE_) && (ppt->has_vector_velocity_transfers == _FALSE_)) {
     if (pop->output_verbose > 0)
       printf("No output files requested. Output module skipped.\n");
     return _SUCCESS_;
@@ -171,6 +171,11 @@ int output_init(
                  pop->error_message,
                  pop->error_message);
     }
+  }
+
+  if (ppt->has_pk_weyl == _TRUE_) {
+    class_call(output_pk_weyl(pba,ppt,ppm,pfo,pop),
+               pop->error_message, pop->error_message);
   }
 
   /** - deal with scalar density and velocity transfer functions */
@@ -666,6 +671,101 @@ int output_cl(
 
   return _SUCCESS_;
 
+}
+
+/** Write linear Q_W(k,z) = k^4 P_{(phi+psi)/2}(k,z).
+ * Files use k in h/Mpc and Q_W in h/Mpc, hence both native quantities
+ * are divided by h. Cross-IC files contain one symmetric contribution;
+ * the total includes twice each off-diagonal contribution, as for matter.
+ * Nonlinear matter settings do not change this linear Weyl output.
+ */
+int output_pk_weyl(struct background * pba,
+                  struct perturbations * ppt,
+                  struct primordial * ppm,
+                  struct fourier * pfo,
+                  struct output * pop) {
+  struct fourier_weyl * w = pfo->weyl;
+  double * values;
+  double * row;
+  int iz, ik, ic1, ic2, pair, column, columns;
+  const char * names[5];
+  char suffix[32], redshift_suffix[16];
+  FileName filename;
+  FILE * out;
+
+  class_test(w == NULL || w->ready == _FALSE_, pop->error_message,
+             "Weyl output requires initialized wPk tables.");
+  class_test(w->ic_size > 5, pop->error_message,
+             "Unsupported number of scalar initial conditions for Weyl output.");
+  for (ic1 = 0; ic1 < w->ic_size; ic1++) names[ic1] = NULL;
+  if (ppt->has_ad) names[ppt->index_ic_ad] = "ad";
+  if (ppt->has_bi) names[ppt->index_ic_bi] = "bi";
+  if (ppt->has_cdi) names[ppt->index_ic_cdi] = "cdi";
+  if (ppt->has_nid) names[ppt->index_ic_nid] = "nid";
+  if (ppt->has_niv) names[ppt->index_ic_niv] = "niv";
+  for (ic1 = 0; ic1 < w->ic_size; ic1++)
+    class_test(names[ic1] == NULL, pop->error_message,
+               "Unknown scalar initial condition for Weyl output.");
+
+  columns = 1 + (w->ic_size > 1 ? w->ic_ic_size : 0);
+  class_alloc(values, (size_t)w->k_size*columns*sizeof(double), pop->error_message);
+  for (iz = 0; iz < pop->z_pk_num; iz++) {
+    if (pop->z_pk_num == 1) redshift_suffix[0] = '\0';
+    else class_sprintf(redshift_suffix, "z%d_", iz+1);
+
+    /* Evaluate before opening files, so invalid redshifts leave no empty file. */
+    for (ik = 0; ik < w->k_size; ik++) {
+      row = values + (size_t)ik*columns;
+      class_call_except(fourier_pk_weyl_at_k_and_z(pba, ppm, pfo, pk_linear,
+                          w->k[ik], pop->z_pk[iz], row,
+                          columns > 1 ? row+1 : NULL),
+                        pfo->error_message, pop->error_message, free(values));
+    }
+    for (column = 0; column < columns; column++) {
+      suffix[0] = '\0';
+      if (column > 0) {
+        pair = column-1;
+        if (w->is_non_zero[pair] == _FALSE_) continue;
+        for (ic1 = 0; ic1 < w->ic_size; ic1++) {
+          for (ic2 = ic1; ic2 < w->ic_size; ic2++) {
+            if (index_symmetric_matrix(ic1,ic2,w->ic_size) == pair) {
+              if (ic1 == ic2) class_sprintf(suffix, "_%s", names[ic1]);
+              else class_sprintf(suffix, "_%s_%s", names[ic1], names[ic2]);
+            }
+          }
+        }
+      }
+      class_sprintf(filename, "%s%spk_weyl%s.dat", pop->root, redshift_suffix, suffix);
+      out = fopen(filename, "w");
+      if (out == NULL) {
+        free(values);
+        class_stop(pop->error_message, "Could not open Weyl output file %s.", filename);
+      }
+      if (pop->write_header == _TRUE_) {
+        fprintf(out, "# Linear Weyl power Q_W = k^4 P_{(phi+psi)/2} at z = %.10g\n", pop->z_pk[iz]);
+        if (column > 0)
+          fprintf(out, "# Initial-condition contribution%s (cross terms enter the total twice).\n", suffix);
+        fprintf(out, "# for k=%g to %g h/Mpc,\n", w->k[0]/pba->h, w->k[w->k_size-1]/pba->h);
+        fprintf(out, "# number of wavenumbers equal to %d\n", w->k_size);
+        fprintf(out, "# Both k and Q_W are in h/Mpc: divide the native 1/Mpc values by h.\n");
+        fprintf(out, "# 1:k (h/Mpc)  2:Q_W (h/Mpc)\n");
+      }
+      for (ik = 0; ik < w->k_size; ik++)
+        fprintf(out, "% .12e % .12e\n", w->k[ik]/pba->h,
+                values[(size_t)ik*columns+column]/pba->h);
+      if (ferror(out)) {
+        fclose(out);
+        free(values);
+        class_stop(pop->error_message, "Could not write Weyl output file %s.", filename);
+      }
+      if (fclose(out) != 0) {
+        free(values);
+        class_stop(pop->error_message, "Could not close Weyl output file %s.", filename);
+      }
+    }
+  }
+  free(values);
+  return _SUCCESS_;
 }
 
 /**

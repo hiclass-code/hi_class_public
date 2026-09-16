@@ -10,6 +10,7 @@
 cdef extern from "class.h":
 
     cdef char[10] _VERSION_
+    const char * _HI_CLASS_VERSION_
 
     ctypedef char FileArg[40]
 

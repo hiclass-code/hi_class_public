@@ -237,8 +237,8 @@ int input_set_root(char* input_file,
 
   FileArg string1;                         //Is ignored
 
-  int n_extensions = 7;                    //Keep this as the length of the below list
-  char* output_extensions[7] = {"cl.dat","pk.dat","tk.dat","parameters.ini","background.dat","thermodynamics.dat","perturbations_k0.dat"};
+  int n_extensions = 9;                    //Keep this as the length of the below list
+  char* output_extensions[9] = {"cl.dat","pk.dat","tk.dat","parameters.ini","background.dat","thermodynamics.dat","perturbations_k0.dat","pk_weyl.dat","z1_pk_weyl.dat"};
 
   /* Shorthand notation */
   struct file_content * pfc = *ppfc_input;

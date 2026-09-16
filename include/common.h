@@ -16,6 +16,9 @@
 #define __COMMON__
 
 #define _VERSION_ "v3.4.0"
+/* hi_class revision appended to the upstream CLASS version. */
+#define _HI_CLASS_REVISION_ "1"
+#define _HI_CLASS_VERSION_ _VERSION_ "." _HI_CLASS_REVISION_
 
 /* @cond INCLUDE_WITH_DOXYGEN */
 

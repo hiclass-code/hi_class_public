@@ -6,7 +6,7 @@
 
 hi_class extends the CLASS Boltzmann code to cover Horndeski and related scalar-tensor models of dark energy and modified gravity. It is based on CLASS by Julien Lesgourgues, with major inputs from Thomas Tram and others.
 
-hi_class retains the functionality of the corresponding CLASS version and adds support for modified gravity. hi_class v3.4.0.0 is based on CLASS v3.4.0, so the standard CLASS v3.4.0 features, input parameters and outputs are available.
+hi_class retains the functionality of the corresponding CLASS version and adds support for modified gravity. hi_class v3.4.0.1 is based on CLASS v3.4.0, so the standard CLASS v3.4.0 features, input parameters and outputs are available.
 
 - Website: https://hiclass-code.net
 - Documentation: https://github.com/hiclass-code/hi_class_public/wiki
