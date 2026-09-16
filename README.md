@@ -6,6 +6,8 @@
 
 hi_class extends the CLASS Boltzmann code to cover Horndeski and related scalar-tensor models of dark energy and modified gravity. It is based on CLASS by Julien Lesgourgues, with major inputs from Thomas Tram and others.
 
+hi_class retains the functionality of the corresponding CLASS version and adds support for modified gravity. hi_class v3.4.0.0 is based on CLASS v3.4.0, so the standard CLASS v3.4.0 features, input parameters and outputs are available.
+
 - Website: https://hiclass-code.net
 - Documentation: https://github.com/hiclass-code/hi_class_public/wiki
 - CLASS website: http://class-code.net
@@ -50,7 +52,7 @@ Use the Python interface:
 from hiclassy import HiClass
 ```
 
-The `HiClass` object exposes the standard CLASS interface and additional methods for modified gravity. See the [Python wrapper guide](https://github.com/hiclass-code/hi_class_public/wiki/Python-wrapper) for examples and conventions.
+Since 9 February 2026, the wrapper uses `hiclassy` and `HiClass`. To adapt a standard CLASS Python script, replace `from classy import Class` with `from hiclassy import HiClass` and `Class()` with `HiClass()`. The standard methods of the corresponding CLASS version keep the same names and calling conventions; `HiClass` adds methods for modified gravity. See the [Python wrapper guide](https://github.com/hiclass-code/hi_class_public/wiki/Python-wrapper) for examples and conventions.
 
 If you want to use the C executable instead, you can run:
 

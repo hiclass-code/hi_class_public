@@ -129,8 +129,13 @@
       </li>
       <li>
         <time class="news-date" datetime="2026-02">Feb 2026</time>
-        <p class="news-body">The Python wrapper was published on PyPI as <code>hiclassy</code>, so
-          <code>pip install hiclassy</code> is all it takes to drive <code>hi_class</code> from a script.
+        <p class="news-body">Since 9 February 2026, the Python wrapper uses the names
+          <code>hiclassy</code> and <code>HiClass</code>. To adapt a standard CLASS Python script,
+          replace <code>from classy import Class</code> with <code>from hiclassy import HiClass</code>
+          and instantiate <code>HiClass()</code> instead of <code>Class()</code>.
+          The standard methods of the corresponding CLASS version are unchanged; additional methods
+          expose modified-gravity quantities. The wrapper is available on PyPI via
+          <code>pip install hiclassy</code>.
           <span class="news-links">
             <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener">PyPI</a>
           </span>
@@ -514,6 +519,12 @@
           <a href="https://github.com/cloe-org/cloelib" target="_blank" rel="noopener">CLOE</a>, the Euclid
           likelihood library, calls to get modified-gravity predictions. Worked examples ship in
           <code>notebooks/</code>.</p>
+        <p>To use an existing CLASS Python script, change <code>classy</code> to
+          <code>hiclassy</code> and <code>Class</code> to <code>HiClass</code>.
+          These names have been used since 9 February 2026. All standard methods of the corresponding
+          CLASS version have the same names and calling conventions; <code>HiClass</code> adds
+          methods for modified gravity. See the
+          <a href="https://github.com/hiclass-code/hi_class_public/wiki/Python-wrapper#switching-from-class">migration example</a>.</p>
       </div>
 <pre class="snippet"><code>from hiclassy import HiClass
 
@@ -600,6 +611,7 @@ pk = cosmo.pk(0.1, 0.)      <span class="c"># P(k = 0.1/Mpc, z = 0)</span></code
         The Python wrapper carries the same number on PyPI:
         <a href="https://pypi.org/project/hiclassy/" target="_blank" rel="noopener"><code>hiclassy</code></a>
         <b class="num">3.4.0.0</b>.</p>
+      <p>hi_class retains the functionality of the corresponding CLASS version and adds support for modified gravity. hi_class v3.4.0.0 is based on CLASS v3.4.0, so the standard CLASS v3.4.0 features, input parameters and outputs are available.</p>
     </div>
 
     <h3 class="eyebrow" style="margin-top:44px">Interfaces</h3>
